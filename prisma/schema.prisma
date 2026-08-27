@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+// Matches ersaticaret's existing Product collection
+model Product {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String   @unique
+  sku            String   @unique
+  barcode        String?
+  description    String?
+  specsJson      String?
+  status         String   @default("DRAFT")
+  unit           String   @default("ADET")
+  vatRate        Float    @default(20)
+  currency       String   @default("TRY")
+  costPrice      Float?
+  salePrice      Float?
+  stockQty       Float    @default(0)
+  minOrderQty    Float    @default(1)
+  brandId        String?  @db.ObjectId
+  categoryId     String?  @db.ObjectId
+  supplierId     String?  @db.ObjectId
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  brand    Brand?    @relation(fields: [brandId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  images    ProductImage[]
+  documents ProductDocument[]
+}
+
+model Brand {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model Category {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String   @unique
+  parentId       String?  @db.ObjectId
+  vatRate        Float?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+}
+
+model ProductImage {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  productId      String  @db.ObjectId
+  url            String
+  originalUrl    String?
+  sourceSupplier String?
+  alt            String?
+  sortOrder      Int     @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductDocument {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  productId String @db.ObjectId
+  title     String
+  url       String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
