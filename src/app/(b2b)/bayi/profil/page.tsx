@@ -62,18 +62,23 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Tier Selector */}
-        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-right space-y-1">
-          <div className="text-[10px] uppercase font-bold text-slate-400">Bayi İskonto Kademesi</div>
-          <select
-            value={profile.tier}
-            onChange={(e) => setDealerTier(e.target.value as 'Standart' | 'Silver' | 'Gold')}
-            className="bg-sky-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg border-none focus:outline-none cursor-pointer"
-          >
-            <option value="Standart">Standart Bayi (%20 İskonto)</option>
-            <option value="Silver">Silver Bayi (%30 İskonto)</option>
-            <option value="Gold">Gold Bayi (%40 İskonto)</option>
-          </select>
+        {/* Read-Only Tier Badge */}
+        <div className="bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 text-left sm:text-right space-y-1">
+          <div className="text-[10px] uppercase font-bold text-slate-400">Tanımlı İskonto Kademesi</div>
+          <div className="flex items-center gap-2 sm:justify-end">
+            <span className={`px-3 py-1 rounded-lg text-xs font-black tracking-wide ${
+              profile.tier === 'Gold'
+                ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
+                : profile.tier === 'Silver'
+                ? 'bg-slate-300/20 border border-slate-300/40 text-slate-200'
+                : 'bg-sky-500/20 border border-sky-500/40 text-sky-300'
+            }`}>
+              {profile.tier} Bayi ({profile.tier === 'Gold' ? '%40' : profile.tier === 'Silver' ? '%30' : '%20'} İskonto)
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-500">
+            * İskonto kademeniz merkez yönetimi tarafından belirlenir.
+          </div>
         </div>
       </div>
 

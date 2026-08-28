@@ -137,6 +137,85 @@ export default function AdminControlPanel() {
   // Dealer Risk Limit Editing
   const [creditLimitInput, setCreditLimitInput] = useState(profile.creditLimit.toString());
 
+  // Registered Dealers State
+  const [dealersList, setDealersList] = useState([
+    {
+      id: 'dealer-1',
+      dealerCode: 'bayitest',
+      companyName: 'Test Bayi A.Ş.',
+      contactPerson: 'Sadık Usta',
+      phone: '0552 584 30 73',
+      email: 'bayi@ersasogutma.com.test',
+      city: 'Darıca / Kocaeli',
+      tier: 'Gold',
+      discountRate: 40,
+      creditLimit: 250000,
+      currentBalance: 42500,
+      status: 'ACTIVE',
+      registeredAt: '15.01.2026'
+    },
+    {
+      id: 'dealer-2',
+      dealerCode: 'bayi-gebze',
+      companyName: 'Gebze Soğutma & Klima Ltd.',
+      contactPerson: 'Ahmet Yılmaz',
+      phone: '0532 111 22 33',
+      email: 'info@gebzesogutma.com',
+      city: 'Gebze / Kocaeli',
+      tier: 'Silver',
+      discountRate: 30,
+      creditLimit: 150000,
+      currentBalance: 0,
+      status: 'ACTIVE',
+      registeredAt: '02.02.2026'
+    },
+    {
+      id: 'dealer-3',
+      dealerCode: 'bayi-marmara',
+      companyName: 'Marmara Endüstriyel Soğutma San.',
+      contactPerson: 'Mehmet Demir',
+      phone: '0533 444 55 66',
+      email: 'satis@marmarasogutma.com',
+      city: 'Pendik / İstanbul',
+      tier: 'Platinum',
+      discountRate: 50,
+      creditLimit: 500000,
+      currentBalance: 118400,
+      status: 'ACTIVE',
+      registeredAt: '20.02.2026'
+    }
+  ]);
+
+  // Dealer Applications State (Başvurular)
+  const [dealerApplications, setDealerApplications] = useState([
+    {
+      id: 'app-1',
+      companyName: 'Anadolu Teknik Soğutma Sistemleri',
+      contactPerson: 'Kemal Şen',
+      phone: '0535 999 88 77',
+      email: 'kemal@anadolusogutma.com',
+      city: 'Bornova / İzmir',
+      taxOffice: 'Bornova V.D.',
+      taxNumber: '1234567890',
+      notes: 'Haftalık düzenli gaz ve kompresör alımı yapmak istiyoruz.',
+      status: 'PENDING',
+      appliedAt: 'Bugün 10:45'
+    },
+    {
+      id: 'app-2',
+      companyName: 'Kocaeli İklimlendirme Servis',
+      contactPerson: 'Burak Kaya',
+      phone: '0544 333 22 11',
+      email: 'burak@kocaeliservis.com',
+      city: 'İzmit / Kocaeli',
+      taxOffice: 'Alemdar V.D.',
+      taxNumber: '9876543210',
+      notes: 'Yetkili klima servisi, toptan parça alımı.',
+      status: 'PENDING',
+      appliedAt: 'Dün 16:20'
+    }
+  ]);
+
   // Manual Cari Transaction
   const [manualDocNo, setManualDocNo] = useState('');
   const [manualDocType, setManualDocType] = useState<'Satış Faturası' | 'Tahsilat Makbuzu' | 'Havale/EFT'>('Satış Faturası');
@@ -1210,49 +1289,253 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* TAB 6: DEALERS & CARI */}
+      {/* TAB 6: DEALERS & APPLICATIONS */}
       {activeTab === 'dealers' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="space-y-8">
+          
+          {/* Section 1: Dealer Applications (Bayilik Başvuruları) */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>Gelen Bayilik Başvuruları</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      {dealerApplications.filter(a => a.status === 'PENDING').length} Bekleyen Başvuru
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400">Web sitesi üzerinden gelen yeni B2B bayi onay talepleri</p>
+                </div>
+              </div>
+            </div>
+
+            {dealerApplications.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 text-xs">
+                Bekleyen yeni bayilik başvurusu bulunmuyor.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="py-3 px-4">Firma Ünvanı & Yetkili</th>
+                      <th className="py-3 px-4">İletişim & Konum</th>
+                      <th className="py-3 px-4">Vergi Bilgileri</th>
+                      <th className="py-3 px-4">Başvuru Notu</th>
+                      <th className="py-3 px-4">Tarih / Durum</th>
+                      <th className="py-3 px-4 text-right">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {dealerApplications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-white">{app.companyName}</div>
+                          <div className="text-slate-400 text-[11px]">{app.contactPerson}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-mono text-sky-400">{app.phone}</div>
+                          <div className="text-slate-400 text-[11px]">{app.city}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="text-slate-300">{app.taxOffice}</div>
+                          <div className="font-mono text-slate-400 text-[11px]">{app.taxNumber}</div>
+                        </td>
+                        <td className="py-3.5 px-4 max-w-xs truncate text-slate-300">
+                          {app.notes || '—'}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="text-slate-400 text-[11px]">{app.appliedAt}</div>
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1 ${
+                            app.status === 'PENDING'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              : app.status === 'APPROVED'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                              : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                          }`}>
+                            {app.status === 'PENDING' ? 'İnceleme Bekliyor' : app.status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          {app.status === 'PENDING' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => {
+                                  setDealerApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'APPROVED' } : a));
+                                  setDealersList(prev => [
+                                    ...prev,
+                                    {
+                                      id: `dealer-${Date.now()}`,
+                                      dealerCode: `bayi-${app.companyName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8)}`,
+                                      companyName: app.companyName,
+                                      contactPerson: app.contactPerson,
+                                      phone: app.phone,
+                                      email: app.email,
+                                      city: app.city,
+                                      tier: 'Silver',
+                                      discountRate: 30,
+                                      creditLimit: 150000,
+                                      currentBalance: 0,
+                                      status: 'ACTIVE',
+                                      registeredAt: 'Bugün'
+                                    }
+                                  ]);
+                                  showToast(`"${app.companyName}" başvurusu onaylandı ve Silver Bayi olarak eklendi!`, 'success');
+                                }}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                Onayla & Bayi Yap
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDealerApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'REJECTED' } : a));
+                                  showToast(`Başvuru reddedildi.`, 'info');
+                                }}
+                                className="px-2.5 py-1.5 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 font-bold rounded-lg text-xs transition border border-slate-700"
+                              >
+                                Reddet
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 text-[11px]">İşlem Tamamlandı</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Registered Dealers Table & Tier Management */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-sky-400" />
+                  <span>Kayıtlı Bayiler & İskonto Kademesi Yönetimi ({dealersList.length})</span>
+                </h2>
+                <p className="text-xs text-slate-400">Bayilerin iskonto oranlarını, kredi limitlerini ve erişim durumlarını yönetin</p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
+                    <th className="py-3 px-4">Yetkili / Şehir</th>
+                    <th className="py-3 px-4">İskonto Kademesi</th>
+                    <th className="py-3 px-4">Tanımlı Limit</th>
+                    <th className="py-3 px-4">Güncel Bakiye</th>
+                    <th className="py-3 px-4">Durum</th>
+                    <th className="py-3 px-4 text-right">Kademe Değiştir</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {dealersList.map((dealer) => (
+                    <tr key={dealer.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3.5 px-4">
+                        <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
+                        <div className="font-bold text-white text-sm">{dealer.companyName}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="text-slate-300 font-semibold">{dealer.contactPerson}</div>
+                        <div className="text-slate-500 text-[11px]">{dealer.city} • {dealer.phone}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-black text-xs ${
+                          dealer.tier === 'VIP'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                            : dealer.tier === 'Platinum'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : dealer.tier === 'Gold'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : dealer.tier === 'Silver'
+                            ? 'bg-slate-300/20 text-slate-200 border border-slate-400/40'
+                            : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                        }`}>
+                          {dealer.tier} (%{dealer.discountRate} İskonto)
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
+                        {formatCurrency(dealer.creditLimit)}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
+                        {formatCurrency(dealer.currentBalance)}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                          {dealer.status === 'ACTIVE' ? 'Aktif Bayi' : 'Askıda'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {(['Standart', 'Silver', 'Gold', 'Platinum'] as const).map((t) => {
+                            const discMap = { Standart: 20, Silver: 30, Gold: 40, Platinum: 50 };
+                            return (
+                              <button
+                                key={t}
+                                onClick={() => {
+                                  setDealersList(prev => prev.map(d => d.id === dealer.id ? { ...d, tier: t, discountRate: discMap[t] } : d));
+                                  if (dealer.dealerCode === 'bayitest') {
+                                    setDealerTier(t as any);
+                                  }
+                                  showToast(`${dealer.companyName} kademesi ${t} (%${discMap[t]}) olarak güncellendi!`, 'success');
+                                }}
+                                className={`px-2 py-1 rounded text-[10px] font-bold transition ${
+                                  dealer.tier === t
+                                    ? 'bg-sky-600 text-white shadow'
+                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Section 3: Direct Cari & Transaction Management */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
                 <UserCheck className="w-4 h-4 text-amber-400" />
-                <span>Bayi İskonto & Risk Limiti</span>
+                <span>Test Bayi Hızlı Limit Düzenleme</span>
               </h2>
 
-              <div className="space-y-3 text-xs">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const lim = parseFloat(creditLimitInput);
+                  if (!isNaN(lim) && lim > 0) {
+                    updateProfile({ creditLimit: lim });
+                    setDealersList(prev => prev.map(d => d.dealerCode === 'bayitest' ? { ...d, creditLimit: lim } : d));
+                    showToast(`Bayi kredi limiti ${formatCurrency(lim)} olarak güncellendi!`);
+                  }
+                }}
+                className="space-y-3 text-xs"
+              >
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Bayi İskonto Sınıfı:</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['Standart', 'Silver', 'Gold'] as const).map((tier) => (
-                      <button
-                        key={tier}
-                        type="button"
-                        onClick={() => setDealerTier(tier)}
-                        className={`py-2 rounded-xl font-bold transition text-center ${
-                          profile.tier === tier
-                            ? 'bg-amber-500 text-slate-950 shadow-md'
-                            : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {tier}
-                      </button>
-                    ))}
+                  <label className="block text-slate-400 font-semibold mb-1">Seçili Bayi:</label>
+                  <div className="bg-slate-950 border border-slate-800 p-2.5 rounded-xl font-bold text-white">
+                    {profile.companyName} ({profile.dealerCode})
                   </div>
                 </div>
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const lim = parseFloat(creditLimitInput);
-                    if (!isNaN(lim) && lim > 0) {
-                      updateProfile({ creditLimit: lim });
-                      showToast(`Bayi kredi limiti ${formatCurrency(lim)} olarak güncellendi!`);
-                    }
-                  }}
-                  className="space-y-2 pt-2"
-                >
-                  <label className="block text-slate-400 font-semibold">Tanımlı Kredi Limiti (TL):</label>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Tanımlı Kredi Limiti (TL):</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
@@ -1262,119 +1545,120 @@ export default function AdminControlPanel() {
                     />
                     <button
                       type="submit"
-                      className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-2 rounded-xl text-xs"
+                      className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow"
                     >
-                      Güncelle
+                      Kaydet
                     </button>
                   </div>
-                </form>
-              </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                <Layers className="w-4 h-4 text-purple-400" />
+                <span>Cari Hesaba Fatura / Tahsilat Ekle</span>
+              </h2>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const d = parseFloat(manualDebt) || 0;
+                  const c = parseFloat(manualCredit) || 0;
+                  if (!manualDocNo) {
+                    showToast('Evrak no gereklidir.', 'warning');
+                    return;
+                  }
+                  const now = new Date();
+                  const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+                  addCariTransaction({
+                    date: dateFormatted,
+                    documentNo: manualDocNo,
+                    documentType: manualDocType,
+                    debt: d,
+                    credit: c,
+                    balance: profile.currentBalance + (c - d),
+                    balanceType: (profile.currentBalance + (c - d)) >= 0 ? 'A' : 'B',
+                    description: manualDesc || 'Admin Manuel Girişi'
+                  });
+                  setManualDocNo('');
+                  setManualDebt('');
+                  setManualCredit('');
+                  setManualDesc('');
+                  showToast('Cari hareketi başarıyla işlendi!');
+                }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"
+              >
+                <div>
+                  <label className="block text-slate-400 mb-1">Evrak No:</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Örn: ERS-202600210"
+                    value={manualDocNo}
+                    onChange={(e) => setManualDocNo(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Evrak Türü:</label>
+                  <select
+                    value={manualDocType}
+                    onChange={(e) => setManualDocType(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  >
+                    <option value="Satış Faturası">Satış Faturası (Borç Ekle)</option>
+                    <option value="Tahsilat Makbuzu">Tahsilat Makbuzu (Alacak Ekle)</option>
+                    <option value="Havale/EFT">Havale/EFT (Alacak Ekle)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Borç Tutarı (TL):</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={manualDebt}
+                    onChange={(e) => setManualDebt(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1">Alacak Tutarı (TL):</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={manualCredit}
+                    onChange={(e) => setManualCredit(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-slate-400 mb-1">Açıklama:</label>
+                  <input
+                    type="text"
+                    placeholder="Örn: Manuel fatura virmanı"
+                    value={manualDesc}
+                    onChange={(e) => setManualDesc(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2 rounded-xl shadow-md transition"
+                  >
+                    Cariye Ekle
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 
-          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Layers className="w-4 h-4 text-purple-400" />
-              <span>Cari Hesaba Fatura / Tahsilat Ekle</span>
-            </h2>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const d = parseFloat(manualDebt) || 0;
-                const c = parseFloat(manualCredit) || 0;
-                if (!manualDocNo) {
-                  showToast('Evrak no gereklidir.', 'warning');
-                  return;
-                }
-                const now = new Date();
-                const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
-                addCariTransaction({
-                  date: dateFormatted,
-                  documentNo: manualDocNo,
-                  documentType: manualDocType,
-                  debt: d,
-                  credit: c,
-                  balance: profile.currentBalance + (c - d),
-                  balanceType: (profile.currentBalance + (c - d)) >= 0 ? 'A' : 'B',
-                  description: manualDesc || 'Admin Manuel Girişi'
-                });
-                setManualDocNo('');
-                setManualDebt('');
-                setManualCredit('');
-                setManualDesc('');
-                showToast('Cari hareketi başarıyla işlendi!');
-              }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"
-            >
-              <div>
-                <label className="block text-slate-400 mb-1">Evrak No:</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: ERS-202600210"
-                  value={manualDocNo}
-                  onChange={(e) => setManualDocNo(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 mb-1">Evrak Türü:</label>
-                <select
-                  value={manualDocType}
-                  onChange={(e) => setManualDocType(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                >
-                  <option value="Satış Faturası">Satış Faturası (Borç Ekle)</option>
-                  <option value="Tahsilat Makbuzu">Tahsilat Makbuzu (Alacak Ekle)</option>
-                  <option value="Havale/EFT">Havale/EFT (Alacak Ekle)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 mb-1">Borç Tutarı (TL):</label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={manualDebt}
-                  onChange={(e) => setManualDebt(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 mb-1">Alacak Tutarı (TL):</label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  value={manualCredit}
-                  onChange={(e) => setManualCredit(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-slate-400 mb-1">Açıklama:</label>
-                <input
-                  type="text"
-                  placeholder="Örn: Manuel fatura virmanı"
-                  value={manualDesc}
-                  onChange={(e) => setManualDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2 flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2 rounded-xl shadow-md transition"
-                >
-                  Cariye Ekle
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
 

@@ -17,13 +17,13 @@ import {
   X
 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
+import { logoutAction } from '@/lib/actions';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { exchangeRates } = useStore();
 
   const handleSignOut = async () => {
-    // In Next.js with NextAuth
-    window.location.href = '/admin/login';
+    await logoutAction();
   };
 
   return (

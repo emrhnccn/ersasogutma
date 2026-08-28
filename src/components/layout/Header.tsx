@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
+import { logoutAction } from '@/lib/actions';
 import {
   Search,
   ShoppingCart,
@@ -392,9 +393,9 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                   <div className="border-t border-slate-800 my-1"></div>
 
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setShowUserMenu(false);
-                      alert('Oturum kapatıldı.');
+                      await logoutAction();
                     }}
                     className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-rose-400 hover:bg-rose-950/30 transition text-left"
                   >

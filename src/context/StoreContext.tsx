@@ -34,6 +34,7 @@ interface Toast {
 interface StoreContextType {
   // Products & Currency
   products: Product[];
+  refreshProducts: () => Promise<void>;
   currency: Currency;
   setCurrency: (c: Currency) => void;
   exchangeRates: ExchangeRates;
@@ -135,9 +136,46 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Initialize States
-  const [products] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [currency, setCurrency] = useState<Currency>('TRY');
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(INITIAL_EXCHANGE_RATES);
+
+  // Fetch real products from DB (/api/products)
+  const refreshProducts = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/products?status=ALL');
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        const mapped: Product[] = json.data.map((p: any) => ({
+          id: p.id,
+          code: p.sku,
+          name: p.name,
+          category: p.category?.name || 'Genel',
+          brand: p.brand?.name || 'Ersa',
+          pim: p.minOrderQty || 1,
+          priceTRY: p.salePrice || 0,
+          priceUSD: Number(((p.salePrice || 0) / 38.45).toFixed(2)),
+          priceEUR: Number(((p.salePrice || 0) / 42.10).toFixed(2)),
+          originalCurrency: (p.currency as Currency) || 'TRY',
+          stock: p.stockQty || 0,
+          inStock: (p.stockQty || 0) > 0,
+          image: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80',
+          unit: p.unit || 'Adet',
+          description: p.description || '',
+          specifications: p.specsJson ? (typeof p.specsJson === 'string' ? JSON.parse(p.specsJson) : p.specsJson) : {},
+          barcode: p.barcode || undefined,
+          isNew: true
+        }));
+        setProducts(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to load products in StoreContext:', err);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    refreshProducts();
+  }, [refreshProducts]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -688,6 +726,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     <StoreContext.Provider
       value={{
         products,
+        refreshProducts,
         currency,
         setCurrency,
         exchangeRates,
