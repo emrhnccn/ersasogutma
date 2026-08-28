@@ -1,10 +1,11 @@
 import { ISupplierScraper, ScraperProgress, ScraperLog, ScrapeOptions } from './types';
+import { ErsaTicaretScraper } from './ersaTicaretScraper';
 import { GirdapScraper } from './girdapScraper';
 
 class ScraperRegistry {
   private scrapers: Map<string, ISupplierScraper> = new Map();
   private currentProgress: ScraperProgress = {
-    providerId: 'girdap',
+    providerId: 'ersaticaret',
     status: 'idle',
     totalCategories: 0,
     processedCategories: 0,
@@ -19,6 +20,7 @@ class ScraperRegistry {
   private isScraping = false;
 
   constructor() {
+    this.register(new ErsaTicaretScraper());
     this.register(new GirdapScraper());
   }
 

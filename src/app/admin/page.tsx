@@ -106,11 +106,11 @@ export default function AdminControlPanel() {
   // Scraper State
   const [scraperProgress, setScraperProgress] = useState<ScraperProgress | null>(null);
   const [isScrapingActive, setIsScrapingActive] = useState(false);
+  const [scrapeTargetUrl, setScrapeTargetUrl] = useState('https://www.ersaticaret.com');
   const [scrapeUsername, setScrapeUsername] = useState('ersadarıca');
   const [scrapePassword, setScrapePassword] = useState('Ersagrp41');
-  const [scrapeMaxLimit, setScrapeMaxLimit] = useState<string>('50');
-  const [scrapeMargin, setScrapeMargin] = useState<string>('25');
-  const [selectedProvider, setSelectedProvider] = useState('girdap');
+  const [scrapeMaxLimit, setScrapeMaxLimit] = useState<string>('');
+  const [selectedProvider, setSelectedProvider] = useState('ersaticaret');
 
   // New Product Modal State
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
@@ -236,7 +236,6 @@ export default function AdminControlPanel() {
     e.preventDefault();
     try {
       const maxLimit = scrapeMaxLimit ? parseInt(scrapeMaxLimit, 10) : undefined;
-      const margin = scrapeMargin ? parseFloat(scrapeMargin) : 25;
 
       const res = await fetch('/api/admin/scrape', {
         method: 'POST',
@@ -245,10 +244,10 @@ export default function AdminControlPanel() {
           action: 'start',
           providerId: selectedProvider,
           options: {
+            targetUrl: scrapeTargetUrl,
             username: scrapeUsername,
             password: scrapePassword,
-            maxProducts: maxLimit,
-            marginPercent: margin
+            maxProducts: maxLimit
           }
         })
       });
@@ -256,7 +255,7 @@ export default function AdminControlPanel() {
       const data = await res.json();
       if (data.success) {
         setIsScrapingActive(true);
-        showToast('Tedarikçi botu başlatıldı! Ürünler taranıyor...', 'info');
+        showToast(`Bot başlatıldı! (${scrapeTargetUrl}) ürünleri çekiliyor...`, 'info');
         checkScraperStatus();
       } else {
         showToast(data.error || 'Bot başlatılamadı!', 'error');
@@ -679,17 +678,47 @@ export default function AdminControlPanel() {
 
               <form onSubmit={handleStartScraper} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı:</label>
-                  <select
-                    value={selectedProvider}
-                    onChange={(e) => setSelectedProvider(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-bold focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="girdap">Girdap Soğutma & Isıtma (girdap.com.tr)</option>
-                    <option value="cantas" disabled>Çantaş Soğutma (Çok Yakında)</option>
-                    <option value="friterm" disabled>Friterm A.Ş. (Çok Yakında)</option>
-                    <option value="ozaslan" disabled>Özaslan Soğutma (Çok Yakında)</option>
-                  </select>
+                  <label className="block text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı (URL):</label>
+                  <div className="space-y-2">
+                    <input
+                      type="url"
+                      required
+                      placeholder="https://www.ersaticaret.com"
+                      value={scrapeTargetUrl}
+                      onChange={(e) => setScrapeTargetUrl(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono font-bold focus:outline-none focus:border-amber-500"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScrapeTargetUrl('https://www.ersaticaret.com');
+                          setSelectedProvider('ersaticaret');
+                        }}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
+                          scrapeTargetUrl.includes('ersaticaret')
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                        }`}
+                      >
+                        ersaticaret.com (2.375 Ürün)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScrapeTargetUrl('https://girdap.com.tr');
+                          setSelectedProvider('girdap');
+                        }}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
+                          scrapeTargetUrl.includes('girdap')
+                            ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                        }`}
+                      >
+                        girdap.com.tr
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -697,7 +726,6 @@ export default function AdminControlPanel() {
                     <label className="block text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
                     <input
                       type="text"
-                      required
                       value={scrapeUsername}
                       onChange={(e) => setScrapeUsername(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
@@ -707,7 +735,6 @@ export default function AdminControlPanel() {
                     <label className="block text-slate-400 font-semibold mb-1">Şifre:</label>
                     <input
                       type="password"
-                      required
                       value={scrapePassword}
                       onChange={(e) => setScrapePassword(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
@@ -715,41 +742,29 @@ export default function AdminControlPanel() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Kâr Marjı Ekle (%):</label>
-                    <input
-                      type="number"
-                      step="1"
-                      value={scrapeMargin}
-                      onChange={(e) => setScrapeMargin(e.target.value)}
-                      placeholder="25"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-bold font-mono focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Maksimum Ürün Limiti:</label>
-                    <input
-                      type="number"
-                      value={scrapeMaxLimit}
-                      onChange={(e) => setScrapeMaxLimit(e.target.value)}
-                      placeholder="Boş = Tümü"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Maksimum Çekilecek Ürün Limiti:</label>
+                  <input
+                    type="number"
+                    value={scrapeMaxLimit}
+                    onChange={(e) => setScrapeMaxLimit(e.target.value)}
+                    placeholder="Boş Bırakılırsa Tüm 2.375 Ürün Çekilir"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    * Tüm ürünleri almak için bu alanı boş bırakabilirsiniz.
+                  </span>
                 </div>
 
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
                   <div className="flex items-center gap-1.5 text-amber-400 font-bold">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Otomatik Yapılan İşlemler:</span>
+                    <span>Otomatik İşlem Kuralları:</span>
                   </div>
                   <ul className="list-disc list-inside space-y-0.5 text-slate-300">
-                    <li>Kategoriler ve alt gruplar otomatik oluşturulur.</li>
-                    <li>Markalar (Universal, Vestel vb.) ilişkilendirilir.</li>
-                    <li>Yüksek çözünürlüklü ürün görselleri MongoDB'ye bağlanır.</li>
-                    <li>Stok kodları (SKU) ve B2B fiyatları senkronize edilir.</li>
+                    <li>Ürünler doğrudan <strong>birebir net fiyatıyla (kâr marjı eklenmeden)</strong> aktarılır.</li>
+                    <li>Kategoriler, markalar (Vestel, Embraco, Bosch vb.) otomatik eşleştirilir.</li>
+                    <li>Ürün resimleri ve teknik özellikleri veritabanına bağlanır.</li>
                   </ul>
                 </div>
 

@@ -61,10 +61,10 @@ export interface ScraperProgress {
 }
 
 export interface ScrapeOptions {
+  targetUrl?: string; // e.g. "https://www.ersaticaret.com" or custom supplier URL
   username?: string;
   password?: string;
   maxProducts?: number;
-  marginPercent?: number; // e.g. 20 for +20% profit margin
   autoPublish?: boolean;
 }
 

@@ -82,7 +82,6 @@ export class GirdapScraper implements ISupplierScraper {
 
       const username = options.username || 'ersadarıca';
       const password = options.password || 'Ersagrp41';
-      const marginPercent = options.marginPercent ?? 25; // Default %25 profit margin
 
       const loggedIn = await this.login(username, password);
       if (!loggedIn) {
@@ -263,14 +262,14 @@ export class GirdapScraper implements ISupplierScraper {
             const parsed = parseFloat(priceText);
             if (!isNaN(parsed) && parsed > 0) {
               costPrice = parsed;
-              salePrice = Number((parsed * (1 + marginPercent / 100)).toFixed(2));
+              salePrice = parsed;
             }
           }
 
           // If no price found on supplier site, set standard B2B placeholder prices based on product type
           if (!costPrice) {
             costPrice = 120.0;
-            salePrice = Number((120.0 * (1 + marginPercent / 100)).toFixed(2));
+            salePrice = 120.0;
           }
 
           // 1. Ensure Brand exists in MongoDB
