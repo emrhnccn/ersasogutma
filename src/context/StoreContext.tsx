@@ -34,6 +34,8 @@ interface StoreContextType {
   currency: Currency;
   setCurrency: (c: Currency) => void;
   exchangeRates: ExchangeRates;
+  isFetchingRates: boolean;
+  fetchLiveRates: (showNotification?: boolean) => Promise<void>;
   updateExchangeRate: (rates: Partial<ExchangeRates>) => void;
   convertPrice: (priceTRY: number) => { amount: number; formatted: string };
 
@@ -226,11 +228,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }, 4000);
   };
 
+  const [isFetchingRates, setIsFetchingRates] = useState(false);
+
+  const fetchLiveRates = async (showNotification = false) => {
+    try {
+      setIsFetchingRates(true);
+      const res = await fetch('/api/currency');
+      if (!res.ok) throw new Error('API yanıt vermedi');
+      const data = await res.json();
+      if (data?.success && data?.data) {
+        setExchangeRates({
+          USD_TRY: Number(data.data.USD_TRY),
+          EUR_TRY: Number(data.data.EUR_TRY),
+          GBP_TRY: Number(data.data.GBP_TRY || 48.90),
+          lastUpdated: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        });
+        if (showNotification) {
+          showToast('TCMB canlı kurları güncellendi.', 'info');
+        }
+      }
+    } catch (err) {
+      console.error('Döviz kurları çekilemedi:', err);
+    } finally {
+      setIsFetchingRates(false);
+    }
+  };
+
+  // 30 saniyede bir otomatik TCMB kur güncelleme
+  useEffect(() => {
+    fetchLiveRates(false);
+    const interval = setInterval(() => {
+      fetchLiveRates(false);
+    }, 30000); // 30 saniye
+
+    return () => clearInterval(interval);
+  }, []);
+
   const updateExchangeRate = (rates: Partial<ExchangeRates>) => {
     setExchangeRates((prev) => ({
       ...prev,
       ...rates,
-      lastUpdated: new Date().toLocaleDateString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+      lastUpdated: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     }));
     showToast('Döviz kurları başarıyla güncellendi.');
   };
@@ -585,6 +623,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         currency,
         setCurrency,
         exchangeRates,
+        isFetchingRates,
+        fetchLiveRates,
         updateExchangeRate,
         convertPrice,
         cart,
