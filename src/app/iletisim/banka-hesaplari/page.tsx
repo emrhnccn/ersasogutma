@@ -1,23 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
-import { BANK_ACCOUNTS } from '@/data/bankAccounts';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
+import { BankAccount } from '@/types';
 import {
   Building2,
   Copy,
   Check,
   CreditCard,
   PhoneCall,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 
 export default function BankAccountsPage() {
   const { showToast } = useStore();
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currencyFilter, setCurrencyFilter] = useState<'all' | 'TRY' | 'USD' | 'EUR'>('all');
 
-  const filteredBanks = BANK_ACCOUNTS.filter((b) => {
+  useEffect(() => {
+    fetch('/api/bank-accounts')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && Array.isArray(data.data)) {
+          setBankAccounts(data.data);
+        }
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredBanks = bankAccounts.filter((b) => {
     if (currencyFilter !== 'all' && b.currency !== currencyFilter) return false;
     return true;
   });
@@ -83,82 +98,97 @@ export default function BankAccountsPage() {
       </div>
 
       {/* Bank Account Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredBanks.map((bank) => (
-          <div
-            key={bank.id}
-            className="bg-slate-900 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-4"
-          >
-            <div>
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{bank.bankLogo}</span>
-                  <div>
-                    <h3 className="font-bold text-white text-sm leading-tight">{bank.bankName}</h3>
-                    <span className="text-[10px] text-slate-400">{bank.branchName} ({bank.branchCode})</span>
-                  </div>
-                </div>
-                <span className="font-mono font-bold text-xs bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-emerald-400">
-                  {bank.currency}
-                </span>
-              </div>
-
-              <div className="space-y-1.5 text-xs text-slate-300">
-                <div>
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block">Hesap Sahibi</span>
-                  <span className="font-bold text-white line-clamp-1">{bank.accountHolder}</span>
-                </div>
-                <div className="flex justify-between pt-1">
-                  <div>
-                    <span className="text-slate-500 text-[10px] uppercase font-bold block">Hesap No</span>
-                    <span className="font-mono text-slate-200">{bank.accountNumber}</span>
-                  </div>
-                  {bank.swiftCode && (
-                    <div className="text-right">
-                      <span className="text-slate-500 text-[10px] uppercase font-bold block">SWIFT</span>
-                      <span className="font-mono text-sky-400 font-bold">{bank.swiftCode}</span>
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-slate-400 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+          <span>Banka hesapları yükleniyor...</span>
+        </div>
+      ) : filteredBanks.length === 0 ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400 space-y-3">
+          <Building2 className="w-12 h-12 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-white">Kayıtlı Banka Hesabı Bulunamadı</h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            Yönetici panelinden havale ve EFT için resmi banka hesapları eklendiğinde burada listelenecektir.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredBanks.map((bank) => (
+            <div
+              key={bank.id}
+              className="bg-slate-900 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-4"
+            >
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{bank.bankLogo || '🏛️'}</span>
+                    <div>
+                      <h3 className="font-bold text-white text-sm leading-tight">{bank.bankName}</h3>
+                      <span className="text-[10px] text-slate-400">{bank.branchName || ''} {bank.branchCode ? `(${bank.branchCode})` : ''}</span>
                     </div>
-                  )}
+                  </div>
+                  <span className="font-mono font-bold text-xs bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-emerald-400">
+                    {bank.currency}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <div>
+                    <span className="text-slate-500 text-[10px] uppercase font-bold block">Hesap Sahibi</span>
+                    <span className="font-bold text-white line-clamp-1">{bank.accountHolder}</span>
+                  </div>
+                  <div className="flex justify-between pt-1">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase font-bold block">Hesap No</span>
+                      <span className="font-mono text-slate-200">{bank.accountNumber || '-'}</span>
+                    </div>
+                    {bank.swiftCode && (
+                      <div className="text-right">
+                        <span className="text-slate-500 text-[10px] uppercase font-bold block">SWIFT</span>
+                        <span className="font-mono text-sky-400 font-bold">{bank.swiftCode}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* IBAN Box with Copy Button */}
-            <div className="pt-2 border-t border-slate-800">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                IBAN Numarası:
+              {/* IBAN Box with Copy Button */}
+              <div className="pt-2 border-t border-slate-800">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  IBAN Numarası:
+                </div>
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                  <span className="font-mono font-bold text-xs text-sky-300 truncate select-all">
+                    {bank.iban}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(bank.iban, bank.id)}
+                    className={`p-1.5 rounded-lg border transition flex items-center gap-1 text-[11px] font-bold ${
+                      copiedId === bank.id
+                        ? 'bg-emerald-600 border-emerald-500 text-white'
+                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
+                    }`}
+                    title="IBAN Kopyala"
+                  >
+                    {copiedId === bank.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Kopyalandı</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Kopyala</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2">
-                <span className="font-mono font-bold text-xs text-sky-300 truncate select-all">
-                  {bank.iban}
-                </span>
-                <button
-                  onClick={() => copyToClipboard(bank.iban, bank.id)}
-                  className={`p-1.5 rounded-lg border transition flex items-center gap-1 text-[11px] font-bold ${
-                    copiedId === bank.id
-                      ? 'bg-emerald-600 border-emerald-500 text-white'
-                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
-                  }`}
-                  title="IBAN Kopyala"
-                >
-                  {copiedId === bank.id ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Kopyalandı</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Kopyala</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
 
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
 
     </div>
   );

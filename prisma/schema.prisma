@@ -85,3 +85,19 @@ model ProductDocument {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
+
+model BankAccount {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  bankName      String
+  bankLogo      String?
+  accountHolder String
+  branchName    String?
+  branchCode    String?
+  accountNumber String?
+  iban          String
+  currency      String   @default("TRY")
+  swiftCode     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

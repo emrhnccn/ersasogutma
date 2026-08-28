@@ -120,68 +120,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('TRY');
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>(INITIAL_EXCHANGE_RATES);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [favorites, setFavorites] = useState<string[]>(['ersa-701010009', 'ersa-7011204205']);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [cariTransactions, setCariTransactions] = useState<CariTransaction[]>(INITIAL_CARI);
-  const [posSlips, setPosSlips] = useState<PosSlip[]>([
-    {
-      id: 'slip-01',
-      date: '26.01.2026 16:20',
-      referenceCode: 'SANPOS-5438',
-      cardNumberMasked: '5400 **** **** 8812',
-      cardHolder: 'AFFAN EMIRHAN',
-      bankName: 'Yapı Kredi - World',
-      installmentCount: 6,
-      amount: 35000.00,
-      status: 'Başarılı',
-      authCode: 'AUTH-948271',
-      terminalId: 'TRM-88902',
-      responseMessage: 'İşlem Başarılı (00 - Onaylandı)',
-      dealerName: 'ERSA TİCARET & SOĞUTMA LTD. ŞTİ.'
-    },
-    {
-      id: 'slip-02',
-      date: '25.01.2026 11:45',
-      referenceCode: 'SANPOS-5434',
-      cardNumberMasked: '4543 **** **** 1092',
-      cardHolder: 'AFFAN EMIRHAN',
-      bankName: 'Garanti BBVA - Bonus',
-      installmentCount: 1,
-      amount: 6000.00,
-      status: 'Başarılı',
-      authCode: 'AUTH-839102',
-      terminalId: 'TRM-88901',
-      responseMessage: 'İşlem Başarılı (00 - Onaylandı)',
-      dealerName: 'ERSA TİCARET & SOĞUTMA LTD. ŞTİ.'
-    }
-  ]);
+  const [posSlips, setPosSlips] = useState<PosSlip[]>([]);
   const [profile, setProfile] = useState<DealerProfile>(INITIAL_DEALER_PROFILE);
-  const [notes, setNotes] = useState<UserNote[]>([
-    {
-      id: 'n-1',
-      title: 'Haftalık Gaz Sevkiyatı',
-      description: 'Cuma günü saat 14:00te 10 tüp R134a depoya ulaşacak, kontrol edilecek.',
-      date: '25.08.2026',
-      color: 'blue'
-    },
-    {
-      id: 'n-2',
-      title: 'Soğuk Oda Teklifi',
-      description: 'Gültekin Şarküteri 2.5 kW tavan evaporatör montajı için teklif onaylandı.',
-      date: '22.08.2026',
-      color: 'amber'
-    }
-  ]);
-  const [reminders, setReminders] = useState<UserReminder[]>([
-    {
-      id: 'r-1',
-      title: 'Çek Vadesi Hatırlatması',
-      description: 'CHK-88390 numaralı çekin takasa giriş kontrolü yapılacak.',
-      reminderDate: '25.04.2026',
-      days: ['Pazartesi'],
-      isCompleted: false
-    }
-  ]);
+  const [notes, setNotes] = useState<UserNote[]>([]);
+  const [reminders, setReminders] = useState<UserReminder[]>([]);
   const [messages, setMessages] = useState<PortalMessage[]>(INITIAL_MESSAGES);
   const [orderNote, setOrderNote] = useState('');
   const [accountingNote, setAccountingNote] = useState('');
