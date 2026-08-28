@@ -13,7 +13,10 @@ import {
   UserReminder,
   PortalMessage,
   PosSlip,
-  OrderStatus
+  OrderStatus,
+  Quote,
+  B2BNotification,
+  WarrantyClaim
 } from '@/types';
 import { PRODUCTS, INITIAL_EXCHANGE_RATES } from '@/data/products';
 import { ORDERS as INITIAL_ORDERS } from '@/data/orders';
@@ -57,6 +60,12 @@ interface StoreContextType {
   accountingNote: string;
   setAccountingNote: (note: string) => void;
   completeOrder: () => Order;
+  repeatOrder: (orderId: string) => boolean;
+
+  // Quotes (Teklifler)
+  quotes: Quote[];
+  createQuote: (quoteData: { validUntil: string; notes?: string }) => Quote;
+  convertQuoteToOrder: (quoteId: string) => boolean;
 
   // Favorites
   favorites: string[];
@@ -87,6 +96,16 @@ interface StoreContextType {
   profile: DealerProfile;
   updateProfile: (data: Partial<DealerProfile>) => void;
   setDealerTier: (tier: 'Standart' | 'Silver' | 'Gold') => void;
+
+  // Notifications
+  notifications: B2BNotification[];
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  unreadNotificationCount: number;
+
+  // Warranty Claims
+  warrantyClaims: WarrantyClaim[];
+  createWarrantyClaim: (claim: { serialNumber: string; productName: string; issueDescription: string }) => WarrantyClaim;
 
   // Notes & Reminders
   notes: UserNote[];
@@ -128,6 +147,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<UserNote[]>([]);
   const [reminders, setReminders] = useState<UserReminder[]>([]);
   const [messages, setMessages] = useState<PortalMessage[]>(INITIAL_MESSAGES);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [notifications, setNotifications] = useState<B2BNotification[]>([
+    {
+      id: 'notif-1',
+      title: 'Sipariş Sevkiyatta',
+      message: '#ERS-2026-9042 nolu siparişiniz Aras Kargo ile sevk edildi.',
+      type: 'order',
+      date: 'Bugün 14:30',
+      isRead: false,
+      link: '/siparisler'
+    },
+    {
+      id: 'notif-2',
+      title: 'TCMB Kur Güncellemesi',
+      message: 'Güncel USD/TRY ve EUR/TRY kurları 30s periyotla canlı akmaktadır.',
+      type: 'system',
+      date: 'Bugün 00:00',
+      isRead: true
+    }
+  ]);
+  const [warrantyClaims, setWarrantyClaims] = useState<WarrantyClaim[]>([]);
   const [orderNote, setOrderNote] = useState('');
   const [accountingNote, setAccountingNote] = useState('');
   const [isAdminView, setIsAdminView] = useState(false);
@@ -144,6 +184,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       const savedProfile = localStorage.getItem('ersa_b2b_profile');
       if (savedProfile) setProfile(JSON.parse(savedProfile));
+
+      const savedQuotes = localStorage.getItem('ersa_b2b_quotes');
+      if (savedQuotes) setQuotes(JSON.parse(savedQuotes));
     } catch {
       // ignore
     }
@@ -164,6 +207,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [favorites]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ersa_b2b_quotes', JSON.stringify(quotes));
+    } catch {
+      // ignore
+    }
+  }, [quotes]);
 
   const showToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
@@ -199,80 +250,72 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 30 saniyede bir otomatik TCMB kur güncelleme
+  // 30-Second interval for live currency fetching
   useEffect(() => {
     fetchLiveRates(false);
     const interval = setInterval(() => {
       fetchLiveRates(false);
-    }, 30000); // 30 saniye
-
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  const updateExchangeRate = (rates: Partial<ExchangeRates>) => {
+  const updateExchangeRate = (newRates: Partial<ExchangeRates>) => {
     setExchangeRates((prev) => ({
       ...prev,
-      ...rates,
+      ...newRates,
       lastUpdated: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     }));
-    showToast('Döviz kurları başarıyla güncellendi.');
+    showToast('Döviz kurları güncellendi.');
   };
 
   const convertPrice = (priceTRY: number) => {
-    if (currency === 'USD') {
-      const amount = priceTRY / exchangeRates.USD_TRY;
-      return {
-        amount,
-        formatted: `$${amount.toFixed(2)}`
-      };
-    }
-    if (currency === 'EUR') {
-      const amount = priceTRY / exchangeRates.EUR_TRY;
-      return {
-        amount,
-        formatted: `€${amount.toFixed(2)}`
-      };
+    let amount = priceTRY;
+    let symbol = '₺';
+    if (currency === 'USD' && exchangeRates.USD_TRY > 0) {
+      amount = priceTRY / exchangeRates.USD_TRY;
+      symbol = '$';
+    } else if (currency === 'EUR' && exchangeRates.EUR_TRY > 0) {
+      amount = priceTRY / exchangeRates.EUR_TRY;
+      symbol = '€';
     }
     return {
-      amount: priceTRY,
-      formatted: `${new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(priceTRY)} TL`
+      amount,
+      formatted: `${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${symbol}`
     };
   };
 
   const addToCart = (product: Product, quantity = 1) => {
-    const minQty = Math.max(1, product.pim || 1);
-    const addQty = quantity > 0 ? quantity : minQty;
+    const minQty = product.pim || 1;
+    const addedQty = Math.max(quantity, minQty);
 
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
-        const newQty = existing.quantity + addQty;
         return prev.map((item) =>
           item.product.id === product.id
             ? {
                 ...item,
-                quantity: newQty,
-                totalTRY: newQty * item.unitPriceTRY
+                quantity: item.quantity + addedQty,
+                totalTRY: (item.quantity + addedQty) * item.unitPriceTRY
               }
             : item
         );
-      } else {
-        const discount = profile.discountRate || 0.20;
-        const discountedUnitPrice = product.priceTRY * (1 - discount);
-        return [
-          ...prev,
-          {
-            product,
-            quantity: addQty,
-            unitPriceTRY: discountedUnitPrice,
-            totalTRY: addQty * discountedUnitPrice,
-            appliedDiscountRate: discount
-          }
-        ];
       }
+
+      const discountedPrice = product.priceTRY * (1 - profile.discountRate);
+      return [
+        ...prev,
+        {
+          product,
+          quantity: addedQty,
+          unitPriceTRY: discountedPrice,
+          totalTRY: addedQty * discountedPrice,
+          appliedDiscountRate: profile.discountRate
+        }
+      ];
     });
 
-    showToast(`${product.name.slice(0, 32)}... sepete eklendi (${addQty} adet).`);
+    showToast(`"${product.name}" sepete eklendi!`, 'success');
   };
 
   const updateCartQuantity = (productId: string, quantity: number) => {
@@ -295,46 +338,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const removeFromCart = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
-    showToast('Ürün sepetten kaldırıldı.', 'info');
+    showToast('Ürün sepetten çıkarıldı.', 'info');
   };
 
   const clearCart = () => {
     setCart([]);
-    setOrderNote('');
-    setAccountingNote('');
   };
 
-  // Cart Totals
-  const cartTotals = cart.reduce(
-    (acc, item) => {
-      const listTotal = item.product.priceTRY * item.quantity;
-      const finalTotal = item.totalTRY;
-      const discount = listTotal - finalTotal;
+  const cartTotals = React.useMemo(() => {
+    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotalTRY = cart.reduce((sum, item) => sum + item.product.priceTRY * item.quantity, 0);
+    const grandTotalTRY = cart.reduce((sum, item) => sum + item.totalTRY, 0);
+    const discountTRY = subtotalTRY - grandTotalTRY;
+    const vatTRY = grandTotalTRY * 0.20; // 20% standard VAT
 
-      acc.itemCount += item.quantity;
-      acc.subtotalTRY += listTotal;
-      acc.discountTRY += discount;
-      acc.grandTotalTRY += finalTotal;
-      return acc;
-    },
-    { itemCount: 0, subtotalTRY: 0, discountTRY: 0, vatTRY: 0, grandTotalTRY: 0 }
-  );
-  cartTotals.vatTRY = cartTotals.grandTotalTRY * 0.20;
-  cartTotals.grandTotalTRY += cartTotals.vatTRY;
+    return {
+      itemCount,
+      subtotalTRY,
+      discountTRY,
+      vatTRY,
+      grandTotalTRY: grandTotalTRY + vatTRY
+    };
+  }, [cart]);
 
   const completeOrder = (): Order => {
-    const newOrderNumber = String(Math.floor(28000 + Math.random() * 1999));
     const now = new Date();
-    const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+    const newOrderNumber = `ERS-${now.getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
     const newOrder: Order = {
-      id: `ord-${newOrderNumber}`,
+      id: `ord-${Date.now()}`,
       orderNumber: newOrderNumber,
       date: dateFormatted,
       source: 'Web',
       orderType: 'Standart Sipariş',
       status: 'bekliyor',
-      statusText: 'Bekliyor (Onay Sürecinde)',
+      statusText: 'Bekliyor',
       dealerName: profile.companyName,
       items: cart.map((item) => ({
         productId: item.product.id,
@@ -355,42 +394,91 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       orderNote: orderNote || undefined,
       accountingNote: accountingNote || undefined,
       shippingAddress: profile.address,
-      history: [
-        {
-          title: 'Sipariş Oluşturuldu',
-          description: 'Web B2B Portalı üzerinden sipariş gönderildi.',
-          date: dateFormatted,
-          user: profile.contactPerson,
-          status: 'completed'
-        },
-        {
-          title: 'Muhasebe Onayı',
-          description: 'Limit ve cari hesap kontrolü yapılıyor.',
-          date: 'Bekleniyor',
-          user: 'Ersa Muhasebe',
-          status: 'current'
-        },
-        {
-          title: 'Depo & Hazırlık',
-          description: 'Sevkiyat ambalajı yapılacak.',
-          date: 'Bekleniyor',
-          user: 'Ersa Lojistik',
-          status: 'pending'
-        },
-        {
-          title: 'Sevkiyat & Teslimat',
-          description: 'Kargo / Kendi araç teslimatı.',
-          date: 'Bekleniyor',
-          user: 'Ersa Sevk Amiri',
-          status: 'pending'
-        }
-      ]
+      history: []
     };
 
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
     showToast(`Sipariş #${newOrderNumber} başarıyla oluşturuldu!`, 'success');
     return newOrder;
+  };
+
+  const repeatOrder = (orderId: string): boolean => {
+    const prevOrder = orders.find((o) => o.id === orderId || o.orderNumber === orderId);
+    if (!prevOrder || prevOrder.items.length === 0) {
+      showToast('Tekrarlanacak sipariş bulunamadı.', 'error');
+      return false;
+    }
+
+    let addedCount = 0;
+    prevOrder.items.forEach((item) => {
+      const prod = products.find((p) => p.id === item.productId || p.code === item.productCode);
+      if (prod) {
+        addToCart(prod, item.quantity);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      showToast(`${addedCount} kalem ürün önceki siparişinizden sepete aktarıldı!`, 'success');
+      return true;
+    } else {
+      showToast('Siparişteki ürünler şu anda katalogda bulunamadı.', 'warning');
+      return false;
+    }
+  };
+
+  const createQuote = ({ validUntil, notes }: { validUntil: string; notes?: string }): Quote => {
+    const now = new Date();
+    const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+    const quoteNum = `TEK-${now.getFullYear()}-${String(Math.floor(100 + Math.random() * 900))}`;
+
+    const newQuote: Quote = {
+      id: `quote-${Date.now()}`,
+      quoteNumber: quoteNum,
+      date: dateFormatted,
+      validUntil,
+      dealerName: profile.companyName,
+      dealerCode: profile.dealerCode,
+      items: cart.map((item) => ({
+        productId: item.product.id,
+        productCode: item.product.code,
+        productName: item.product.name,
+        unitPriceTRY: item.unitPriceTRY,
+        quantity: item.quantity,
+        discountRate: item.appliedDiscountRate,
+        totalTRY: item.totalTRY
+      })),
+      subtotalTRY: cartTotals.subtotalTRY,
+      discountTRY: cartTotals.discountTRY,
+      vatTRY: cartTotals.vatTRY,
+      totalTRY: cartTotals.grandTotalTRY,
+      status: 'Aktif',
+      notes
+    };
+
+    setQuotes((prev) => [newQuote, ...prev]);
+    showToast(`Teklif #${quoteNum} başarıyla oluşturuldu!`, 'success');
+    return newQuote;
+  };
+
+  const convertQuoteToOrder = (quoteId: string): boolean => {
+    const q = quotes.find((x) => x.id === quoteId || x.quoteNumber === quoteId);
+    if (!q || q.status === 'Sipariş Edildi') {
+      showToast('Geçerli bir teklif bulunamadı.', 'warning');
+      return false;
+    }
+
+    q.items.forEach((item) => {
+      const prod = products.find((p) => p.id === item.productId || p.code === item.productCode);
+      if (prod) {
+        addToCart(prod, item.quantity);
+      }
+    });
+
+    setQuotes((prev) => prev.map((item) => (item.id === quoteId ? { ...item, status: 'Sipariş Edildi' } : item)));
+    showToast(`Teklif #${q.quoteNumber} sepete aktarıldı!`, 'success');
+    return true;
   };
 
   const toggleFavorite = (productId: string) => {
@@ -454,18 +542,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
     setPosSlips((prev) => [newSlip, ...prev]);
 
-    // Also add to Cari Transactions as payment
     addCariTransaction({
       date: newSlip.date.split(' ')[0],
       documentNo: newSlip.referenceCode,
       documentType: 'Kredi Kartı Ödemesi',
       debt: 0,
       credit: newSlip.amount,
-      balance: Math.max(0, cariSummary.balance + newSlip.amount),
+      balance: cariSummary.balance + newSlip.amount,
       balanceType: 'A',
-      description: `${newSlip.bankName} Sanal POS (${newSlip.installmentCount} Taksit) Tahsilatı`
+      description: `${newSlip.bankName} Sanal POS Tahsilatı (${newSlip.installmentCount} Taksit)`
     });
 
+    showToast('Ödeme başarıyla gerçekleşti ve cariye işlendi.', 'success');
     return newSlip;
   };
 
@@ -479,27 +567,62 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    showToast('Profil bilgileri güncellendi.');
   };
 
   const setDealerTier = (tier: 'Standart' | 'Silver' | 'Gold') => {
-    const rateMap = { Standart: 0.20, Silver: 0.30, Gold: 0.40 };
-    updateProfile({ tier, discountRate: rateMap[tier] });
-    showToast(`Bayi sınıfınız "${tier}" (%${rateMap[tier] * 100} İskonto) olarak değiştirildi.`);
+    const rates: Record<string, number> = {
+      Standart: 0.20,
+      Silver: 0.30,
+      Gold: 0.40
+    };
+    updateProfile({ tier, discountRate: rates[tier] });
+    showToast(`Bayi sınıfınız "${tier}" (%${rates[tier] * 100}) olarak ayarlandı.`);
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    showToast('Tüm bildirimler okundu olarak işaretlendi.', 'info');
+  };
+
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length;
+
+  const createWarrantyClaim = ({ serialNumber, productName, issueDescription }: { serialNumber: string; productName: string; issueDescription: string }): WarrantyClaim => {
+    const now = new Date();
+    const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+    const claimNum = `GAR-${now.getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+
+    const newClaim: WarrantyClaim = {
+      id: `claim-${Date.now()}`,
+      claimNumber: claimNum,
+      serialNumber,
+      productName,
+      dealerName: profile.companyName,
+      date: dateFormatted,
+      issueDescription,
+      status: 'İnceleniyor',
+      technicianNotes: 'Ersa Teknik Servis kaydı alındı.'
+    };
+
+    setWarrantyClaims((prev) => [newClaim, ...prev]);
+    showToast(`Garanti destek talebi #${claimNum} oluşturuldu!`, 'success');
+    return newClaim;
   };
 
   const addNote = ({ title, description }: { title: string; description: string }) => {
     const now = new Date();
-    const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
     const newNote: UserNote = {
-      id: `note-${Date.now()}`,
+      id: `n-${Date.now()}`,
       title,
       description,
-      date: dateFormatted,
+      date: `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`,
       color: 'blue'
     };
     setNotes((prev) => [newNote, ...prev]);
-    showToast('Not başarıyla kaydedildi.');
+    showToast('Not eklendi.');
   };
 
   const deleteNote = (id: string) => {
@@ -509,7 +632,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const addReminder = ({ title, description, reminderDate, days }: { title: string; description: string; reminderDate: string; days: string[] }) => {
     const newRem: UserReminder = {
-      id: `rem-${Date.now()}`,
+      id: `r-${Date.now()}`,
       title,
       description,
       reminderDate,
@@ -583,6 +706,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         accountingNote,
         setAccountingNote,
         completeOrder,
+        repeatOrder,
+        quotes,
+        createQuote,
+        convertQuoteToOrder,
         favorites,
         toggleFavorite,
         isFavorite,
@@ -597,6 +724,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         profile,
         updateProfile,
         setDealerTier,
+        notifications,
+        markNotificationRead,
+        markAllNotificationsRead,
+        unreadNotificationCount,
+        warrantyClaims,
+        createWarrantyClaim,
         notes,
         addNote,
         deleteNote,
@@ -615,7 +748,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      {/* Toast Render Component */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
           <div

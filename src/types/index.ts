@@ -271,3 +271,51 @@ export interface ExchangeRates {
   GBP_TRY: number;
   lastUpdated: string;
 }
+
+export interface QuoteItem {
+  productId: string;
+  productCode: string;
+  productName: string;
+  unitPriceTRY: number;
+  quantity: number;
+  discountRate: number;
+  totalTRY: number;
+}
+
+export interface Quote {
+  id: string;
+  quoteNumber: string;
+  date: string;
+  validUntil: string;
+  dealerName: string;
+  dealerCode: string;
+  items: QuoteItem[];
+  subtotalTRY: number;
+  discountTRY: number;
+  vatTRY: number;
+  totalTRY: number;
+  status: 'Aktif' | 'Sipariş Edildi' | 'Süresi Doldu';
+  notes?: string;
+}
+
+export interface B2BNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'order' | 'finance' | 'stock' | 'system';
+  date: string;
+  isRead: boolean;
+  link?: string;
+}
+
+export interface WarrantyClaim {
+  id: string;
+  claimNumber: string;
+  serialNumber: string;
+  productName: string;
+  dealerName: string;
+  date: string;
+  issueDescription: string;
+  status: 'İnceleniyor' | 'Onaylandı' | 'Parça Bekleniyor' | 'Tamamlandı' | 'Reddedildi';
+  technicianNotes?: string;
+}
