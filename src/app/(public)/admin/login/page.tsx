@@ -1,8 +1,16 @@
-import React from 'react';
+'use client';
+
+import React, { useActionState } from 'react';
 import Link from 'next/link';
 import { Lock, Shield, ArrowRight } from 'lucide-react';
+import { authenticateAdmin } from '@/lib/actions';
 
 export default function AdminLoginPage() {
+  const [errorMessage, formAction, isPending] = useActionState(
+    authenticateAdmin,
+    undefined,
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
@@ -15,8 +23,7 @@ export default function AdminLoginPage() {
         </div>
         
         <div className="p-8">
-          <form className="space-y-6" action="/admin">
-            {/* Note: Action is purely mock for Phase 1 to redirect to /admin */}
+          <form className="space-y-6" action={formAction}>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Yönetici Kullanıcı Adı
@@ -24,6 +31,7 @@ export default function AdminLoginPage() {
               <div className="relative">
                 <input
                   type="text"
+                  name="username"
                   required
                   className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Kullanıcı adınızı girin"
@@ -39,6 +47,7 @@ export default function AdminLoginPage() {
               <div className="relative">
                 <input
                   type="password"
+                  name="password"
                   required
                   className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Şifrenizi girin"
@@ -47,12 +56,19 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
+            {errorMessage && (
+              <div className="text-red-500 text-sm font-semibold text-center bg-red-500/10 border border-red-500/20 py-2 rounded-lg">
+                {errorMessage}
+              </div>
+            )}
+
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
+                disabled={isPending}
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition disabled:opacity-50"
               >
-                Giriş Yap <ArrowRight className="w-4 h-4" />
+                {isPending ? 'Giriş Yapılıyor...' : 'Giriş Yap'} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </form>

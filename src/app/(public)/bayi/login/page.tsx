@@ -1,8 +1,16 @@
-import React from 'react';
+'use client';
+
+import React, { useActionState } from 'react';
 import Link from 'next/link';
 import { Lock, User, ArrowRight } from 'lucide-react';
+import { authenticateBayi } from '@/lib/actions';
 
 export default function BayiLoginPage() {
+  const [errorMessage, formAction, isPending] = useActionState(
+    authenticateBayi,
+    undefined,
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -12,8 +20,7 @@ export default function BayiLoginPage() {
         </div>
         
         <div className="p-8">
-          <form className="space-y-6" action="/bayi">
-            {/* Note: Action is purely mock for Phase 1 to redirect to /bayi */}
+          <form className="space-y-6" action={formAction}>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Kullanıcı Adı veya Bayi Kodu
@@ -24,6 +31,7 @@ export default function BayiLoginPage() {
                 </div>
                 <input
                   type="text"
+                  name="username"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
                   placeholder="Bayi kodunuzu girin"
@@ -42,6 +50,7 @@ export default function BayiLoginPage() {
                 </div>
                 <input
                   type="password"
+                  name="password"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
                   placeholder="Şifrenizi girin"
@@ -49,6 +58,12 @@ export default function BayiLoginPage() {
                 />
               </div>
             </div>
+
+            {errorMessage && (
+              <div className="text-red-500 text-sm font-semibold text-center bg-red-50 py-2 rounded-lg">
+                {errorMessage}
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -73,9 +88,10 @@ export default function BayiLoginPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition"
+                disabled={isPending}
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition disabled:opacity-50"
               >
-                Giriş Yap <ArrowRight className="w-4 h-4" />
+                {isPending ? 'Giriş Yapılıyor...' : 'Giriş Yap'} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </form>
