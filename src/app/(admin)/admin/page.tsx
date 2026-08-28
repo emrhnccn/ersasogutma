@@ -508,10 +508,20 @@ export default function AdminControlPanel() {
 
           <Link
             href="/"
+            target="_blank"
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-700 transition"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Ziyaretçi Vitrini</span>
+          </Link>
+
+          <Link
+            href="/bayi"
+            target="_blank"
             className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-900/30 transition"
           >
-            <ExternalLink className="w-4 h-4" />
-            <span>Bayi Mağazası</span>
+            <UserCheck className="w-4 h-4" />
+            <span>Bayi Portalı</span>
           </Link>
         </div>
       </div>

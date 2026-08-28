@@ -10,7 +10,9 @@ import {
   PhoneCall,
   Globe,
   Truck,
-  ShieldCheck
+  ShieldCheck,
+  User,
+  MessageCircle
 } from 'lucide-react';
 
 export default function ContactPage() {
@@ -21,11 +23,11 @@ export default function ContactPage() {
       <div>
         <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
           <Building2 className="w-4 h-4" />
-          <span>Ersa Soğutma Genel Merkez & Dağıtım Deposu</span>
+          <span>Ersa Soğutma & Ticaret Genel Merkez & Dağıtım Deposu</span>
         </div>
-        <h1 className="text-2xl font-black text-white">İletişim Bilgileri</h1>
+        <h1 className="text-2xl font-black text-white">İletişim & Bölge Sorumluları</h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          Merkez ofisimiz, fabrika depomuz ve bölge satış müdürlerimizle iletişim kurun
+          Merkez ofisimiz, mağazamız ve bölge satış temsilcilerimizle doğrudan iletişim kurun
         </p>
       </div>
 
@@ -40,13 +42,13 @@ export default function ContactPage() {
               <MapPin className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm">Merkez Ofis & Depo Adresi</h3>
+              <h3 className="font-bold text-white text-sm">Mağaza & Depo Adresimiz</h3>
               <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Kazım Karabekir Mah. İstasyon Cad. No:84<br />
-                Darıca / Gebze / KOCAELİ
+                Nenehatun Mah. Battal Gazi Cd. No:139/A<br />
+                41700 Darıca / KOCAELİ
               </p>
               <span className="text-[11px] text-sky-400 font-medium block mt-2">
-                Gebze E-5 & Marmaray İstasyonuna 5 dk mesafede
+                Darıca Merkez & Gebze Marmaray / E-5 bağlantı noktasına yakın
               </span>
             </div>
           </div>
@@ -57,22 +59,18 @@ export default function ContactPage() {
               <Phone className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-white text-sm">Telefon & WhatsApp Destek</h3>
+              <h3 className="font-bold text-white text-sm">Telefon & WhatsApp Fiyat / Sipariş Hattı</h3>
               <div className="text-xs text-slate-300">
-                <span>Santral / Ofis: </span>
-                <a href="tel:02626534100" className="font-mono font-bold text-white hover:text-sky-400">
-                  0 (262) 653 41 00
+                <span>Santral & Sipariş: </span>
+                <a href="tel:05525843073" className="font-mono font-bold text-white hover:text-sky-400">
+                  0552 584 30 73
                 </a>
               </div>
               <div className="text-xs text-slate-300">
-                <span>B2B WhatsApp Sipariş: </span>
-                <a href="https://wa.me/905325554141" target="_blank" rel="noreferrer" className="font-mono font-bold text-emerald-400 hover:underline">
-                  0 (532) 555 41 41
+                <span>WhatsApp Hızlı Destek: </span>
+                <a href="https://wa.me/905525843073" target="_blank" rel="noreferrer" className="font-mono font-bold text-emerald-400 hover:underline">
+                  0552 584 30 73
                 </a>
-              </div>
-              <div className="text-xs text-slate-300">
-                <span>Faks: </span>
-                <span className="font-mono text-slate-400">0 (262) 653 41 05</span>
               </div>
             </div>
           </div>
@@ -85,15 +83,15 @@ export default function ContactPage() {
             <div className="space-y-1">
               <h3 className="font-bold text-white text-sm">E-Posta Adresleri</h3>
               <div className="text-xs text-slate-300">
-                <span>Genel & Satış: </span>
-                <a href="mailto:info@ersasogutma.com.tr" className="font-mono text-sky-400 hover:underline">
-                  info@ersasogutma.com.tr
+                <span>Genel Bilgi & Sipariş: </span>
+                <a href="mailto:info@ersaticaret.com" className="font-mono text-sky-400 hover:underline">
+                  info@ersaticaret.com
                 </a>
               </div>
               <div className="text-xs text-slate-300">
-                <span>E-Fatura & Muhasebe: </span>
-                <a href="mailto:fatura@ersasogutma.com.tr" className="font-mono text-sky-400 hover:underline">
-                  fatura@ersasogutma.com.tr
+                <span>Kurumsal İletişim: </span>
+                <a href="mailto:info@ersasogutma.com.tr" className="font-mono text-sky-400 hover:underline">
+                  info@ersasogutma.com.tr
                 </a>
               </div>
             </div>
@@ -107,9 +105,8 @@ export default function ContactPage() {
             <div>
               <h3 className="font-bold text-white text-sm">Çalışma Saatleri</h3>
               <p className="text-xs text-slate-300 mt-1">
-                <strong>Hafta İçi (Pazartesi - Cuma):</strong> 08:30 - 18:30<br />
-                <strong>Cumartesi:</strong> 09:00 - 14:00 (Sevkiyat & Acil Nöbetçi Depo)<br />
-                <strong>Pazar:</strong> Kapalı
+                <strong>Pazartesi - Cumartesi:</strong> 08:30 - 19:00<br />
+                <strong>Pazar:</strong> 13:00 - 17:00 (Nöbetçi Mağaza & Acil Parça)
               </p>
             </div>
           </div>
@@ -119,53 +116,85 @@ export default function ContactPage() {
         {/* Right Column: Key Reps & Quick Message Callout (5 cols) */}
         <div className="md:col-span-5 space-y-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3">
-              Bölge Sorumluları & Temsilciler
-            </h3>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <User className="w-4 h-4 text-sky-400" />
+                Bölge Sorumluları & Temsilciler
+              </h3>
+              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full">
+                Doğrudan İletişim
+              </span>
+            </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-0.5">
-                <div className="font-bold text-white">Emin KARGI</div>
-                <div className="text-sky-400 text-[11px]">Genel Müdür & Kurucu</div>
-                <div className="text-slate-400 font-mono text-[11px]">emin@ersasogutma.com.tr</div>
+              {/* Sadık Akgümüş */}
+              <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="font-black text-white text-sm">Sadık AKGÜMÜŞ</div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-sky-500/10 text-sky-400 rounded-md">Yönetim & Satış</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <a
+                    href="tel:05525843073"
+                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-white hover:text-sky-400"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-sky-400" />
+                    0552 584 30 73
+                  </a>
+                  <a
+                    href="https://wa.me/905525843073"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg font-bold text-[11px] hover:bg-emerald-500/30 transition"
+                  >
+                    <MessageCircle className="w-3 h-3" /> WhatsApp
+                  </a>
+                </div>
               </div>
 
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-0.5">
-                <div className="font-bold text-white">Emre KARGI</div>
-                <div className="text-emerald-400 text-[11px]">Satış & Pazarlama Müdürü</div>
-                <div className="text-slate-400 font-mono text-[11px]">0532 555 41 41</div>
-              </div>
-
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-0.5">
-                <div className="font-bold text-white">Şevki GÜRDAL</div>
-                <div className="text-amber-400 text-[11px]">Mali İşler & Finans Müdürü</div>
-                <div className="text-slate-400 font-mono text-[11px]">sevki@ersasogutma.com.tr</div>
-              </div>
-
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-0.5">
-                <div className="font-bold text-white">Halis TOSUN</div>
-                <div className="text-purple-400 text-[11px]">Lojistik & Depo Amiri</div>
-                <div className="text-slate-400 font-mono text-[11px]">depo@ersasogutma.com.tr</div>
+              {/* Erhan Akgümüş */}
+              <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="font-black text-white text-sm">Erhan AKGÜMÜŞ</div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md">Bölge Temsilcisi</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <a
+                    href="tel:05316066451"
+                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-white hover:text-emerald-400"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                    0531 606 64 51
+                  </a>
+                  <a
+                    href="https://wa.me/905316066451"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg font-bold text-[11px] hover:bg-emerald-500/30 transition"
+                  >
+                    <MessageCircle className="w-3 h-3" /> WhatsApp
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Quick WhatsApp Action Box */}
-          <div className="bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-900 border border-emerald-500/40 rounded-2xl p-5 shadow-xl text-center space-y-3">
-            <h4 className="font-black text-white text-sm">Hızlı WhatsApp Destek Hattı</h4>
+          <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-900 border border-emerald-500/40 rounded-2xl p-5 shadow-xl text-center space-y-3">
+            <h4 className="font-black text-white text-sm">WhatsApp Hızlı Parça & Fiyat Hattı</h4>
             <p className="text-xs text-slate-300">
-              Sipariş durumu veya acil stok teyidi için doğrudan WhatsApp temsilcimize yazabilirsiniz.
+              Aradığınız ürün kodu, stok sorgusu ve anlık fiyat teyidi için doğrudan yazabilirsiniz.
             </p>
             <a
-              href="https://wa.me/905325554141"
+              href="https://wa.me/905525843073?text=Merhaba,%20B2B%20bayi%20hakkında%20bilgi%20almak%20istiyorum."
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-950/40 transition"
+              className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#25D366] hover:bg-[#1ea952] text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition active:scale-95"
             >
-              <PhoneCall className="w-4 h-4" />
-              <span>WhatsApp Sohbeti Başlat</span>
+              <MessageCircle className="w-4 h-4" /> 0552 584 30 73 ile WhatsApp Sohbeti Başlat
             </a>
           </div>
+
         </div>
 
       </div>

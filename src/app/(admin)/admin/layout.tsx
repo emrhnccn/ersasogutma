@@ -1,6 +1,6 @@
 import React from 'react';
 import { StoreProvider } from '@/context/StoreContext';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { AdminShell } from '@/components/layout/AdminShell';
 
 export default function AdminLayout({
   children,
@@ -9,9 +9,9 @@ export default function AdminLayout({
 }) {
   return (
     <StoreProvider>
-      <MainLayout>
+      <AdminShell>
         {children}
-      </MainLayout>
+      </AdminShell>
     </StoreProvider>
   );
 }
