@@ -963,7 +963,7 @@ export default function AdminControlPanel() {
                           {p.barcode && <div className="text-[10px] text-slate-500">{p.barcode}</div>}
                         </td>
                         <td className="p-3.5 font-mono text-slate-400">
-                          {p.costPrice ? `${p.costPrice.toFixed(2)} ₺` : '-'}
+                          {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
                         </td>
                         <td className="p-3.5">
                           <input
@@ -972,7 +972,7 @@ export default function AdminControlPanel() {
                             defaultValue={p.salePrice || 0}
                             onBlur={(e) => {
                               const val = parseFloat(e.target.value);
-                              if (!isNaN(val) && val !== p.salePrice) {
+                              if (!isNaN(val) && val !== Number(p.salePrice)) {
                                 handleUpdateProductInline(p.id, { salePrice: val });
                               }
                             }}
