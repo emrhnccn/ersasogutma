@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
-const fallbackUri = 'mongodb+srv://ersa-admin:ersaadmin123@affanccn.i1pqyjq.mongodb.net/ersaticaret?retryWrites=true&w=majority&appName=affanccn';
-const uri = process.env.MONGODB_URI || fallbackUri;
+const fallbackDbUrl = 'postgresql://neondb_owner:npg_0dn4tgTXlGpN@ep-royal-bar-b1u7umiy-pooler.c-5.eu-central-1.aws.neon.tech/neondb?sslmode=require';
+const dbUrl = process.env.DATABASE_URL || fallbackDbUrl;
 
-if (!process.env.MONGODB_URI) {
-  process.env.MONGODB_URI = uri;
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = dbUrl;
 }
 
 const globalForPrisma = globalThis as unknown as {
@@ -14,7 +14,7 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   datasources: {
     db: {
-      url: uri
+      url: dbUrl
     }
   }
 });

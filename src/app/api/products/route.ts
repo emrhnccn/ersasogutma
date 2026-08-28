@@ -5,14 +5,14 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'ACTIVE';
+    const status = searchParams.get('status') || 'ALL';
     const categoryId = searchParams.get('categoryId');
     const brandId = searchParams.get('brandId');
     const search = searchParams.get('search');
 
     const where: Record<string, unknown> = {};
 
-    // Filter by status (ACTIVE, DRAFT, ALL)
+    // Filter by status (ACTIVE, PUBLISHED, DRAFT, ALL)
     if (status !== 'ALL') {
       where.status = status;
     }
