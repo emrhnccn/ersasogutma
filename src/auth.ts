@@ -14,41 +14,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Şifre", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          return null;
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username as string },
-          include: {
-            memberships: {
-              select: { companyId: true }
-            }
+        try {
+          if (!credentials?.username || !credentials?.password) {
+            return null;
           }
-        });
 
-        if (!user || !user.passwordHash) {
+          const user = await prisma.user.findUnique({
+            where: { username: credentials.username as string },
+            include: {
+              memberships: {
+                select: { companyId: true }
+              }
+            }
+          });
+
+          if (!user || !user.passwordHash) {
+            return null;
+          }
+
+          const passwordsMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.passwordHash
+          );
+
+          if (passwordsMatch) {
+            const companyId = user.memberships?.[0]?.companyId || null;
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              username: user.username,
+              companyId,
+            };
+          }
+
+          return null;
+        } catch (err) {
+          console.error('[AUTH_AUTHORIZE_ERROR]:', err);
           return null;
         }
-
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        );
-
-        if (passwordsMatch) {
-          const companyId = user.memberships?.[0]?.companyId || null;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            username: user.username,
-            companyId,
-          };
-        }
-
-        return null;
       },
     }),
   ],
