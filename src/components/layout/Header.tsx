@@ -91,7 +91,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             <Menu className="w-5 h-5" />
           </button>
 
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/bayi" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-sky-400 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition transform">
               <Snowflake className="w-5 h-5 text-white" />
             </div>
@@ -286,7 +286,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 <div className="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
                   <span className="text-xs font-bold text-white">Gelen Mesajlar</span>
                   <Link
-                    href="/iletisim/mesajlar"
+                    href="/bayi/iletisim/mesajlar"
                     onClick={() => setShowMessagesDropdown(false)}
                     className="text-[11px] text-sky-400 hover:text-sky-300 font-bold"
                   >
@@ -300,7 +300,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                     messages.slice(0, 3).map((m) => (
                       <Link
                         key={m.id}
-                        href="/iletisim/mesajlar"
+                        href="/bayi/iletisim/mesajlar"
                         onClick={() => setShowMessagesDropdown(false)}
                         className="p-3 block hover:bg-slate-800/80 transition"
                       >
@@ -319,7 +319,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
 
           {/* Cart Button */}
           <Link
-            href="/siparisler/sepet"
+            href="/bayi/siparisler/sepet"
             className="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-md shadow-sky-500/20 transition"
           >
             <div className="relative">
@@ -372,7 +372,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
 
                 <div className="space-y-0.5 text-xs">
                   <Link
-                    href="/profil"
+                    href="/bayi/profil"
                     onClick={() => setShowUserMenu(false)}
                     className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition"
                   >

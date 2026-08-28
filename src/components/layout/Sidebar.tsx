@@ -87,7 +87,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           
           {/* Anasayfa / Dashboard */}
           <Link
-            href="/"
+            href="/bayi"
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold transition ${
               isActive('/')
@@ -114,7 +114,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {openSales && (
               <div className="mt-1 space-y-0.5">
                 <Link
-                  href="/urunler"
+                  href="/bayi/urunler"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/urunler')
@@ -127,7 +127,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/siparisler/hizli"
+                  href="/bayi/siparisler/hizli"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/siparisler/hizli')
@@ -145,7 +145,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/siparisler/toplu-excel"
+                  href="/bayi/siparisler/toplu-excel"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/siparisler/toplu-excel')
@@ -163,7 +163,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/siparisler/sepet"
+                  href="/bayi/siparisler/sepet"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/siparisler/sepet')
@@ -183,7 +183,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/siparisler"
+                  href="/bayi/siparisler"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/siparisler')
@@ -203,7 +203,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/teklifler"
+                  href="/bayi/teklifler"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/teklifler')
@@ -240,7 +240,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {openFinance && (
               <div className="mt-1 space-y-0.5">
                 <Link
-                  href="/cari"
+                  href="/bayi/cari"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/cari')
@@ -253,7 +253,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/finans/online-odeme"
+                  href="/bayi/finans/online-odeme"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/finans/online-odeme')
@@ -266,7 +266,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/finans/slipler"
+                  href="/bayi/finans/slipler"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/finans/slipler')
@@ -279,7 +279,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/finans/valor-vade"
+                  href="/bayi/finans/valor-vade"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/finans/valor-vade')
@@ -292,7 +292,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/iletisim/banka-hesaplari"
+                  href="/bayi/iletisim/banka-hesaplari"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/iletisim/banka-hesaplari')
@@ -322,7 +322,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {openSupport && (
               <div className="mt-1 space-y-0.5">
                 <Link
-                  href="/garanti"
+                  href="/bayi/garanti"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/garanti')
@@ -335,7 +335,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/iletisim/mesajlar"
+                  href="/bayi/iletisim/mesajlar"
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/iletisim/mesajlar')
@@ -355,7 +355,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/iletisim/bize-ulasin"
+                  href="/bayi/iletisim/bize-ulasin"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/iletisim/bize-ulasin')
@@ -368,7 +368,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/iletisim/oneri-talep"
+                  href="/bayi/iletisim/oneri-talep"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/iletisim/oneri-talep')
@@ -398,7 +398,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {openTools && (
               <div className="mt-1 space-y-0.5">
                 <Link
-                  href="/notlar"
+                  href="/bayi/notlar"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/notlar')
@@ -411,7 +411,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/hatirlatmalar"
+                  href="/bayi/hatirlatmalar"
                   onClick={onClose}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition ${
                     isActive('/hatirlatmalar')
