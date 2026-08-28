@@ -35,7 +35,6 @@ export default function BayiLoginPage() {
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
                   placeholder="Bayi kodunuzu girin"
-                  defaultValue="bayitest"
                 />
               </div>
             </div>
@@ -54,7 +53,6 @@ export default function BayiLoginPage() {
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
                   placeholder="Şifrenizi girin"
-                  defaultValue="bayi.test1"
                 />
               </div>
             </div>

@@ -2,7 +2,7 @@ import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   trustHost: true,
-  secret: process.env.AUTH_SECRET || 'UPvfQNoMKIOM1yoyLs35ydlaiKJ3kjU1hxldxAyy8wo=',
+  secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/bayi/login',
   },
@@ -49,6 +49,7 @@ export const authConfig = {
         token.role = user.role as string;
         token.id = user.id as string;
         token.username = (user as any).username;
+        token.companyId = (user as any).companyId;
       }
       return token;
     },
@@ -57,9 +58,10 @@ export const authConfig = {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        (session.user as any).companyId = token.companyId as string | undefined;
       }
       return session;
     }
   },
-  providers: [], // Add providers with Edge incompatibilities in auth.ts
+  providers: [],
 } satisfies NextAuthConfig;

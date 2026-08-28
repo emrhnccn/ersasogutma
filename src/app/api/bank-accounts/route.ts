@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin, logAuditAction } from '@/lib/auth-guard';
+import { BankAccountSchema } from '@/lib/validations';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/bank-accounts
+// GET /api/bank-accounts - Publicly visible for dealers & public customers
 export async function GET() {
   try {
     const accounts = await prisma.bankAccount.findMany({
@@ -18,18 +20,21 @@ export async function GET() {
   }
 }
 
-// POST /api/bank-accounts - Create or update bank account
+// POST /api/bank-accounts - Admin only
 export async function POST(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
+
+  const { user } = guard;
+
   try {
     const body = await request.json();
-    const { id, bankName, accountHolder, iban, branchName, branchCode, accountNumber, currency = 'TRY', swiftCode, bankLogo } = body;
-
-    if (!bankName || !accountHolder || !iban) {
-      return NextResponse.json(
-        { success: false, error: 'Banka adı, hesap sahibi ve IBAN zorunludur.' },
-        { status: 400 }
-      );
+    const parsed = BankAccountSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
     }
+
+    const { id, bankName, accountHolder, iban, branchName, branchCode, accountNumber, currency, swiftCode, bankLogo } = parsed.data;
 
     if (id) {
       const updated = await prisma.bankAccount.update({
@@ -43,10 +48,19 @@ export async function POST(request: NextRequest) {
           accountNumber,
           currency,
           swiftCode,
-          bankLogo
+          bankLogo: bankLogo || '🏛️'
         }
       });
-      return NextResponse.json({ success: true, data: updated });
+
+      await logAuditAction({
+        actorId: user.id,
+        action: 'BANK_ACCOUNT_UPDATE',
+        entityType: 'BankAccount',
+        entityId: id,
+        afterJson: updated
+      });
+
+      return NextResponse.json({ success: true, data: updated, message: 'Banka hesabı güncellendi.' });
     }
 
     const created = await prisma.bankAccount.create({
@@ -63,7 +77,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, data: created }, { status: 201 });
+    await logAuditAction({
+      actorId: user.id,
+      action: 'BANK_ACCOUNT_CREATE',
+      entityType: 'BankAccount',
+      entityId: created.id,
+      afterJson: created
+    });
+
+    return NextResponse.json({ success: true, data: created, message: 'Banka hesabı başarıyla eklendi.' }, { status: 201 });
   } catch (error: unknown) {
     console.error('POST /api/bank-accounts error:', error);
     const message = error instanceof Error ? error.message : 'Hesap kaydedilirken hata oluştu.';
@@ -71,8 +93,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/bank-accounts?id=xxx
+// DELETE /api/bank-accounts?id=xxx - Admin only
 export async function DELETE(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
+
+  const { user } = guard;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -81,8 +108,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Hesap ID belirtilmedi.' }, { status: 400 });
     }
 
-    await prisma.bankAccount.delete({
+    const deleted = await prisma.bankAccount.delete({
       where: { id }
+    });
+
+    await logAuditAction({
+      actorId: user.id,
+      action: 'BANK_ACCOUNT_DELETE',
+      entityType: 'BankAccount',
+      entityId: id,
+      beforeJson: deleted
     });
 
     return NextResponse.json({ success: true, message: 'Banka hesabı silindi.' });

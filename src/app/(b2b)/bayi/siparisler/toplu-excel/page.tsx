@@ -227,9 +227,28 @@ export default function ExcelBatchOrderPage() {
               <span className="text-[10px] text-amber-400 uppercase font-bold block">Sınırlı / Tükendi</span>
               <span className="text-lg font-black text-amber-400 font-mono">{lowStockCount} Kalem</span>
             </div>
-            <div className="bg-slate-950 border border-rose-900/40 p-3 rounded-xl">
-              <span className="text-[10px] text-rose-400 uppercase font-bold block">Bulunamayan Kod</span>
-              <span className="text-lg font-black text-rose-400 font-mono">{notFoundCount} Kalem</span>
+            <div className="bg-slate-950 border border-rose-900/40 p-3 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-rose-400 uppercase font-bold block">Bulunamayan Kod</span>
+                <span className="text-lg font-black text-rose-400 font-mono">{notFoundCount} Kalem</span>
+              </div>
+              {notFoundCount > 0 && (
+                <button
+                  onClick={() => {
+                    const failed = parsedRows.filter(r => r.status === 'NOT_FOUND' || r.status === 'LOW_STOCK');
+                    const csv = "data:text/csv;charset=utf-8,stok_kodu,adet,hata\n" + failed.map(f => `${f.rawCode},${f.rawQty},"${f.errorMsg}"`).join("\n");
+                    const link = document.createElement("a");
+                    link.href = encodeURI(csv);
+                    link.download = "hatali_stok_kodlari.csv";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 text-[10px] font-bold rounded-lg transition"
+                >
+                  Hatalıları İndir
+                </button>
+              )}
             </div>
           </div>
 

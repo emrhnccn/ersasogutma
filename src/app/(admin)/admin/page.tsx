@@ -6,6 +6,7 @@ import { useStore } from '@/context/StoreContext';
 import { formatCurrency } from '@/lib/utils';
 import {
   ShieldAlert,
+  ShieldCheck,
   TrendingUp,
   ShoppingBag,
   CheckCircle2,
@@ -87,7 +88,7 @@ export default function AdminControlPanel() {
   } = useStore();
 
   // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'dealers' | 'bank_accounts'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
 
   // DB Products State
   const [dbProducts, setDbProducts] = useState<DBProduct[]>([]);
@@ -274,7 +275,26 @@ export default function AdminControlPanel() {
     }
   }, []);
 
-  // 4. Poll Scraper Progress
+  // 4. Fetch Audit Logs
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
+
+  const loadAuditLogs = useCallback(async () => {
+    setLoadingAuditLogs(true);
+    try {
+      const res = await fetch('/api/admin/audit-logs');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        setAuditLogs(data.data);
+      }
+    } catch (err) {
+      console.error('Audit logs load error:', err);
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  }, []);
+
+  // 5. Poll Scraper Progress
   const checkScraperStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/scrape');
@@ -296,8 +316,9 @@ export default function AdminControlPanel() {
     loadProducts();
     loadCategories();
     loadBankAccounts();
+    loadAuditLogs();
     checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, checkScraperStatus]);
+  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, checkScraperStatus]);
 
   // Polling during active scraping
   useEffect(() => {
@@ -363,15 +384,24 @@ export default function AdminControlPanel() {
     }
   };
 
-  // Handle Clean DB
+  // Handle Clean DB (P0 Security & Confirmation Guard)
   const handleCleanDatabase = async () => {
-    if (!window.confirm('DİKKAT: Veritabanındaki tüm ürünler, kategoriler ve markalar kalıcı olarak SİLİNECEK. Devam etmek istiyor musunuz?')) {
+    const confirmation = window.prompt(
+      'DİKKAT: Veritabanındaki tüm ürünler, kategoriler ve markalar kalıcı olarak SİLİNECEK.\n\nİşlemi onaylamak için lütfen "ERSA_RESET_CONFIRM_2026" yazın:'
+    );
+
+    if (confirmation !== 'ERSA_RESET_CONFIRM_2026') {
+      showToast('Onay ifadesi hatalı veya iptal edildi. İşlem durduruldu.', 'warning');
       return;
     }
 
     setIsCleaningDb(true);
     try {
-      const res = await fetch('/api/admin/clean-db', { method: 'POST' });
+      const res = await fetch('/api/admin/clean-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmPhrase: 'ERSA_RESET_CONFIRM_2026' })
+      });
       const data = await res.json();
       if (data.success) {
         showToast(data.message, 'success');
@@ -614,7 +644,8 @@ export default function AdminControlPanel() {
           { id: 'categories', label: `Kategoriler (${dbCategories.length})`, icon: FolderTree },
           { id: 'orders', label: `Siparişler (${orders.length})`, icon: ShoppingBag },
           { id: 'dealers', label: 'Bayi Cari & İskonto', icon: UserCheck },
-          { id: 'bank_accounts', label: 'Banka Hesapları & Ayarlar', icon: Building2 }
+          { id: 'bank_accounts', label: 'Banka Hesapları & Ayarlar', icon: Building2 },
+          { id: 'audit', label: `Güvenlik & Audit Log (${auditLogs.length})`, icon: ShieldCheck }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1799,6 +1830,92 @@ export default function AdminControlPanel() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TAB 8: AUDIT LOGS & SECURITY */}
+      {activeTab === 'audit' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>Sistem Güvenlik & Audit Günlüğü</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                    {auditLogs.length} Kayıt
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">Veritabanı sıfırlama, scraper çalıştırma, cari ve sipariş operasyonları logları</p>
+              </div>
+            </div>
+
+            <button
+              onClick={loadAuditLogs}
+              disabled={loadingAuditLogs}
+              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingAuditLogs ? 'animate-spin text-purple-400' : ''}`} />
+              <span>Yenile</span>
+            </button>
+          </div>
+
+          {loadingAuditLogs ? (
+            <div className="py-12 text-center text-slate-400 text-xs">Audit kayıtları yükleniyor...</div>
+          ) : auditLogs.length === 0 ? (
+            <div className="py-12 text-center text-slate-500 text-xs">
+              Henüz kayıtlı audit log bulunmuyor.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Tarih / Saat</th>
+                    <th className="py-3 px-4">Kullanıcı & Rol</th>
+                    <th className="py-3 px-4">İşlem / Eylem</th>
+                    <th className="py-3 px-4">Hedef Nesne</th>
+                    <th className="py-3 px-4">Detay / Payload</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">
+                        {log.createdAt}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-white">{log.actorName}</div>
+                        <span className="text-[10px] text-sky-400 font-mono">{log.actorRole}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${
+                          log.action.includes('CLEAN') || log.action.includes('DELETE')
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            : log.action.includes('CREATE') || log.action.includes('START')
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        }`}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-mono text-slate-300">{log.entityType}</span>
+                        <div className="text-[10px] text-slate-500 font-mono truncate max-w-[120px]">{log.entityId}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="bg-slate-950 p-2 rounded-lg font-mono text-[11px] text-slate-300 max-w-md overflow-x-auto">
+                          {log.afterJson ? JSON.stringify(log.afterJson) : log.beforeJson ? JSON.stringify(log.beforeJson) : '—'}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

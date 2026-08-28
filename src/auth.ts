@@ -20,6 +20,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { username: credentials.username as string },
+          include: {
+            memberships: {
+              select: { companyId: true }
+            }
+          }
         });
 
         if (!user || !user.passwordHash) {
@@ -32,12 +37,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         );
 
         if (passwordsMatch) {
+          const companyId = user.memberships?.[0]?.companyId || null;
           return {
             id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
             username: user.username,
+            companyId,
           };
         }
 

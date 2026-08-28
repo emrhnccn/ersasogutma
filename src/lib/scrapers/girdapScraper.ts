@@ -1,11 +1,6 @@
 import { ISupplierScraper, ScrapeOptions, ScraperProgress, ScraperLog, ScrapedProduct, ScrapedCategory } from './types';
 import { prisma } from '@/lib/prisma';
 
-// Ensure TLS certificate issues on supplier site don't abort scrape
-if (typeof process !== 'undefined' && process.env) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -40,11 +35,18 @@ export class GirdapScraper implements ISupplierScraper {
     });
   }
 
-  private async login(username = 'ersadarıca', password = 'Ersagrp41'): Promise<boolean> {
+  private async login(username?: string, password?: string): Promise<boolean> {
+    const finalUser = username || process.env.SUPPLIER_GIRDAP_USERNAME || '';
+    const finalPass = password || process.env.SUPPLIER_GIRDAP_PASSWORD || '';
+
+    if (!finalUser || !finalPass) {
+      throw new Error('Girdap tedarikçi kullanıcı adı ve şifresi tanımlanmamış. Lütfen environment değişkenlerini veya parametreleri kontrol edin.');
+    }
+
     const loginUrl = `${this.baseUrl}/tr/auth/index?redirect_uri=`;
     const body = new URLSearchParams({
-      email: username,
-      password: password,
+      email: finalUser,
+      password: finalPass,
       remember_me: '1'
     }).toString();
 
@@ -80,8 +82,8 @@ export class GirdapScraper implements ISupplierScraper {
       log(`Girdap.com.tr tedarikçi bağlantısı başlatılıyor...`, 'info');
       onProgress({ status: 'running', currentStep: 'Oturum açılıyor', startedAt: startTime, percent: 5 });
 
-      const username = options.username || 'ersadarıca';
-      const password = options.password || 'Ersagrp41';
+      const username = options.username || process.env.SUPPLIER_GIRDAP_USERNAME;
+      const password = options.password || process.env.SUPPLIER_GIRDAP_PASSWORD;
 
       const loggedIn = await this.login(username, password);
       if (!loggedIn) {

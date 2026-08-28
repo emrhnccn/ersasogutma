@@ -35,7 +35,6 @@ export default function AdminLoginPage() {
                   required
                   className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Kullanıcı adınızı girin"
-                  defaultValue="ersaticaret"
                 />
               </div>
             </div>
@@ -51,7 +50,6 @@ export default function AdminLoginPage() {
                   required
                   className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Şifrenizi girin"
-                  defaultValue="admin123"
                 />
               </div>
             </div>

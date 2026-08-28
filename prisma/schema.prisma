@@ -581,3 +581,108 @@ model BankAccount {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Quote {
+  id          String      @id @default(cuid())
+  quoteNo     String      @unique
+  companyId   String
+  userId      String?
+  status      String      @default("PENDING") // PENDING, ACCEPTED, CONVERTED_TO_ORDER, EXPIRED, REJECTED
+  validUntil  DateTime
+  subtotalTRY Decimal
+  discountTRY Decimal     @default(0)
+  vatTRY      Decimal     @default(0)
+  totalTRY    Decimal
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items QuoteItem[]
+
+  @@index([companyId])
+  @@index([status])
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  productId   String
+  productName String
+  productCode String
+  quantity    Decimal
+  unitPriceTRY Decimal
+  totalTRY    Decimal
+  discountRate Decimal  @default(0)
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model WarrantyClaim {
+  id               String   @id @default(cuid())
+  companyId        String
+  userId           String?
+  serialNumber     String
+  productName      String
+  productCode      String?
+  issueDescription String
+  status           String   @default("UNDER_REVIEW") // UNDER_REVIEW, APPROVED, REPAIRING, REPLACED, REJECTED
+  technicianNote   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([serialNumber])
+}
+
+model PortalMessage {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String?
+  companyId   String
+  department  String   @default("GENEL") // MUHASEBE, TEKNIK, SATIS, SEVKIYAT, GENEL
+  subject     String
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([isRead])
+}
+
+model DealerApplication {
+  id            String    @id @default(cuid())
+  companyName   String
+  contactPerson String
+  phone         String
+  email         String
+  city          String
+  taxOffice     String
+  taxNumber     String
+  notes         String?
+  status        String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  assignedTier  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([phone])
+}
+
+model StockPriceChangeLog {
+  id          String   @id @default(cuid())
+  productId   String
+  productSku  String
+  productName String
+  oldPriceTRY Decimal?
+  newPriceTRY Decimal?
+  oldStock    Decimal?
+  newStock    Decimal?
+  source      String   @default("SYNC_JOB") // SYNC_JOB, MANUAL_EDIT, BULK_EXCEL
+  changeType  String   @default("PRICE_AND_STOCK") // PRICE, STOCK, PRICE_AND_STOCK
+  createdAt   DateTime @default(now())
+
+  @@index([productSku])
+  @@index([createdAt])
+}
+
