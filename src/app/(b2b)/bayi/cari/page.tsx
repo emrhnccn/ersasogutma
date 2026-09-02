@@ -101,7 +101,7 @@ export default function CariPage() {
 
         <div className="flex items-center gap-2 flex-wrap self-start">
           <Link
-            href="/finans/online-odeme"
+            href="/bayi/finans/online-odeme"
             className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg shadow-emerald-900/30 transition"
           >
             <CreditCard className="w-4 h-4" />

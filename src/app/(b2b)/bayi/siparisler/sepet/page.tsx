@@ -55,7 +55,7 @@ export default function CartPage() {
       const createdOrder = completeOrder();
       setShowConfirmModal(false);
       setIsSubmitting(false);
-      router.push(`/siparisler/${createdOrder.orderNumber}`);
+      router.push(`/bayi/siparisler/${createdOrder.orderNumber}`);
     }, 600);
   };
 
@@ -71,13 +71,13 @@ export default function CartPage() {
         </p>
         <div className="flex justify-center gap-3">
           <Link
-            href="/urunler"
+            href="/bayi/urunler"
             className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-sky-600/30 transition"
           >
             Ürün Kataloğuna Git
           </Link>
           <Link
-            href="/urunler/toplu"
+            href="/bayi/urunler/toplu"
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-5 py-2.5 rounded-xl border border-slate-700 transition"
           >
             Hızlı Toplu Sipariş

@@ -135,7 +135,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <Link
-            href="/cari"
+            href="/bayi/cari"
             className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center justify-between pt-2 border-t border-slate-800/80"
           >
             <span>Ekstre & Detay Görüntüle</span>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <Link
-            href="/finans/online-odeme"
+            href="/bayi/finans/online-odeme"
             className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center justify-between pt-2 border-t border-slate-800/80"
           >
             <span>Limit Ödemesi Yap (POS)</span>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <Link
-            href="/finans/valor-vade"
+            href="/bayi/finans/valor-vade"
             className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center justify-between pt-2 border-t border-slate-800/80"
           >
             <span>Vade & Çek Dağılımı</span>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <Link
-            href="/siparisler"
+            href="/bayi/siparisler"
             className="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center justify-between pt-2 border-t border-slate-800/80"
           >
             <span>Sipariş Takibi & Detay</span>
@@ -242,7 +242,7 @@ export default function DashboardPage() {
               <ShoppingBag className="w-4 h-4 text-sky-400" />
               <h3 className="text-sm font-bold text-white">Son Siparişleriniz</h3>
             </div>
-            <Link href="/siparisler" className="text-xs text-sky-400 hover:text-sky-300 font-bold">
+            <Link href="/bayi/siparisler" className="text-xs text-sky-400 hover:text-sky-300 font-bold">
               Tümünü Gör ({orders.length}) &rarr;
             </Link>
           </div>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
               <ShoppingBag className="w-10 h-10 text-slate-700 mx-auto" />
               <p className="text-xs">Henüz verilmiş bir siparişiniz bulunmamaktadır.</p>
               <Link
-                href="/urunler"
+                href="/bayi/urunler"
                 className="inline-block mt-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-4 py-2 rounded-xl"
               >
                 İlk Siparişinizi Oluşturun
@@ -353,7 +353,7 @@ export default function DashboardPage() {
               Yüzlerce ürün arasında arama yapmadan sadece parça kodunu (SKU) girerek Enter tuşu ile anında sipariş oluşturun.
             </p>
             <Link
-              href="/siparisler/hizli"
+              href="/bayi/siparisler/hizli"
               className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
             >
               <span>Hızlı Sipariş Ekranını Aç</span>

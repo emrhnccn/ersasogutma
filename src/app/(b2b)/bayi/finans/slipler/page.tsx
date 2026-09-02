@@ -50,7 +50,7 @@ export default function PosSlipsPage() {
         </div>
 
         <Link
-          href="/finans/online-odeme"
+          href="/bayi/finans/online-odeme"
           className="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-600/30 transition self-start"
         >
           <CreditCard className="w-4 h-4" />

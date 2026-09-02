@@ -34,7 +34,7 @@ export default function OrderDetailPage() {
           Aradığınız #{orderId} numaralı sipariş mevcut değil veya silinmiş olabilir.
         </p>
         <Link
-          href="/siparisler"
+          href="/bayi/siparisler"
           className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition inline-flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            href="/siparisler"
+            href="/bayi/siparisler"
             className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700 transition"
           >
             <ArrowLeft className="w-4 h-4" />

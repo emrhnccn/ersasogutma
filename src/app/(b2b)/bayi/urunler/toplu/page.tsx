@@ -374,7 +374,7 @@ export default function BulkOrderPage() {
       {/* Floating Bottom Cart Bar (Screenshot 2 Toplu Liste reference) */}
       <div className="fixed bottom-4 right-4 sm:right-8 z-30 flex items-center gap-3">
         <Link
-          href="/siparisler/sepet"
+          href="/bayi/siparisler/sepet"
           className="bg-slate-900/95 hover:bg-slate-800 text-white border border-sky-500/40 p-3.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3 transition transform hover:-translate-y-1"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 flex items-center justify-center relative">

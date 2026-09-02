@@ -16,10 +16,45 @@ import {
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('Yeni B2B Bayilik Başvurusu');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch('/api/dealer-applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactPerson: fullName,
+          companyName: companyName || fullName,
+          phone,
+          email,
+          notes: `[Konu: ${subject}] ${message}`
+        })
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setSubmitted(true);
+      } else {
+        setErrorMsg(json.error || 'Başvuru gönderilirken bir hata oluştu.');
+      }
+    } catch {
+      setErrorMsg('Sunucuya bağlanılamadı. Lütfen telefon ile bizimle iletişime geçiniz.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -100,14 +135,14 @@ export default function ContactPage() {
 
               <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <a
-                  href="tel:05316066451"
+                  href="tel:05325554141"
                   className="flex items-center gap-2 font-mono font-bold text-slate-900 hover:text-emerald-600 text-sm transition"
                 >
                   <Phone className="w-4 h-4 text-emerald-600" />
-                  0531 606 64 51
+                  0532 555 41 41
                 </a>
                 <a
-                  href="https://wa.me/905316066451?text=Merhaba%20Erhan%20Bey,%20bilgi%20almak%20istiyorum."
+                  href="https://wa.me/905325554141?text=Merhaba%20Erhan%20Bey,%20bilgi%20almak%20istiyorum."
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#25D366] hover:bg-[#1ea952] text-white text-xs font-bold rounded-xl shadow-sm transition"
@@ -119,63 +154,87 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Main Grid: Info + Contact Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Form & Info Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           
-          {/* Info cards */}
+          {/* Info Side */}
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                <Phone className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Merkez Telefon / WhatsApp</h3>
-                <a href="tel:05525843073" className="text-slate-800 font-mono font-bold text-sm block mt-1 hover:text-sky-600">
-                  0552 584 30 73
-                </a>
-                <p className="text-xs text-slate-400 mt-1">Fiyat & Parça Sorgulama Hattı</p>
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+              <h2 className="text-2xl font-black text-slate-900 border-b border-slate-100 pb-4">
+                İletişim Bilgileri
+              </h2>
+
+              <div className="space-y-4 text-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Merkez Mağaza & Depo</h3>
+                    <p className="text-slate-500 text-xs mt-1">
+                      Nenehatun Mah. Battal Gazi Cad. No:139/A<br />
+                      41700 Darıca / KOCAELİ
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Sabit Hat & Fax</h3>
+                    <p className="font-mono text-slate-700 text-xs mt-1">0262 653 41 00</p>
+                    <p className="font-mono text-slate-500 text-xs">0262 653 41 01 (Fax)</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Kurumsal E-Posta</h3>
+                    <p className="text-slate-700 text-xs mt-1 font-mono">info@ersasogutma.com.tr</p>
+                    <p className="text-slate-500 text-xs font-mono">siparis@ersasogutma.com.tr</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">Çalışma Saatleri</h3>
+                    <p className="text-slate-500 text-xs mt-1">
+                      Pazartesi - Cumartesi: 08:00 - 19:30<br />
+                      Pazar: Nöbetçi Servis & WhatsApp Hattı
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                <Mail className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">E-Posta</h3>
-                <a href="mailto:info@ersaticaret.com" className="text-slate-600 text-sm block mt-1 hover:text-sky-600">
-                  info@ersaticaret.com
-                </a>
-                <a href="mailto:info@ersasogutma.com.tr" className="text-slate-600 text-sm hover:text-sky-600">
-                  info@ersasogutma.com.tr
-                </a>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Mağaza & Depo Adresimiz</h3>
-                <p className="text-slate-600 text-sm mt-1 leading-relaxed">
-                  Nenehatun Mah. Battal Gazi Cd. No:139/A<br />
-                  41700 Darıca / KOCAELİ
+            {/* Quick Support Card */}
+            <div className="bg-sky-900 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
+              <div className="relative z-10 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                  <ShieldCheck className="w-6 h-6 text-sky-300" />
+                </div>
+                <h3 className="text-xl font-bold">Acil Parça & Gaz İhtiyacı</h3>
+                <p className="text-sky-200 text-xs">
+                  Soğuk hava deposu veya chiller arızalarında nöbetçi ekibimiz ile aynı gün hızlı teslimat.
                 </p>
+                <div className="pt-2">
+                  <a
+                    href="tel:05525843073"
+                    className="inline-flex items-center gap-2 bg-white text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:bg-sky-50 transition"
+                  >
+                    <Phone className="w-3.5 h-3.5" /> 0552 584 30 73
+                  </a>
+                </div>
               </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Çalışma Saatleri</h3>
-                <p className="text-slate-600 text-xs mt-1">
-                  <strong>Pzt - Cmt:</strong> 08:30 - 19:00<br />
-                  <strong>Pazar:</strong> 13:00 - 17:00 (Nöbetçi)
-                </p>
-              </div>
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-sky-500/20 rounded-full blur-2xl"></div>
             </div>
           </div>
 
@@ -184,13 +243,20 @@ export default function ContactPage() {
             {submitted ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-slate-900">Mesajınız Alındı!</h3>
-                <p className="text-slate-500 mt-2">Müşteri temsilcimiz en kısa sürede sizinle iletişime geçecektir.</p>
+                <h3 className="text-2xl font-bold text-slate-900">Başvurunuz Alındı!</h3>
+                <p className="text-slate-500 mt-2">Bayilik ve talep kaydınız başarıyla yönetim panelimize ulaştı. En kısa sürede sizinle iletişime geçilecektir.</p>
                 <button
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFullName('');
+                    setCompanyName('');
+                    setPhone('');
+                    setEmail('');
+                    setMessage('');
+                  }}
                   className="mt-6 px-6 py-2.5 bg-sky-600 text-white rounded-xl font-bold text-sm hover:bg-sky-700 transition"
                 >
-                  Yeni Mesaj Gönder
+                  Yeni Başvuru / Mesaj Gönder
                 </button>
               </div>
             ) : (
@@ -199,12 +265,20 @@ export default function ContactPage() {
                   Online Talep & Bayilik Başvuru Formu
                 </h3>
 
+                {errorMsg && (
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold">
+                    {errorMsg}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Adınız Soyadınız *</label>
                     <input
                       type="text"
                       required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                       placeholder="Ad Soyad"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
@@ -213,6 +287,8 @@ export default function ContactPage() {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Firma / Servis Adı</label>
                     <input
                       type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Firma Ünvanı"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
@@ -225,6 +301,8 @@ export default function ContactPage() {
                     <input
                       type="tel"
                       required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       placeholder="05XX XXX XX XX"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
@@ -233,6 +311,8 @@ export default function ContactPage() {
                     <label className="block text-sm font-semibold text-slate-700 mb-2">E-Posta Adresiniz</label>
                     <input
                       type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="ornek@firma.com"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
@@ -241,7 +321,11 @@ export default function ContactPage() {
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Konu / Talep Türü</label>
-                  <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                  <select
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
+                  >
                     <option>Yeni B2B Bayilik Başvurusu</option>
                     <option>Toplu Ürün / Fiyat Teklifi Talebi</option>
                     <option>Teknik Destek / Parça Sorgulama</option>
@@ -254,6 +338,8 @@ export default function ContactPage() {
                   <textarea
                     rows={4}
                     required
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     placeholder="Talebinizi veya sorularınızı buraya yazınız..."
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                   ></textarea>
@@ -261,9 +347,10 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20 transition flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20 transition flex items-center justify-center gap-2"
                 >
-                  <Send className="w-4 h-4" /> Talebi Gönder
+                  <Send className="w-4 h-4" /> {isSubmitting ? 'Gönderiliyor...' : 'Talebi Gönder'}
                 </button>
               </form>
             )}

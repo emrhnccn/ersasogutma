@@ -94,7 +94,7 @@ export default function PendingOrdersPage() {
                   <tr key={idx} className="hover:bg-slate-800/50 transition">
                     <td className="py-3.5 px-4 font-mono text-slate-400">{item.orderDate}</td>
                     <td className="py-3.5 px-4 font-mono font-bold text-sky-400">
-                      <Link href={`/siparisler/${item.orderNumber}`} className="hover:underline">
+                      <Link href={`/bayi/siparisler/${item.orderNumber}`} className="hover:underline">
                         #{item.orderNumber}
                       </Link>
                     </td>
@@ -122,7 +122,7 @@ export default function PendingOrdersPage() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
-                        href={`/siparisler/${item.orderNumber}`}
+                        href={`/bayi/siparisler/${item.orderNumber}`}
                         className="inline-flex items-center gap-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white px-2.5 py-1 rounded-lg font-semibold text-xs transition"
                       >
                         <span>Detay</span>

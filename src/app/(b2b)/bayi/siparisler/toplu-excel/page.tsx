@@ -153,7 +153,7 @@ export default function ExcelBatchOrderPage() {
     });
 
     showToast(`${readyItems.length} kalem ürün başarıyla sepete aktarıldı!`, 'success');
-    router.push('/siparisler/sepet');
+    router.push('/bayi/siparisler/sepet');
   };
 
   const readyCount = parsedRows.filter((r) => r.status === 'READY').length;

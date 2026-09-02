@@ -12,9 +12,10 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const brandId = searchParams.get('brandId');
     const search = searchParams.get('search');
+    const hasExplicitPagination = searchParams.has('page') || searchParams.has('limit');
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-    const skip = (page - 1) * limit;
+    const limit = searchParams.has('limit') ? parseInt(searchParams.get('limit')!, 10) : (hasExplicitPagination ? 50 : undefined);
+    const skip = hasExplicitPagination && limit ? (page - 1) * limit : undefined;
 
     const where: Record<string, unknown> = {};
 
@@ -51,8 +52,8 @@ export async function GET(request: NextRequest) {
           documents: true
         },
         orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip
+        ...(limit ? { take: limit } : {}),
+        ...(skip !== undefined ? { skip } : {})
       }),
       prisma.product.count({ where })
     ]);
@@ -62,8 +63,8 @@ export async function GET(request: NextRequest) {
       data: products,
       count: products.length,
       totalCount,
-      page,
-      totalPages: Math.ceil(totalCount / limit)
+      page: hasExplicitPagination ? page : 1,
+      totalPages: limit ? Math.ceil(totalCount / limit) : 1
     });
   } catch (error) {
     console.error('GET /api/products error:', error);

@@ -125,7 +125,7 @@ export default function OnlinePaymentPage() {
       });
 
       showToast(`Ödeme başarıyla gerçekleşti! Referans: ${refCode}`, 'success');
-      router.push('/finans/slipler');
+      router.push('/bayi/finans/slipler');
     }, 1200);
   };
 

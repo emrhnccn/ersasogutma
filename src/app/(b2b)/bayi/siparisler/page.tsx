@@ -53,7 +53,7 @@ export default function AllOrdersPage() {
 
         <div className="flex items-center gap-2 flex-wrap self-start">
           <Link
-            href="/siparisler/hizli"
+            href="/bayi/siparisler/hizli"
             className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black px-3.5 py-2.5 rounded-xl shadow-lg transition"
           >
             <Zap className="w-4 h-4 fill-slate-950" />
@@ -61,7 +61,7 @@ export default function AllOrdersPage() {
           </Link>
 
           <Link
-            href="/urunler"
+            href="/bayi/urunler"
             className="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-600/30 transition"
           >
             <Plus className="w-4 h-4" />
@@ -193,7 +193,7 @@ export default function AllOrdersPage() {
                         </button>
 
                         <Link
-                          href={`/siparisler/${order.orderNumber}`}
+                          href={`/bayi/siparisler/${order.orderNumber}`}
                           className="inline-flex items-center gap-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition"
                         >
                           <span>Detay</span>

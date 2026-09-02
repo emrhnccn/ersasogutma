@@ -188,34 +188,7 @@ export default function AdminControlPanel() {
   ]);
 
   // Dealer Applications State (Başvurular)
-  const [dealerApplications, setDealerApplications] = useState([
-    {
-      id: 'app-1',
-      companyName: 'Anadolu Teknik Soğutma Sistemleri',
-      contactPerson: 'Kemal Şen',
-      phone: '0535 999 88 77',
-      email: 'kemal@anadolusogutma.com',
-      city: 'Bornova / İzmir',
-      taxOffice: 'Bornova V.D.',
-      taxNumber: '1234567890',
-      notes: 'Haftalık düzenli gaz ve kompresör alımı yapmak istiyoruz.',
-      status: 'PENDING',
-      appliedAt: 'Bugün 10:45'
-    },
-    {
-      id: 'app-2',
-      companyName: 'Kocaeli İklimlendirme Servis',
-      contactPerson: 'Burak Kaya',
-      phone: '0544 333 22 11',
-      email: 'burak@kocaeliservis.com',
-      city: 'İzmit / Kocaeli',
-      taxOffice: 'Alemdar V.D.',
-      taxNumber: '9876543210',
-      notes: 'Yetkili klima servisi, toptan parça alımı.',
-      status: 'PENDING',
-      appliedAt: 'Dün 16:20'
-    }
-  ]);
+  const [dealerApplications, setDealerApplications] = useState<any[]>([]);
 
   // Manual Cari Transaction
   const [manualDocNo, setManualDocNo] = useState('');
@@ -275,7 +248,20 @@ export default function AdminControlPanel() {
     }
   }, []);
 
-  // 4. Fetch Audit Logs
+  // 4. Fetch Dealer Applications
+  const loadDealerApplications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/dealer-applications');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        setDealerApplications(data.data);
+      }
+    } catch (err) {
+      console.error('Dealer applications load error:', err);
+    }
+  }, []);
+
+  // 5. Fetch Audit Logs
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
 
@@ -317,8 +303,9 @@ export default function AdminControlPanel() {
     loadCategories();
     loadBankAccounts();
     loadAuditLogs();
+    loadDealerApplications();
     checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, checkScraperStatus]);
+  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, checkScraperStatus]);
 
   // Polling during active scraping
   useEffect(() => {
@@ -1394,27 +1381,23 @@ export default function AdminControlPanel() {
                           {app.status === 'PENDING' ? (
                             <div className="flex items-center justify-end gap-2">
                               <button
-                                onClick={() => {
-                                  setDealerApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'APPROVED' } : a));
-                                  setDealersList(prev => [
-                                    ...prev,
-                                    {
-                                      id: `dealer-${Date.now()}`,
-                                      dealerCode: `bayi-${app.companyName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8)}`,
-                                      companyName: app.companyName,
-                                      contactPerson: app.contactPerson,
-                                      phone: app.phone,
-                                      email: app.email,
-                                      city: app.city,
-                                      tier: 'Silver',
-                                      discountRate: 30,
-                                      creditLimit: 150000,
-                                      currentBalance: 0,
-                                      status: 'ACTIVE',
-                                      registeredAt: 'Bugün'
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch('/api/dealer-applications', {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ id: app.id, status: 'APPROVED', assignedTier: 'Silver' })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                      showToast(`"${app.companyName}" başvurusu onaylandı ve veritabanına işlendi!`, 'success');
+                                      loadDealerApplications();
+                                    } else {
+                                      showToast(data.error || 'Onaylama başarısız oldu.', 'error');
                                     }
-                                  ]);
-                                  showToast(`"${app.companyName}" başvurusu onaylandı ve Silver Bayi olarak eklendi!`, 'success');
+                                  } catch {
+                                    showToast('İşlem sırasında hata oluştu.', 'error');
+                                  }
                                 }}
                                 className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow"
                               >
@@ -1422,9 +1405,23 @@ export default function AdminControlPanel() {
                                 Onayla & Bayi Yap
                               </button>
                               <button
-                                onClick={() => {
-                                  setDealerApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'REJECTED' } : a));
-                                  showToast(`Başvuru reddedildi.`, 'info');
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch('/api/dealer-applications', {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ id: app.id, status: 'REJECTED' })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                      showToast('Başvuru reddedildi.', 'info');
+                                      loadDealerApplications();
+                                    } else {
+                                      showToast(data.error || 'Reddetme başarısız oldu.', 'error');
+                                    }
+                                  } catch {
+                                    showToast('İşlem sırasında hata oluştu.', 'error');
+                                  }
                                 }}
                                 className="px-2.5 py-1.5 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 font-bold rounded-lg text-xs transition border border-slate-700"
                               >

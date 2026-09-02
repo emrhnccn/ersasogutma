@@ -120,7 +120,7 @@ export default function QuickOrderPage() {
     });
 
     showToast(`${validItems.length} kalem ürün başarıyla sepete aktarıldı!`, 'success');
-    router.push('/siparisler/sepet');
+    router.push('/bayi/siparisler/sepet');
   };
 
   const validRows = items.filter((i) => i.product !== null);
@@ -148,7 +148,7 @@ export default function QuickOrderPage() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/siparisler/toplu-excel"
+            href="/bayi/siparisler/toplu-excel"
             className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs px-3.5 py-2 rounded-xl border border-slate-700 transition"
           >
             <FileSpreadsheet className="w-4 h-4" />
