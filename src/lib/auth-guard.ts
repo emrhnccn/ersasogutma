@@ -82,9 +82,10 @@ export async function requireDealer(): Promise<{ user: AuthenticatedUser; compan
       if (membership) {
         companyId = membership.companyId;
       } else {
-        // Find or create default demo company for user to guarantee isolation
-        const firstCompany = await prisma.company.findFirst();
-        companyId = firstCompany?.id || 'default-company-id';
+        return NextResponse.json(
+          { success: false, error: 'Bu kullanıcıya ait firma bulunamadı. Lütfen yöneticinize başvurun.' },
+          { status: 403 }
+        );
       }
     }
 

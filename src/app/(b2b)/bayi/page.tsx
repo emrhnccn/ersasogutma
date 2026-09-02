@@ -75,7 +75,7 @@ export default function DashboardPage() {
         {/* Quick Action Button Group */}
         <div className="flex items-center gap-2 flex-wrap">
           <Link
-            href="/urunler"
+            href="/bayi/urunler"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-lg shadow-sky-900/30 transition"
           >
             <Plus className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/siparisler/hizli"
+            href="/bayi/siparisler/hizli"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3.5 py-2.5 rounded-xl shadow-lg shadow-amber-950/30 transition"
           >
             <Zap className="w-4 h-4 fill-slate-950" />
@@ -91,7 +91,7 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/siparisler/toplu-excel"
+            href="/bayi/siparisler/toplu-excel"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-lg shadow-emerald-950/30 transition"
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/siparisler"
+            href="/bayi/siparisler"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3 py-2.5 rounded-xl border border-slate-700 transition"
           >
             <ShoppingBag className="w-4 h-4 text-sky-400" />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/cari"
+            href="/bayi/cari"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs px-3 py-2.5 rounded-xl border border-slate-700 transition"
           >
             <span>₺ CARİ HESAP</span>

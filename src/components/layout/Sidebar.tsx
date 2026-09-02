@@ -45,7 +45,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pendingOrdersCount = orders.filter((o) => o.status === 'bekliyor').length;
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path || pathname === `/bayi${path}` || pathname.startsWith(`/bayi${path}/`);
 
   return (
     <>

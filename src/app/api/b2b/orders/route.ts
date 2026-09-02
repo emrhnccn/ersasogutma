@@ -133,14 +133,28 @@ export async function POST(request: NextRequest) {
     const random = Math.floor(1000 + Math.random() * 9000);
     const orderNo = `ERS-${timestamp}-${random}`;
 
-    // Calculate lines and totals
+    // Calculate lines and totals using server-side pricing
     let subtotalExVat = 0;
-    let totalDiscount = 0;
-    const orderItemsData = [];
+    let totalVat = 0;
+    const orderItemsData: Array<{
+      productId: string;
+      name: string;
+      sku: string;
+      quantity: number;
+      unit: string;
+      currency: string;
+      unitNetExVat: number;
+      discountAmt: number;
+      vatRate: number;
+      vatAmount: number;
+      lineGross: number;
+      appliedRules?: string;
+    }> = [];
 
     for (const item of cart.items) {
       const basePrice = Number(item.product.salePrice || 0);
       const qty = Number(item.quantity);
+      const vatRate = Number(item.product.vatRate || 20);
       const priceInfo = await calculateServerPrice({
         productId: item.productId,
         basePriceTRY: basePrice,
@@ -148,12 +162,12 @@ export async function POST(request: NextRequest) {
         companyId
       });
 
-      const lineTotal = priceInfo.finalPriceTRY * qty;
-      const vatAmt = lineTotal * 0.20;
-      const lineGross = lineTotal + vatAmt;
+      const lineNetTotal = priceInfo.finalPriceTRY * qty;
+      const vatAmt = Number((lineNetTotal * vatRate / 100).toFixed(2));
+      const lineGross = Number((lineNetTotal + vatAmt).toFixed(2));
 
-      subtotalExVat += (basePrice * qty);
-      totalDiscount += (priceInfo.discountAmountTRY * qty);
+      subtotalExVat += lineNetTotal;
+      totalVat += vatAmt;
 
       orderItemsData.push({
         productId: item.productId,
@@ -164,81 +178,97 @@ export async function POST(request: NextRequest) {
         currency: 'TRY',
         unitNetExVat: priceInfo.finalPriceTRY,
         discountAmt: priceInfo.discountAmountTRY,
-        vatRate: 20,
+        vatRate,
         vatAmount: vatAmt,
         lineGross,
         appliedRules: priceInfo.ruleAppliedName || `${priceInfo.tierName} %${priceInfo.appliedDiscountPercent}`
       });
-
-      // Deduct stock in DB
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: {
-          stockQty: {
-            decrement: qty
-          }
-        }
-      });
     }
 
-    const discountedSubtotal = subtotalExVat - totalDiscount;
-    const vatTotal = discountedSubtotal * 0.20;
-    const grandTotal = discountedSubtotal + vatTotal;
+    subtotalExVat = Number(subtotalExVat.toFixed(2));
+    totalVat = Number(totalVat.toFixed(2));
+    const grandTotal = Number((subtotalExVat + totalVat).toFixed(2));
 
-    // Create Order with Items
-    const newOrder = await prisma.order.create({
-      data: {
-        orderNo,
-        userId: user.id,
-        companyId,
-        buyerType: 'B2B',
-        status: 'PENDING_APPROVAL',
-        currency: 'TRY',
-        subtotalExVat: discountedSubtotal,
-        vatTotal,
-        grandTotal,
-        paymentMethod,
-        notes: [orderNote, accountingNote ? `[Muhasebe Notu: ${accountingNote}]` : ''].filter(Boolean).join(' | '),
-        addressId: addressId || undefined,
-        items: {
-          create: orderItemsData
+    // Use transaction for atomicity: create order + deduct stock + create cari entry + clear cart
+    const newOrder = await prisma.$transaction(async (tx) => {
+      // 1. Create Order with Items
+      const order = await tx.order.create({
+        data: {
+          orderNo,
+          userId: user.id,
+          companyId,
+          buyerType: 'B2B',
+          status: 'PENDING_APPROVAL',
+          currency: 'TRY',
+          subtotalExVat,
+          vatTotal: totalVat,
+          grandTotal,
+          paymentMethod,
+          notes: [orderNote, accountingNote ? `[Muhasebe Notu: ${accountingNote}]` : ''].filter(Boolean).join(' | '),
+          addressId: addressId || undefined,
+          items: {
+            create: orderItemsData
+          },
+          shipments: {
+            create: {
+              provider: 'Aras Kargo',
+              status: 'PENDING'
+            }
+          }
         },
-        shipments: {
-          create: {
-            provider: 'Aras Kargo',
-            status: 'PENDING'
-          }
-        }
-      },
-      include: {
-        items: true
-      }
-    });
-
-    // Create Current Account Transaction (Cari borç kaydı)
-    const currentAccount = await prisma.currentAccount.findUnique({
-      where: { companyId }
-    });
-
-    if (currentAccount) {
-      await prisma.currentAccountTransaction.create({
-        data: {
-          accountId: currentAccount.id,
-          orderId: newOrder.id,
-          type: 'ORDER_DEBIT',
-          amount: grandTotal,
-          balanceAfter: 0,
-          note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı`
+        include: {
+          items: true
         }
       });
-    }
 
-    // Clear cart
-    await prisma.cartItem.deleteMany({
-      where: { cartId: cart.id }
+      // 2. Deduct stock for all items
+      for (const item of cart.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stockQty: {
+              decrement: Number(item.quantity)
+            }
+          }
+        });
+      }
+
+      // 3. Create Current Account Transaction (Cari borç kaydı)
+      const currentAccount = await tx.currentAccount.findUnique({
+        where: { companyId }
+      });
+
+      if (currentAccount) {
+        // Calculate current balance from existing transactions
+        const existingTxs = await tx.currentAccountTransaction.findMany({
+          where: { accountId: currentAccount.id },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        });
+        const lastBalance = existingTxs.length > 0 ? Number(existingTxs[0].balanceAfter) : 0;
+        const newBalance = lastBalance + grandTotal;
+
+        await tx.currentAccountTransaction.create({
+          data: {
+            accountId: currentAccount.id,
+            orderId: order.id,
+            type: 'ORDER_DEBIT',
+            amount: grandTotal,
+            balanceAfter: newBalance,
+            note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı`
+          }
+        });
+      }
+
+      // 4. Clear cart
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id }
+      });
+
+      return order;
     });
 
-    // Write audit log
+    // Write audit log (outside transaction - non-critical)
     await logAuditAction({
       actorId: user.id,
       action: 'ORDER_CREATE',

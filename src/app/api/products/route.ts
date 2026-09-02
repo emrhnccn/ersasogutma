@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-guard';
 
 // GET /api/products — Fetch all active products with brand, category, images
 export async function GET(request: NextRequest) {
@@ -9,6 +10,9 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const brandId = searchParams.get('brandId');
     const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
 
@@ -33,20 +37,32 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        brand: true,
-        category: true,
-        images: {
-          orderBy: { sortOrder: 'asc' }
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          brand: true,
+          category: true,
+          images: {
+            orderBy: { sortOrder: 'asc' }
+          },
+          documents: true
         },
-        documents: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip
+      }),
+      prisma.product.count({ where })
+    ]);
 
-    return NextResponse.json({ success: true, data: products, count: products.length });
+    return NextResponse.json({
+      success: true,
+      data: products,
+      count: products.length,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit)
+    });
   } catch (error) {
     console.error('GET /api/products error:', error);
     return NextResponse.json(
@@ -56,8 +72,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/products — Create a new product
+// POST /api/products — Create a new product (Admin only)
 export async function POST(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
   try {
     const body = await request.json();
 

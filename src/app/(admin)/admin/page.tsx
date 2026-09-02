@@ -108,8 +108,8 @@ export default function AdminControlPanel() {
   const [scraperProgress, setScraperProgress] = useState<ScraperProgress | null>(null);
   const [isScrapingActive, setIsScrapingActive] = useState(false);
   const [scrapeTargetUrl, setScrapeTargetUrl] = useState('https://www.ersaticaret.com');
-  const [scrapeUsername, setScrapeUsername] = useState('ersadarıca');
-  const [scrapePassword, setScrapePassword] = useState('Ersagrp41');
+  const [scrapeUsername, setScrapeUsername] = useState('');
+  const [scrapePassword, setScrapePassword] = useState('');
   const [scrapeMaxLimit, setScrapeMaxLimit] = useState<string>('');
   const [selectedProvider, setSelectedProvider] = useState('ersaticaret');
 

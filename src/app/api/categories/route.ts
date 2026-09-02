@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,8 +35,10 @@ export async function GET() {
   }
 }
 
-// POST /api/categories — Create a new category
+// POST /api/categories — Create a new category (Admin only)
 export async function POST(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
   try {
     const body = await request.json();
     const { name, parentId, vatRate = 20, seoTitle, seoDescription } = body;
@@ -66,8 +69,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/categories?id=xxx
+// DELETE /api/categories?id=xxx (Admin only)
 export async function DELETE(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

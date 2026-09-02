@@ -1,10 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
-const fallbackDbUrl = 'postgresql://neondb_owner:npg_0dn4tgTXlGpN@ep-royal-bar-b1u7umiy-pooler.c-5.eu-central-1.aws.neon.tech/neondb?sslmode=require';
-const dbUrl = process.env.DATABASE_URL || fallbackDbUrl;
+const dbUrl = process.env.DATABASE_URL;
 
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = dbUrl;
+if (!dbUrl) {
+  throw new Error('DATABASE_URL environment variable is required. Please set it in .env or .env.local');
 }
 
 const globalForPrisma = globalThis as unknown as {

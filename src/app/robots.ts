@@ -9,6 +9,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/admin',
           '/admin/*',
+          '/bayi',
+          '/bayi/*',
           '/cari',
           '/cari/*',
           '/finans',
@@ -25,6 +27,6 @@ export default function robots(): MetadataRoute.Robots {
         ]
       }
     ],
-    sitemap: 'https://bayi.ersasogutma.com.tr/sitemap.xml'
+    sitemap: 'https://www.ersasogutma.com.tr/sitemap.xml'
   };
 }

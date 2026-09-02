@@ -288,12 +288,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 30-Second interval for live currency fetching
+  // 5-minute interval for live currency fetching
   useEffect(() => {
     fetchLiveRates(false);
     const interval = setInterval(() => {
       fetchLiveRates(false);
-    }, 30000);
+    }, 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -558,11 +558,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const cariSummary = {
-    totalOrders: 5354113.59,
+    totalOrders: orders.reduce((sum, o) => sum + o.totalTRY, 0),
     totalDebt: cariTransactions.reduce((sum, t) => sum + t.debt, 0),
     totalCredit: cariTransactions.reduce((sum, t) => sum + t.credit, 0),
-    balance: 26233.61,
-    balanceType: 'A' as const
+    balance: Math.abs(cariTransactions.reduce((sum, t) => sum + t.debt, 0) - cariTransactions.reduce((sum, t) => sum + t.credit, 0)),
+    balanceType: (cariTransactions.reduce((sum, t) => sum + t.debt, 0) >= cariTransactions.reduce((sum, t) => sum + t.credit, 0) ? 'B' : 'A') as 'B' | 'A'
   };
 
   const addCariTransaction = (tx: Omit<CariTransaction, 'id'>) => {
