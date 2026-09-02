@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-guard';
+
+export const dynamic = 'force-dynamic';
 
 // GET /api/products/[id] — Fetch single product
 export async function GET(
@@ -35,11 +38,14 @@ export async function GET(
   }
 }
 
-// PUT /api/products/[id] — Update product
+// PUT /api/products/[id] — Update product (Admin only)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -90,11 +96,14 @@ export async function PUT(
   }
 }
 
-// DELETE /api/products/[id] — Delete product
+// DELETE /api/products/[id] — Delete product (Admin only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
+
   try {
     const { id } = await params;
 
