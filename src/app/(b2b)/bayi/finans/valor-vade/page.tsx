@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { ChequeItem } from '@/types';
 import { formatCurrency, calculateAverageMaturity, formatDate } from '@/lib/utils';
@@ -20,10 +20,12 @@ import {
 export default function MaturityCalculatorPage() {
   const { showToast } = useStore();
 
-  const todayStr = new Date().toISOString().split('T')[0];
-
   // Base setup
-  const [startDate, setStartDate] = useState<string>(todayStr);
+  const [startDate, setStartDate] = useState<string>('2026-09-02');
+
+  useEffect(() => {
+    setStartDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   // Single Cheque Form
   const [singleDate, setSingleDate] = useState<string>('');

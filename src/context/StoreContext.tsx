@@ -194,7 +194,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       type: 'order',
       date: 'Bugün 14:30',
       isRead: false,
-      link: '/siparisler'
+      link: '/bayi/siparisler'
     },
     {
       id: 'notif-2',

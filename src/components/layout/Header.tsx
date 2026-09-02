@@ -75,7 +75,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   const handleSelectProduct = (code: string) => {
     setSearchQuery('');
     setShowSearchResults(false);
-    router.push(`/urunler?q=${encodeURIComponent(code)}`);
+    router.push(`/bayi/urunler?q=${encodeURIComponent(code)}`);
   };
 
   return (
@@ -179,7 +179,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
               </div>
               <div className="p-2 bg-slate-950 text-center">
                 <Link
-                  href={`/urunler?q=${encodeURIComponent(searchQuery)}`}
+                  href={`/bayi/urunler?q=${encodeURIComponent(searchQuery)}`}
                   onClick={() => setShowSearchResults(false)}
                   className="text-xs text-sky-400 hover:text-sky-300 font-bold"
                 >
