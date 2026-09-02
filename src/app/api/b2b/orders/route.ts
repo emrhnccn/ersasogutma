@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer, logAuditAction } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
-import { OrderCreateSchema } from '@/lib/validations';
 import { calculateServerPrice } from '@/lib/pricingEngine';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +40,8 @@ export async function GET(request: NextRequest) {
         user: {
           select: { id: true, name: true, email: true, username: true }
         },
-        shipments: true
+        shipments: true,
+        payments: true
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
       companyName: o.company?.legalName || 'Firma',
       userName: o.user?.name || o.user?.username || 'Bayi Yetkilisi',
       status: o.status, // PENDING_APPROVAL, APPROVED, PREPARING, SHIPPED, DELIVERED, CANCELLED
+      paymentMethod: o.paymentMethod || 'CARI',
+      paymentStatus: o.payments?.[0]?.status || (o.paymentMethod === 'SANAL_POS' ? 'SUCCESS' : 'PENDING'),
       currency: o.currency,
       subtotalExVat: Number(o.subtotalExVat),
       vatTotal: Number(o.vatTotal),
@@ -72,7 +74,7 @@ export async function GET(request: NextRequest) {
         unitNetExVat: Number(i.unitNetExVat),
         discountAmt: Number(i.discountAmt),
         lineGross: Number(i.lineGross),
-        image: i.product?.images?.[0]?.url || ''
+        image: i.product?.images?.[0]?.url || '/placeholder.svg'
       }))
     }));
 
@@ -84,7 +86,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/b2b/orders - Create order from dealer's active cart
+// POST /api/b2b/orders - Create order from dealer's active cart with Cari / Sanal POS payment
 export async function POST(request: NextRequest) {
   const guard = await requireDealer();
   if (guard instanceof NextResponse) return guard;
@@ -93,15 +95,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const parsed = OrderCreateSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
-    }
+    const {
+      paymentMethod = 'CARI', // 'CARI' | 'SANAL_POS'
+      orderNote,
+      accountingNote,
+      addressId,
+      items: incomingItems,
+      paymentData
+    } = body;
 
-    const { paymentMethod, orderNote, accountingNote, addressId } = parsed.data;
+    // Normalizing payment method
+    const normalizedPaymentMethod = 
+      paymentMethod === 'SANAL_POS' || paymentMethod === 'CREDIT_CARD' || paymentMethod === 'KREDI_KARTI'
+        ? 'SANAL_POS'
+        : 'CARI';
 
-    // Fetch user cart
-    const cart = await prisma.cart.findFirst({
+    // 1. Fetch user cart from DB or sync from incomingItems
+    let cart = await prisma.cart.findFirst({
       where: { userId: user.id },
       include: {
         items: {
@@ -112,11 +122,53 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId: user.id },
+        include: { items: { include: { product: true } } }
+      });
+    }
+
+    // If DB cart is empty but frontend sent cart items, populate DB cart items
+    if (cart.items.length === 0 && Array.isArray(incomingItems) && incomingItems.length > 0) {
+      for (const inc of incomingItems) {
+        const prodId = inc.productId || inc.product?.id || inc.id;
+        const qty = Number(inc.quantity || 1);
+        if (prodId) {
+          const product = await prisma.product.findUnique({ where: { id: prodId } });
+          if (product) {
+            await prisma.cartItem.upsert({
+              where: {
+                cartId_productId: {
+                  cartId: cart.id,
+                  productId: product.id
+                }
+              },
+              create: {
+                cartId: cart.id,
+                productId: product.id,
+                quantity: qty
+              },
+              update: {
+                quantity: qty
+              }
+            });
+          }
+        }
+      }
+
+      // Re-fetch cart
+      cart = await prisma.cart.findFirst({
+        where: { id: cart.id },
+        include: { items: { include: { product: true } } }
+      });
+    }
+
     if (!cart || cart.items.length === 0) {
       return NextResponse.json({ success: false, error: 'Sepetinizde ürün bulunmuyor.' }, { status: 400 });
     }
 
-    // Check stock for all items
+    // 2. Stock check
     for (const item of cart.items) {
       const stock = Number(item.product.stockQty || 0);
       const qty = Number(item.quantity);
@@ -128,12 +180,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate unique sequential order number
+    // 3. Generate unique order number
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(1000 + Math.random() * 9000);
     const orderNo = `ERS-${timestamp}-${random}`;
 
-    // Calculate lines and totals using server-side pricing
+    // 4. Calculate server-side prices and lines
     let subtotalExVat = 0;
     let totalVat = 0;
     const orderItemsData: Array<{
@@ -189,7 +241,7 @@ export async function POST(request: NextRequest) {
     totalVat = Number(totalVat.toFixed(2));
     const grandTotal = Number((subtotalExVat + totalVat).toFixed(2));
 
-    // Check credit limit and risk
+    // 5. Credit Limit Validation (For Cari payment)
     const currentAccount = await prisma.currentAccount.findUnique({
       where: { companyId },
       include: {
@@ -204,30 +256,33 @@ export async function POST(request: NextRequest) {
     const lastBalance = currentAccount?.transactions?.[0] ? Number(currentAccount.transactions[0].balanceAfter) : 0;
     const currentDebt = lastBalance > 0 ? lastBalance : 0;
     const totalExposure = currentDebt + grandTotal;
-    const isLimitExceeded = creditLimit > 0 && totalExposure > creditLimit;
 
-    const initialOrderStatus = isLimitExceeded ? 'PENDING_LIMIT_APPROVAL' : 'PENDING_APPROVAL';
-    const limitNote = isLimitExceeded 
-      ? `[KREDİ LİMİTİ AŞIMI: Limit ${creditLimit.toLocaleString('tr-TR')} ₺, Talep Edilen Toplam Borç: ${totalExposure.toLocaleString('tr-TR')} ₺ - Yönetici Onayı Bekliyor]` 
-      : '';
+    if (normalizedPaymentMethod === 'CARI') {
+      if (creditLimit > 0 && totalExposure > creditLimit) {
+        return NextResponse.json({
+          success: false,
+          error: `Bu sipariş için kullanılabilir cari limitiniz yetersizdir. (Kredi Limitiniz: ${creditLimit.toLocaleString('tr-TR')} ₺, Mevcut Borç: ${currentDebt.toLocaleString('tr-TR')} ₺, Sipariş: ${grandTotal.toLocaleString('tr-TR')} ₺, Kullanılabilir: ${Math.max(0, creditLimit - currentDebt).toLocaleString('tr-TR')} ₺)`
+        }, { status: 400 });
+      }
+    }
 
-    const combinedNotes = [orderNote, accountingNote ? `[Muhasebe Notu: ${accountingNote}]` : '', limitNote].filter(Boolean).join(' | ');
+    const combinedNotes = [orderNote, accountingNote ? `[Muhasebe: ${accountingNote}]` : ''].filter(Boolean).join(' | ');
 
-    // Use transaction for atomicity: create order + deduct stock + create cari entry + clear cart
+    // 6. ATOMIC TRANSACTION: Create Order + Stock Deduction + Payment / Ledger Entry + Cart Cleanup
     const newOrder = await prisma.$transaction(async (tx) => {
-      // 1. Create Order with Items
+      // A. Create Order
       const order = await tx.order.create({
         data: {
           orderNo,
           userId: user.id,
           companyId,
           buyerType: 'B2B',
-          status: initialOrderStatus,
+          status: normalizedPaymentMethod === 'SANAL_POS' ? 'APPROVED' : 'PENDING_APPROVAL',
           currency: 'TRY',
           subtotalExVat,
           vatTotal: totalVat,
           grandTotal,
-          paymentMethod,
+          paymentMethod: normalizedPaymentMethod,
           notes: combinedNotes,
           addressId: addressId || undefined,
           items: {
@@ -245,7 +300,7 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // 2. Deduct stock for all items
+      // B. Deduct stock for all items
       for (const item of cart.items) {
         await tx.product.update({
           where: { id: item.productId },
@@ -257,35 +312,54 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // 3. Create Current Account Transaction (Cari borç kaydı)
-      let accountId = currentAccount?.id;
-      let prevBal = lastBalance;
+      // C. Handle Payment Method
+      if (normalizedPaymentMethod === 'CARI') {
+        // Create Current Account Transaction (Cari Borç Kaydı)
+        let accountId = currentAccount?.id;
+        let prevBal = lastBalance;
 
-      if (!accountId) {
-        const createdAcc = await tx.currentAccount.create({
+        if (!accountId) {
+          const createdAcc = await tx.currentAccount.create({
+            data: {
+              companyId,
+              creditLimit: 150000
+            }
+          });
+          accountId = createdAcc.id;
+          prevBal = 0;
+        }
+
+        const newBalance = Number((prevBal + grandTotal).toFixed(2));
+
+        await tx.currentAccountTransaction.create({
           data: {
-            companyId,
-            creditLimit: 150000
+            accountId,
+            orderId: order.id,
+            type: 'ORDER_DEBIT',
+            amount: grandTotal,
+            balanceAfter: newBalance,
+            note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı`
           }
         });
-        accountId = createdAcc.id;
-        prevBal = 0;
+      } else if (normalizedPaymentMethod === 'SANAL_POS') {
+        // Create Payment record (Sanal POS Peşin Ödeme - Cari borç yazılmaz)
+        await tx.payment.create({
+          data: {
+            provider: 'SANAL_POS',
+            providerRef: `POS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+            userId: user.id,
+            companyId,
+            orderId: order.id,
+            purpose: 'ORDER_PAYMENT',
+            amount: grandTotal,
+            currency: 'TRY',
+            status: 'SUCCESS',
+            rawPayload: paymentData ? JSON.stringify({ cardHolder: paymentData.cardHolder, last4: paymentData.cardNumber?.slice(-4) }) : null
+          }
+        });
       }
 
-      const newBalance = Number((prevBal + grandTotal).toFixed(2));
-
-      await tx.currentAccountTransaction.create({
-        data: {
-          accountId,
-          orderId: order.id,
-          type: 'ORDER_DEBIT',
-          amount: grandTotal,
-          balanceAfter: newBalance,
-          note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı${isLimitExceeded ? ' (Limit Aşımı)' : ''}`
-        }
-      });
-
-      // 4. Clear cart
+      // D. Clear active cart
       await tx.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
@@ -293,13 +367,18 @@ export async function POST(request: NextRequest) {
       return order;
     });
 
-    // Write audit log (outside transaction - non-critical)
+    // Write audit log
     await logAuditAction({
       actorId: user.id,
       action: 'ORDER_CREATE',
       entityType: 'Order',
       entityId: newOrder.id,
-      afterJson: { orderNo, grandTotal, itemCount: orderItemsData.length }
+      afterJson: {
+        orderNo,
+        grandTotal,
+        paymentMethod: normalizedPaymentMethod,
+        itemCount: orderItemsData.length
+      }
     });
 
     return NextResponse.json({
@@ -310,7 +389,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('POST /api/b2b/orders error:', error);
-    const message = error instanceof Error ? error.message : 'Sipariş oluşturulurken hata oluştu.';
+    const message = error instanceof Error ? error.message : 'Sipariş oluşturulurken sunucu hatası oluştu.';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

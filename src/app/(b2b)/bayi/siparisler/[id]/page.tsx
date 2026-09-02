@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useStore } from '@/context/StoreContext';
 import { formatCurrency } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -13,18 +12,46 @@ import {
   Clock,
   Truck,
   FileText,
-  User,
   Building,
   Check,
-  AlertCircle
+  AlertCircle,
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 
 export default function OrderDetailPage() {
   const params = useParams();
   const orderId = String(params.id);
-  const { getOrderById } = useStore();
 
-  const order = getOrderById(orderId);
+  const [order, setOrder] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchOrderDetail() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/b2b/orders/${encodeURIComponent(orderId)}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setOrder(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to load order detail:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrderDetail();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-20 text-center shadow-xl flex items-center justify-center gap-3 text-slate-400 text-xs">
+        <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+        <span>Sipariş detayları yükleniyor...</span>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -48,6 +75,13 @@ export default function OrderDetailPage() {
     window.print();
   };
 
+  const steps = [
+    { title: 'Sipariş Alındı', desc: 'Sipariş ERP sistemine kaydedildi', status: 'completed', date: new Date(order.createdAt).toLocaleDateString('tr-TR') },
+    { title: 'Onay & Hazırlık', desc: 'Depo birimi siparişi hazırlıyor', status: order.status !== 'PENDING_APPROVAL' && order.status !== 'CANCELLED' ? 'completed' : 'current', date: '-' },
+    { title: 'Kargo & Sevkiyat', desc: order.carrier ? `${order.carrier} (${order.trackingNumber || 'Takip No Bekleniyor'})` : 'Sevkiyat planlanıyor', status: order.status === 'SHIPPED' || order.status === 'DELIVERED' ? 'completed' : 'pending', date: '-' },
+    { title: 'Teslim Edildi', desc: 'Bayiye teslimat tamamlandı', status: order.status === 'DELIVERED' ? 'completed' : 'pending', date: '-' }
+  ];
+
   return (
     <div className="space-y-6">
       
@@ -68,7 +102,7 @@ export default function OrderDetailPage() {
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Sipariş Tarihi: <span className="font-mono text-slate-200">{order.date}</span> • Kaynak: {order.source}
+              Sipariş Tarihi: <span className="font-mono text-slate-200">{new Date(order.createdAt).toLocaleString('tr-TR')}</span>
             </p>
           </div>
         </div>
@@ -82,15 +116,15 @@ export default function OrderDetailPage() {
         </button>
       </div>
 
-      {/* Interactive Order Timeline (Sipariş Hikayesi) */}
+      {/* Interactive Order Timeline */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
         <h3 className="text-sm font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
           <Clock className="w-4 h-4 text-sky-400" />
-          <span>Sipariş Hikayesi & Durum Çizelgesi</span>
+          <span>Sipariş Durum Çizelgesi</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
-          {order.history.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isCompleted = step.status === 'completed';
             const isCurrent = step.status === 'current';
 
@@ -121,8 +155,7 @@ export default function OrderDetailPage() {
                 </div>
 
                 <div className="font-bold text-xs text-white mb-1">{step.title}</div>
-                <div className="text-[11px] text-slate-400 mb-2">{step.description}</div>
-                <div className="text-[10px] text-slate-500 font-medium">Yetkili: {step.user}</div>
+                <div className="text-[11px] text-slate-400 mb-1">{step.desc}</div>
               </div>
             );
           })}
@@ -136,7 +169,7 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-8 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-slate-800 bg-slate-950/60 font-bold text-xs text-white">
-              Sipariş Edilen Ürünler ({order.items.length} Kalem)
+              Sipariş Edilen Ürünler ({order.items?.length || 0} Kalem)
             </div>
 
             <div className="overflow-x-auto">
@@ -146,45 +179,36 @@ export default function OrderDetailPage() {
                     <th className="py-3 px-4 w-14 text-center">Görsel</th>
                     <th className="py-3 px-4 w-28">Ürün Kodu</th>
                     <th className="py-3 px-4">Ürün Adı</th>
-                    <th className="py-3 px-4 text-center">Sipariş</th>
-                    <th className="py-3 px-4 text-center">Sevk</th>
+                    <th className="py-3 px-4 text-center">Miktar</th>
                     <th className="py-3 px-4">Birim Fiyat</th>
                     <th className="py-3 px-4 text-right">Tutar</th>
-                    <th className="py-3 px-4 text-center">Durum</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-slate-200">
-                  {order.items.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/40 transition">
+                  {order.items?.map((item: any) => (
+                    <tr key={item.id} className="hover:bg-slate-800/40 transition">
                       <td className="py-3 px-4 text-center">
                         <img
-                          src={item.productImage}
-                          alt={item.productName}
+                          src={item.image || '/placeholder.svg'}
+                          alt={item.name}
                           className="w-10 h-10 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                         />
                       </td>
                       <td className="py-3 px-4 font-mono font-bold text-sky-400">
-                        {item.productCode}
+                        {item.sku}
                       </td>
                       <td className="py-3 px-4 font-semibold text-white">
-                        {item.productName}
+                        {item.name}
                       </td>
                       <td className="py-3 px-4 text-center font-mono font-bold">
-                        {item.quantity} Adet
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono text-emerald-400 font-bold">
-                        {item.shippedQuantity} Adet
+                        {item.quantity} {item.unit || 'ADET'}
                       </td>
                       <td className="py-3 px-4 font-mono text-slate-300">
-                        {formatCurrency(item.unitPriceTRY)}
+                        {formatCurrency(item.unitNetExVat)}
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-bold text-emerald-400">
-                        {formatCurrency(item.totalTRY)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold">
-                          {item.status}
-                        </span>
+                        {formatCurrency(item.lineGross)}
                       </td>
                     </tr>
                   ))}
@@ -194,27 +218,15 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Notes Attached */}
-          {(order.orderNote || order.accountingNote) && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              {order.orderNote && (
-                <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
-                  <div className="font-bold text-sky-400 mb-1 flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5" />
-                    <span>Sevkiyat & Lojistik Notu:</span>
-                  </div>
-                  <p className="text-slate-300">{order.orderNote}</p>
+          {order.orderNote && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl text-xs">
+              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                <div className="font-bold text-sky-400 mb-1 flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>Sipariş Notu:</span>
                 </div>
-              )}
-
-              {order.accountingNote && (
-                <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
-                  <div className="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Muhasebe & Finans Notu:</span>
-                  </div>
-                  <p className="text-slate-300">{order.accountingNote}</p>
-                </div>
-              )}
+                <p className="text-slate-300">{order.orderNote}</p>
+              </div>
             </div>
           )}
         </div>
@@ -228,32 +240,27 @@ export default function OrderDetailPage() {
 
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-slate-400">
-                <span>Sipariş Tutarı (Liste):</span>
-                <span className="font-mono text-slate-200">{formatCurrency(order.subtotalTRY)}</span>
-              </div>
-
-              <div className="flex justify-between text-emerald-400">
-                <span>Bayi İskonto Tutarı:</span>
-                <span className="font-mono font-bold">-{formatCurrency(order.discountTRY)}</span>
-              </div>
-
-              <div className="flex justify-between text-slate-300 pt-2 border-t border-slate-800">
-                <span>Ara Toplam (Matrah):</span>
-                <span className="font-mono font-bold text-white">
-                  {formatCurrency(order.totalTRY - order.vatTRY)}
+                <span>Ödeme Şekli:</span>
+                <span className="font-bold text-white">
+                  {order.paymentMethod === 'SANAL_POS' ? 'Kredi Kartı / Sanal POS' : 'Cari Hesap Açık Hesap'}
                 </span>
               </div>
 
               <div className="flex justify-between text-slate-400">
-                <span>Hesaplanan KDV (%20):</span>
-                <span className="font-mono">{formatCurrency(order.vatTRY)}</span>
+                <span>Ara Toplam (KDV Hariç):</span>
+                <span className="font-mono text-slate-200">{formatCurrency(order.subtotalExVat)}</span>
+              </div>
+
+              <div className="flex justify-between text-slate-400">
+                <span>Hesaplanan KDV:</span>
+                <span className="font-mono">{formatCurrency(order.vatTotal)}</span>
               </div>
 
               <div className="pt-3 border-t border-slate-700 flex justify-between items-baseline">
                 <span className="text-sm font-bold text-white">Genel Toplam:</span>
                 <div className="text-right">
                   <div className="text-xl font-black font-mono text-emerald-400">
-                    {formatCurrency(order.totalTRY)}
+                    {formatCurrency(order.grandTotal)}
                   </div>
                   <span className="text-[10px] text-slate-400">KDV Dahil</span>
                 </div>
@@ -264,10 +271,10 @@ export default function OrderDetailPage() {
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
               <div className="font-bold text-slate-200 flex items-center gap-1.5">
                 <Building className="w-4 h-4 text-sky-400" />
-                <span>Bayi / Alıcı Bilgileri:</span>
+                <span>Bayi Bilgileri:</span>
               </div>
-              <div className="text-slate-300 font-semibold">{order.dealerName}</div>
-              <div className="text-slate-400 text-[11px]">{order.shippingAddress}</div>
+              <div className="text-slate-300 font-semibold">{order.companyName}</div>
+              <div className="text-slate-400 text-[11px]">Yetkili: {order.userName}</div>
             </div>
           </div>
         </div>

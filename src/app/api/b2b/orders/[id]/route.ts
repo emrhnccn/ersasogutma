@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/b2b/orders/[id] - Get order detail
+// GET /api/b2b/orders/[id] - Get order detail by ID or orderNo
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,7 +16,12 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const whereClause: any = { id };
+    const whereClause: any = {
+      OR: [
+        { id },
+        { orderNo: id }
+      ]
+    };
     if (user.role !== 'ADMIN') {
       whereClause.companyId = companyId;
     }
@@ -36,7 +41,8 @@ export async function GET(
         company: true,
         user: true,
         shipments: true,
-        address: true
+        address: true,
+        payments: true
       }
     });
 
@@ -44,7 +50,44 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Sipariş bulunamadı.' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: order });
+    const mapped = {
+      id: order.id,
+      orderNumber: order.orderNo,
+      companyName: order.company?.legalName || 'Firma',
+      userName: order.user?.name || order.user?.username || 'Bayi Yetkilisi',
+      status: order.status,
+      paymentMethod: order.paymentMethod || 'CARI',
+      paymentStatus: order.payments?.[0]?.status || (order.paymentMethod === 'SANAL_POS' ? 'SUCCESS' : 'PENDING'),
+      currency: order.currency,
+      subtotalExVat: Number(order.subtotalExVat),
+      vatTotal: Number(order.vatTotal),
+      grandTotal: Number(order.grandTotal),
+      orderNote: order.notes,
+      createdAt: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toISOString(),
+      trackingNumber: order.shipments?.[0]?.trackingNumber || null,
+      carrier: order.shipments?.[0]?.provider || null,
+      address: order.address ? {
+        title: order.address.title,
+        line1: order.address.line1,
+        district: order.address.district,
+        city: order.address.city
+      } : null,
+      items: order.items.map((i) => ({
+        id: i.id,
+        productId: i.productId,
+        name: i.name,
+        sku: i.sku,
+        quantity: Number(i.quantity),
+        unit: i.unit,
+        unitNetExVat: Number(i.unitNetExVat),
+        discountAmt: Number(i.discountAmt),
+        lineGross: Number(i.lineGross),
+        image: i.product?.images?.[0]?.url || '/placeholder.svg'
+      }))
+    };
+
+    return NextResponse.json({ success: true, data: mapped });
   } catch (error: unknown) {
     console.error('GET /api/b2b/orders/[id] error:', error);
     const message = error instanceof Error ? error.message : 'Sipariş detayı yüklenirken hata oluştu.';
@@ -67,9 +110,14 @@ export async function PUT(
     const body = await request.json();
     const { status, trackingNumber, carrier } = body;
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { id },
-      include: { shipments: true }
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id },
+          { orderNo: id }
+        ]
+      },
+      include: { shipments: true, items: true }
     });
 
     if (!existingOrder) {
@@ -81,7 +129,7 @@ export async function PUT(
     const updated = await prisma.$transaction(async (tx) => {
       // 1. Update Order Status
       const ord = await tx.order.update({
-        where: { id },
+        where: { id: existingOrder.id },
         data: {
           status: status || existingOrder.status,
         },
@@ -90,7 +138,30 @@ export async function PUT(
         }
       });
 
-      // 2. If cancelling, restore stocks and create reversal cari credit transaction
+      // 2. Update or create shipment tracking
+      if (trackingNumber || carrier) {
+        if (existingOrder.shipments && existingOrder.shipments.length > 0) {
+          await tx.shipment.update({
+            where: { id: existingOrder.shipments[0].id },
+            data: {
+              trackingNumber: trackingNumber || existingOrder.shipments[0].trackingNumber,
+              provider: carrier || existingOrder.shipments[0].provider,
+              status: status === 'DELIVERED' ? 'DELIVERED' : status === 'SHIPPED' ? 'SHIPPED' : 'IN_TRANSIT'
+            }
+          });
+        } else {
+          await tx.shipment.create({
+            data: {
+              orderId: existingOrder.id,
+              provider: carrier || 'Aras Kargo',
+              trackingNumber: trackingNumber || null,
+              status: status === 'DELIVERED' ? 'DELIVERED' : status === 'SHIPPED' ? 'SHIPPED' : 'IN_TRANSIT'
+            }
+          });
+        }
+      }
+
+      // 3. If cancelling, restore stocks and create reversal cari credit transaction (if paid with Cari)
       if (isCancelling) {
         // Restore stocks
         for (const item of ord.items) {
@@ -106,8 +177,8 @@ export async function PUT(
           }
         }
 
-        // Reversal cari transaction
-        if (existingOrder.companyId) {
+        // Reversal cari transaction only if order was billed to Cari account
+        if (existingOrder.companyId && existingOrder.paymentMethod === 'CARI') {
           const currentAccount = await tx.currentAccount.findUnique({
             where: { companyId: existingOrder.companyId },
             include: {
@@ -125,7 +196,7 @@ export async function PUT(
             await tx.currentAccountTransaction.create({
               data: {
                 accountId: currentAccount.id,
-                orderId: id,
+                orderId: existingOrder.id,
                 type: 'ORDER_CANCEL_CREDIT',
                 amount: Number(existingOrder.grandTotal),
                 balanceAfter: newBalance,
@@ -139,43 +210,22 @@ export async function PUT(
       return ord;
     });
 
-    if (trackingNumber || carrier) {
-      if (existingOrder.shipments.length > 0) {
-        await prisma.shipment.update({
-          where: { id: existingOrder.shipments[0].id },
-          data: {
-            trackingNumber: trackingNumber || existingOrder.shipments[0].trackingNumber,
-            provider: carrier || existingOrder.shipments[0].provider,
-            status: status === 'DELIVERED' ? 'DELIVERED' : 'IN_TRANSIT'
-          }
-        });
-      } else {
-        await prisma.shipment.create({
-          data: {
-            orderId: id,
-            trackingNumber,
-            provider: carrier || 'Aras Kargo',
-            status: status === 'DELIVERED' ? 'DELIVERED' : 'IN_TRANSIT'
-          }
-        });
-      }
-    }
-
     // Write audit log
     await logAuditAction({
       actorId: user.id,
-      action: 'ORDER_STATUS_UPDATE',
+      action: 'ORDER_UPDATE',
       entityType: 'Order',
-      entityId: id,
+      entityId: existingOrder.id,
       beforeJson: { status: existingOrder.status },
-      afterJson: { status, trackingNumber, carrier, isCancelling }
+      afterJson: { status: updated.status, trackingNumber, carrier }
     });
 
     return NextResponse.json({
       success: true,
       data: updated,
-      message: `Sipariş durumu "${status}" olarak güncellendi.${isCancelling ? ' Stoklar iade edildi ve cari hesap düzeltildi.' : ''}`
+      message: `Sipariş durumu "${updated.status}" olarak güncellendi.`
     });
+
   } catch (error: unknown) {
     console.error('PUT /api/b2b/orders/[id] error:', error);
     const message = error instanceof Error ? error.message : 'Sipariş güncellenirken hata oluştu.';

@@ -106,6 +106,11 @@ export default function AdminControlPanel() {
 
   const adminProductObserverTarget = React.useRef<HTMLDivElement>(null);
 
+  // DB Orders State
+  const [adminOrders, setAdminOrders] = useState<any[]>([]);
+  const [loadingAdminOrders, setLoadingAdminOrders] = useState(false);
+  const [adminOrderFilter, setAdminOrderFilter] = useState('ALL');
+
   // DB Categories State
   const [dbCategories, setDbCategories] = useState<DBCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -372,7 +377,42 @@ export default function AdminControlPanel() {
     }
   }, []);
 
-  // 5. Poll Scraper Progress
+  // 6. Fetch Live Database Orders
+  const loadAdminOrders = useCallback(async () => {
+    setLoadingAdminOrders(true);
+    try {
+      const res = await fetch('/api/b2b/orders?status=ALL');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        setAdminOrders(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load admin orders:', err);
+    } finally {
+      setLoadingAdminOrders(false);
+    }
+  }, []);
+
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/b2b/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`Sipariş durumu "${newStatus}" olarak güncellendi`, 'success');
+        loadAdminOrders();
+      } else {
+        showToast(json.error || 'Sipariş güncellenemedi', 'error');
+      }
+    } catch {
+      showToast('Bağlantı hatası', 'error');
+    }
+  };
+
+  // 7. Poll Scraper Progress
   const checkScraperStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/scrape');
@@ -397,8 +437,9 @@ export default function AdminControlPanel() {
     loadAuditLogs();
     loadDealerApplications();
     loadDealers();
+    loadAdminOrders();
     checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, checkScraperStatus]);
+  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, loadAdminOrders, checkScraperStatus]);
 
   // Polling during active scraping
   useEffect(() => {
@@ -1344,82 +1385,185 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* TAB 5: ORDERS */}
+      {/* TAB 5: ORDERS (Live PostgreSQL Database Orders) */}
       {activeTab === 'orders' && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4 text-sky-400" />
-              <span>Bayi Sipariş Onay & Sevkiyat Yönetimi</span>
-            </h2>
-            <span className="text-xs text-slate-400">Toplam {orders.length} Sipariş</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-sky-400" />
+                <span>Bayi Sipariş Onay & Sevkiyat Yönetimi</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Veritabanından canlı bayi siparişleri, ödeme türleri ve kargo sevkiyat durumları
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={adminOrderFilter}
+                onChange={(e) => setAdminOrderFilter(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+              >
+                <option value="ALL">Tüm Durumlar ({adminOrders.length})</option>
+                <option value="PENDING_APPROVAL">⏳ Onay Bekleyenler</option>
+                <option value="APPROVED">✅ Onaylananlar</option>
+                <option value="SHIPPED">🚚 Sevkiyatta / Kargoda</option>
+                <option value="DELIVERED">📦 Teslim Edilenler</option>
+                <option value="CANCELLED">❌ İptal Edilenler</option>
+              </select>
+
+              <button
+                onClick={loadAdminOrders}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+                title="Yenile"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingAdminOrders ? 'animate-spin text-sky-400' : ''}`} />
+              </button>
+            </div>
           </div>
 
-          {orders.length === 0 ? (
+          {loadingAdminOrders && adminOrders.length === 0 ? (
+            <div className="py-16 text-center text-slate-400 flex items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+              <span>Siparişler yükleniyor...</span>
+            </div>
+          ) : adminOrders.filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter).length === 0 ? (
             <div className="py-12 text-center text-slate-500 text-xs space-y-2">
               <ShoppingBag className="w-10 h-10 text-slate-700 mx-auto" />
-              <p>Henüz verilmiş bir bayi siparişi bulunmamaktadır.</p>
+              <p>Kriterlere uygun sipariş kaydı bulunmamaktadır.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3 text-xs"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-mono font-bold text-sky-400 text-sm">#{order.orderNumber}</span>
-                      <span className="text-slate-400 text-[11px] ml-2">({order.date})</span>
+            <div className="space-y-4">
+              {adminOrders
+                .filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter)
+                .map((order) => {
+                  const isCari = order.paymentMethod === 'CARI';
+                  const formattedDate = new Date(order.createdAt).toLocaleString('tr-TR');
+
+                  return (
+                    <div
+                      key={order.id}
+                      className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 text-xs hover:border-slate-700 transition shadow-lg"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono font-bold text-sky-400 text-sm">#{order.orderNumber}</span>
+                            <span className="text-slate-400 text-[11px]">({formattedDate})</span>
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                              isCari ? 'bg-sky-500/10 text-sky-300 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                            }`}>
+                              {isCari ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Sanal POS (Peşin)'}
+                            </span>
+                          </div>
+                          <div className="text-slate-300 font-semibold text-xs">
+                            Bayi: <strong className="text-white">{order.companyName}</strong> ({order.userName})
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-slate-400 block text-[10px]">Genel Toplam (KDV Dahil):</span>
+                          <span className="font-mono font-black text-emerald-400 text-base">
+                            {formatCurrency(order.grandTotal)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Items */}
+                      <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-800/60 space-y-2">
+                        <span className="text-[11px] font-bold text-slate-400 block">Sipariş Kalemleri ({order.items?.length || 0} Ürün):</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {order.items?.map((item: any) => (
+                            <div key={item.id} className="flex items-center gap-2.5 bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                              <img
+                                src={item.image || '/placeholder.svg'}
+                                alt=""
+                                className="w-8 h-8 object-cover rounded bg-white p-0.5 border border-slate-700 flex-shrink-0"
+                                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-white truncate">{item.name}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">
+                                  {item.sku} • {item.quantity} {item.unit || 'ADET'} × {formatCurrency(item.unitNetExVat)}
+                                </div>
+                              </div>
+                              <div className="font-mono font-bold text-emerald-400 text-right">
+                                {formatCurrency(item.lineGross)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {order.orderNote && (
+                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-[11px] text-amber-300">
+                          <strong>Bayi Sipariş Notu:</strong> {order.orderNote}
+                        </div>
+                      )}
+
+                      {/* Actions & Status Bar */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t border-slate-900 gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-slate-400 font-semibold">Mevcut Durum:</span>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                            order.status === 'APPROVED' || order.status === 'DELIVERED'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                              : order.status === 'SHIPPED' || order.status === 'PREPARING'
+                              ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                              : order.status === 'CANCELLED'
+                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, 'APPROVED')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                              order.status === 'APPROVED' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
+                            }`}
+                          >
+                            Onayla
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, 'SHIPPED')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                              order.status === 'SHIPPED' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
+                            }`}
+                          >
+                            Sevkiyata Ver
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                              order.status === 'DELIVERED' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:text-white'
+                            }`}
+                          >
+                            Teslim Edildi
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                              order.status === 'CANCELLED' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-rose-400 hover:bg-rose-950'
+                            }`}
+                          >
+                            İptal Et
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <span className="font-mono font-bold text-emerald-400 text-sm">
-                      {formatCurrency(order.totalTRY)}
-                    </span>
-                  </div>
-
-                  <div className="text-slate-300">
-                    <strong>Kalemler:</strong> {order.items.map((i) => `${i.productName} (${i.quantity}x)`).join(', ')}
-                  </div>
-
-                  {order.orderNote && (
-                    <div className="bg-slate-900 p-2 rounded text-[11px] text-amber-300">
-                      <strong>Bayi Notu:</strong> {order.orderNote}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-900 gap-2 flex-wrap">
-                    <span className="text-[11px] text-slate-400">Sipariş Durumu:</span>
-                    <div className="flex gap-1.5 flex-wrap">
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'bekliyor')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-                          order.status === 'bekliyor' ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Bekliyor
-                      </button>
-
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'sevkiyatta')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-                          order.status === 'sevkiyatta' ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Sevkiyatta (Yolda)
-                      </button>
-
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'tamamlandi')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
-                          order.status === 'tamamlandi' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        Teslim Edildi
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </div>

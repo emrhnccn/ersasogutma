@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
@@ -12,10 +12,13 @@ import {
   ShieldCheck,
   CheckCircle2,
   FileText,
-  Building,
   AlertCircle,
-  HelpCircle,
-  Truck
+  Truck,
+  CreditCard,
+  Building2,
+  Loader2,
+  Lock,
+  Receipt
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -31,34 +34,187 @@ export default function CartPage() {
     setOrderNote,
     accountingNote,
     setAccountingNote,
-    completeOrder,
-    profile
+    profile,
+    showToast
   } = useStore();
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // Payment Method State: 'CARI' | 'SANAL_POS'
+  const [paymentMethod, setPaymentMethod] = useState<'CARI' | 'SANAL_POS'>('CARI');
+
+  // Live Cari Limit & Balance from DB
+  const [liveCreditLimit, setLiveCreditLimit] = useState(150000);
+  const [liveCurrentBalance, setLiveCurrentBalance] = useState(0);
+  const [loadingCari, setLoadingCari] = useState(true);
+
+  // Sanal POS Card Form State
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+
+  // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successOrder, setSuccessOrder] = useState<any | null>(null);
 
-  const handleConfirmOrder = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      // Trigger confetti
+  // Fetch live cari limit on mount
+  useEffect(() => {
+    async function fetchLiveCari() {
       try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch {
-        // ignore
+        setLoadingCari(true);
+        const res = await fetch('/api/b2b/cari');
+        const data = await res.json();
+        if (data?.success) {
+          setLiveCreditLimit(data.creditLimit || 150000);
+          setLiveCurrentBalance(data.currentBalance || 0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch live cari balance:', err);
+      } finally {
+        setLoadingCari(false);
       }
+    }
+    fetchLiveCari();
+  }, []);
 
-      const createdOrder = completeOrder();
-      setShowConfirmModal(false);
+  const availableLimit = Math.max(0, liveCreditLimit - liveCurrentBalance);
+  const grandTotal = cartTotals.grandTotalTRY;
+  const isCariLimitInsufficient = paymentMethod === 'CARI' && liveCreditLimit > 0 && grandTotal > availableLimit;
+
+  // Handle Order Submit via POST /api/b2b/orders
+  const handleConfirmOrder = async () => {
+    setErrorMessage(null);
+
+    // Validate POS fields if Sanal POS selected
+    if (paymentMethod === 'SANAL_POS') {
+      if (!cardHolder.trim() || cardNumber.replace(/\s/g, '').length < 15 || !cardExpiry.trim() || cardCvv.length < 3) {
+        setErrorMessage('Lütfen kart üzerindeki isim, geçerli kart numarası, son kullanma tarihi ve CVV alanlarını eksiksiz doldurunuz.');
+        return;
+      }
+    }
+
+    // Validate Cari limit
+    if (isCariLimitInsufficient) {
+      setErrorMessage(`Bu sipariş için kullanılabilir cari limitiniz yetersizdir. (Kullanılabilir: ${formatCurrency(availableLimit)}, Sipariş: ${formatCurrency(grandTotal)})`);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        paymentMethod,
+        orderNote,
+        accountingNote,
+        items: cart.map((i) => ({
+          productId: i.product.id,
+          quantity: i.quantity,
+          unitPriceTRY: i.unitPriceTRY,
+          totalTRY: i.totalTRY
+        })),
+        paymentData: paymentMethod === 'SANAL_POS' ? {
+          cardHolder,
+          cardNumber: cardNumber.replace(/\s/g, ''),
+          cardExpiry,
+          cardCvv
+        } : undefined
+      };
+
+      const res = await fetch('/api/b2b/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+
+      if (json.success && json.data) {
+        // Trigger confetti celebration
+        try {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+        } catch {}
+
+        clearCart();
+        setSuccessOrder(json.data);
+        showToast(json.message || 'Siparişiniz başarıyla alındı!', 'success');
+      } else {
+        setErrorMessage(json.error || 'Sipariş oluşturulamadı. Lütfen bilgilerinizi kontrol ediniz.');
+        showToast(json.error || 'Sipariş oluşturulamadı', 'error');
+      }
+    } catch (err) {
+      console.error('Order creation error:', err);
+      setErrorMessage('Bağlantı hatası oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.');
+    } finally {
       setIsSubmitting(false);
-      router.push(`/bayi/siparisler/${createdOrder.orderNumber}`);
-    }, 600);
+    }
   };
 
+  // SUCCESS SCREEN
+  if (successOrder) {
+    return (
+      <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95">
+        <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-950">
+          <CheckCircle2 className="w-10 h-10" />
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white">Siparişiniz Başarıyla Alındı!</h2>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            Sipariş kaydınız oluşturulmuş ve sevkiyat planlamasına dahil edilmiştir.
+          </p>
+        </div>
+
+        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 text-xs text-left space-y-3 font-mono">
+          <div className="flex justify-between border-b border-slate-800 pb-2">
+            <span className="text-slate-400">Sipariş Numarası:</span>
+            <span className="text-sky-400 font-bold text-sm">#{successOrder.orderNo}</span>
+          </div>
+          <div className="flex justify-between border-b border-slate-800 pb-2">
+            <span className="text-slate-400">Ödeme Yöntemi:</span>
+            <span className="text-white font-bold">
+              {successOrder.paymentMethod === 'SANAL_POS' ? 'Kredi Kartı / Sanal POS (Peşin)' : 'Cari Hesap Virman (Açık Hesap)'}
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-slate-800 pb-2">
+            <span className="text-slate-400">Toplam Tutar:</span>
+            <span className="text-emerald-400 font-bold text-sm">
+              {formatCurrency(Number(successOrder.grandTotal))}
+            </span>
+          </div>
+          {successOrder.paymentMethod === 'CARI' && (
+            <div className="flex justify-between text-cyan-400">
+              <span>Güncel Cari Bakiye (Borç):</span>
+              <span className="font-bold">
+                {formatCurrency(liveCurrentBalance + Number(successOrder.grandTotal))}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            onClick={() => router.push(`/bayi/siparisler/${successOrder.orderNo}`)}
+            className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+          >
+            <Receipt className="w-4 h-4" />
+            <span>Sipariş Detayını Görüntüle</span>
+          </button>
+          <Link
+            href="/bayi/urunler"
+            className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-3.5 rounded-xl transition flex items-center justify-center gap-2"
+          >
+            <span>Alışverişe Devam Et</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // EMPTY CART
   if (cart.length === 0) {
     return (
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center shadow-xl">
@@ -67,7 +223,7 @@ export default function CartPage() {
         </div>
         <h2 className="text-xl font-bold text-white mb-2">Sepetiniz Boş</h2>
         <p className="text-slate-400 text-xs max-w-md mx-auto mb-6">
-          Sepetinizde henüz ürün bulunmuyor. Ersa Soğutma ürün kataloğundan veya toplu liste ekranından ürün ekleyebilirsiniz.
+          Sepetinizde henüz ürün bulunmuyor. Ersa Soğutma ürün kataloğundan ürün ekleyebilirsiniz.
         </p>
         <div className="flex justify-center gap-3">
           <Link
@@ -95,7 +251,7 @@ export default function CartPage() {
         <div>
           <h1 className="text-2xl font-black text-white">Sepetim & Sipariş Tamamla</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Sepetinizdeki ürünleri kontrol edip bayi siparişinizi onaylayabilirsiniz.
+            Sepetinizdeki ürünleri kontrol edip ödeme yönteminizi seçerek siparişinizi onaylayabilirsiniz.
           </p>
         </div>
 
@@ -108,11 +264,23 @@ export default function CartPage() {
         </button>
       </div>
 
+      {/* Error Alert */}
+      {errorMessage && (
+        <div className="bg-rose-950/80 border border-rose-800 p-4 rounded-2xl text-xs text-rose-300 flex items-start gap-3 shadow-lg">
+          <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <strong className="font-bold block text-white mb-0.5">Sipariş Onaylanamadı:</strong>
+            <span>{errorMessage}</span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Cart Items Table + Notes */}
+        {/* Left Column: Cart Items Table + Payment Options + Notes */}
         <div className="lg:col-span-8 space-y-6">
           
+          {/* 1. Cart Items Table */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -134,10 +302,11 @@ export default function CartPage() {
                       <tr key={item.product.id} className="hover:bg-slate-800/50 transition">
                         <td className="py-3 px-4 text-center">
                           <img
-                            src={item.product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
+                            src={item.product.image || '/placeholder.svg'}
                             alt={item.product.name}
+                            loading="lazy"
                             className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
-                            onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                           />
                         </td>
 
@@ -166,7 +335,7 @@ export default function CartPage() {
                           <div className="inline-flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
                             <button
                               type="button"
-                              onClick={() => updateCartQuantity(item.product.id, item.quantity - minStep)}
+                              onClick={() => updateCartQuantity(item.product.id, Math.max(minStep, item.quantity - minStep))}
                               className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
                             >
                               -
@@ -176,7 +345,7 @@ export default function CartPage() {
                               min={minStep}
                               step={minStep}
                               value={item.quantity}
-                              onChange={(e) => updateCartQuantity(item.product.id, parseInt(e.target.value) || minStep)}
+                              onChange={(e) => updateCartQuantity(item.product.id, Math.max(minStep, parseInt(e.target.value) || minStep))}
                               className="w-10 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
                             />
                             <button
@@ -210,7 +379,170 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Notes Section (Matching Girdap Bayi Order Note & Accounting Note fields) */}
+          {/* 2. PAYMENT METHOD SELECTION */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-sky-400" />
+                <span>Ödeme Yöntemi Seçimi</span>
+              </h3>
+              <span className="text-[11px] text-slate-400">Lütfen ödeme şeklini belirleyiniz</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* OPTION A: CARI HESAP */}
+              <div
+                onClick={() => setPaymentMethod('CARI')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-3 ${
+                  paymentMethod === 'CARI'
+                    ? 'border-sky-500 bg-sky-950/30 shadow-lg shadow-sky-950/50'
+                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${paymentMethod === 'CARI' ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-xs">Cari Hesaptan Öde</h4>
+                      <span className="text-[10px] text-slate-400">Açık Hesap / Vadeli Cari Borç</span>
+                    </div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'CARI' ? 'border-sky-400 bg-sky-400' : 'border-slate-600'}`}>
+                    {paymentMethod === 'CARI' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1.5 font-mono">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Tanımlı Limit:</span>
+                    <span className="text-slate-200">{formatCurrency(liveCreditLimit)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Mevcut Borç:</span>
+                    <span className="text-rose-400 font-bold">{formatCurrency(liveCurrentBalance)}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-800">
+                    <span className="text-slate-300 font-semibold">Kullanılabilir Limit:</span>
+                    <span className={`font-bold ${isCariLimitInsufficient ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {formatCurrency(availableLimit)}
+                    </span>
+                  </div>
+                </div>
+
+                {isCariLimitInsufficient && (
+                  <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-[11px] text-rose-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>Cari limitiniz bu sipariş tutarını karşılamıyor.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* OPTION B: SANAL POS / KREDI KARTI */}
+              <div
+                onClick={() => setPaymentMethod('SANAL_POS')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-3 ${
+                  paymentMethod === 'SANAL_POS'
+                    ? 'border-emerald-500 bg-emerald-950/30 shadow-lg shadow-emerald-950/50'
+                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${paymentMethod === 'SANAL_POS' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-xs">Kredi Kartı / Sanal POS</h4>
+                      <span className="text-[10px] text-slate-400">3D Secure ile Peşin Tahsilat</span>
+                    </div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'SANAL_POS' ? 'border-emerald-400 bg-emerald-400' : 'border-slate-600'}`}>
+                    {paymentMethod === 'SANAL_POS' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1 text-slate-300">
+                  <p className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Cari Borç Yansıtılmaz (Peşin Ödeme)</span>
+                  </p>
+                  <p className="text-[10px] text-slate-400">
+                    Tüm ticari ve şahsi kredi kartlarıyla anında güvenli ödeme.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sanal POS Card Form (Shown when SANAL_POS is active) */}
+            {paymentMethod === 'SANAL_POS' && (
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
+                <div className="flex items-center gap-2 text-slate-300 font-bold border-b border-slate-800 pb-2">
+                  <Lock className="w-4 h-4 text-emerald-400" />
+                  <span>Güvenli Kart Bilgileri (256-Bit SSL)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-slate-400 mb-1 font-semibold">Kart Üzerindeki İsim:</label>
+                    <input
+                      type="text"
+                      placeholder="AD SOYAD VEYA FİRMA UNVANI"
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-slate-400 mb-1 font-semibold">Kart Numarası:</label>
+                    <input
+                      type="text"
+                      maxLength={19}
+                      placeholder="0000 0000 0000 0000"
+                      value={cardNumber}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        setCardNumber(v.replace(/(\d{4})/g, '$1 ').trim());
+                      }}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-400 mb-1 font-semibold">Son Kullanma Tarihi (AA/YY):</label>
+                    <input
+                      type="text"
+                      maxLength={5}
+                      placeholder="12/28"
+                      value={cardExpiry}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        if (v.length >= 2) v = `${v.slice(0, 2)}/${v.slice(2)}`;
+                        setCardExpiry(v);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-400 mb-1 font-semibold">CVC / CVV:</label>
+                    <input
+                      type="password"
+                      maxLength={4}
+                      placeholder="***"
+                      value={cardCvv}
+                      onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Notes Section */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <FileText className="w-4 h-4 text-sky-400" />
@@ -220,7 +552,7 @@ export default function CartPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Sipariş / Sevkiyat Notunuz (Lojistik Ekibine):
+                  Sipariş / Sevkiyat Notunuz:
                 </label>
                 <textarea
                   rows={3}
@@ -237,7 +569,7 @@ export default function CartPage() {
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Örn: 60 gün vadeli cari hesaba virman edilsin, e-arşiv fatura muhasebe mailimize gönderilsin..."
+                  placeholder="Örn: Cari hesap faturası muhasebe mailimize iletilsin..."
                   value={accountingNote}
                   onChange={(e) => setAccountingNote(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
@@ -248,7 +580,7 @@ export default function CartPage() {
 
         </div>
 
-        {/* Right Column: Order Summary (Sipariş Özeti) */}
+        {/* Right Column: Order Summary */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl sticky top-24 space-y-5">
             <h3 className="text-base font-black text-white border-b border-slate-800 pb-3">
@@ -287,7 +619,7 @@ export default function CartPage() {
                 <span className="text-sm font-bold text-white">Genel Toplam:</span>
                 <div className="text-right">
                   <div className="text-xl font-black font-mono text-emerald-400">
-                    {formatCurrency(cartTotals.grandTotalTRY)}
+                    {formatCurrency(grandTotal)}
                   </div>
                   <span className="text-[10px] text-slate-400">KDV Dahil Net Tutar</span>
                 </div>
@@ -298,85 +630,45 @@ export default function CartPage() {
             <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5">
               <div className="font-bold text-slate-200 flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-sky-400" />
-                <span>Teslimat Adresi (Kayıtlı Bayi Adresi):</span>
+                <span>Teslimat Adresi:</span>
               </div>
-              <p className="text-slate-400 line-clamp-2">{profile.address}</p>
+              <p className="text-slate-400 line-clamp-2">{profile.address || 'Kayıtlı Bayi Merkezi Teslimatı'}</p>
             </div>
 
             {/* Submit Button */}
             <button
               type="button"
-              onClick={() => setShowConfirmModal(true)}
-              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm py-3.5 px-4 rounded-xl shadow-xl shadow-emerald-900/40 transition transform active:scale-95 flex items-center justify-center gap-2"
+              disabled={isSubmitting || isCariLimitInsufficient}
+              onClick={handleConfirmOrder}
+              className={`w-full font-black text-sm py-3.5 px-4 rounded-xl shadow-xl transition flex items-center justify-center gap-2 ${
+                isCariLimitInsufficient
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                  : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-900/40 active:scale-95'
+              }`}
             >
-              <span>SİPARİŞİ TAMAMLA</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Sipariş İşleniyor...</span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    {paymentMethod === 'SANAL_POS' ? 'KARTLA GÜVENLİ ÖDE' : 'SİPARİŞİ CARİYE YANSIT'}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
             <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 text-center">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Cari hesap veya Sanal POS ile güvenli B2B sipariş</span>
+              <span>Gerçek zamanlı stok kontrolü ve ERP cari hareket entegrasyonu</span>
             </div>
           </div>
         </div>
 
       </div>
-
-      {/* Confirmation Modal (Matches Girdap Bayi: "Hayır, vazgeçtim / Evet, Onayla!") */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-8 h-8" />
-            </div>
-
-            <h3 className="text-lg font-black text-white mb-2">
-              Siparişi Onaylıyor musunuz?
-            </h3>
-
-            <p className="text-xs text-slate-300 mb-4">
-              Toplam <strong className="text-emerald-400 font-mono">{formatCurrency(cartTotals.grandTotalTRY)}</strong> tutarındaki siparişiniz Ersa Soğutma Satış & Muhasebe birimine iletilecektir.
-            </p>
-
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-left text-xs space-y-1 mb-5">
-              <div className="flex justify-between text-slate-400">
-                <span>Bayi:</span>
-                <span className="font-bold text-white">{profile.companyName}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Ödeme Şekli:</span>
-                <span className="font-bold text-sky-400">Cari Hesap Virman (60 Gün Vade)</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition"
-              >
-                Hayır, vazgeçtim
-              </button>
-
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleConfirmOrder}
-                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-900/40 transition flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <span>İşleniyor...</span>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Evet, Onayla!</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
