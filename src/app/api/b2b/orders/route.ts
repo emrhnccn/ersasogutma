@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
         vatRate,
         vatAmount: vatAmt,
         lineGross,
-        appliedRules: priceInfo.ruleAppliedName || `${priceInfo.tierName} %${priceInfo.appliedDiscountPercent}`
+        appliedRules: priceInfo.ruleAppliedName || (priceInfo.appliedDiscountPercent > 0 ? `Özel İskonto %${priceInfo.appliedDiscountPercent}` : 'Liste Fiyatı')
       });
     }
 

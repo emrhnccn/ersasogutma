@@ -96,6 +96,7 @@ export async function GET(
         phone: company.phone || primaryUser?.phone || '',
         email: company.email || primaryUser?.email || '',
         status: company.status,
+        customDiscountPercent: Number(company.customDiscountPercent || 0),
         registeredAt: company.createdAt,
         user: primaryUser ? {
           id: primaryUser.id,
@@ -105,9 +106,6 @@ export async function GET(
           phone: primaryUser.phone,
           status: primaryUser.status
         } : null,
-        tier: company.customerGroup?.name || 'Standart',
-        customerGroupId: company.customerGroupId,
-        priceRules: company.customerGroup?.priceRules || [],
         finance: {
           accountId: company.currentAccount?.id,
           creditLimit,
@@ -171,7 +169,7 @@ export async function GET(
   }
 }
 
-// PUT /api/admin/dealers/[id] — Update dealer info, status, tier, credit limit
+// PUT /api/admin/dealers/[id] — Update dealer info, status, customDiscountPercent, creditLimit
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -192,7 +190,7 @@ export async function PUT(
       phone,
       email,
       status,
-      tier,
+      customDiscountPercent,
       creditLimit
     } = body;
 
@@ -205,21 +203,30 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Bayi bulunamadı.' }, { status: 404 });
     }
 
-    let customerGroupId = company.customerGroupId;
-    if (tier) {
-      let group = await prisma.customerGroup.findFirst({
-        where: { name: tier }
-      });
-      if (!group) {
-        group = await prisma.customerGroup.create({
-          data: {
-            name: tier,
-            code: tier.toUpperCase(),
-            description: `${tier} Fiyat Grubu`
-          }
-        });
+    // Validate discount percentage (0 to 100)
+    let validatedDiscount: number | undefined = undefined;
+    if (customDiscountPercent !== undefined && customDiscountPercent !== null && customDiscountPercent !== '') {
+      const parsedDiscount = parseFloat(String(customDiscountPercent));
+      if (isNaN(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
+        return NextResponse.json({
+          success: false,
+          error: 'Bayi özel iskontosu %0 ile %100 arasında geçerli bir sayı olmalıdır.'
+        }, { status: 400 });
       }
-      customerGroupId = group.id;
+      validatedDiscount = parsedDiscount;
+    }
+
+    // Validate credit limit (>= 0)
+    let validatedCreditLimit: number | undefined = undefined;
+    if (creditLimit !== undefined && creditLimit !== null && creditLimit !== '') {
+      const parsedLimit = parseFloat(String(creditLimit));
+      if (isNaN(parsedLimit) || parsedLimit < 0) {
+        return NextResponse.json({
+          success: false,
+          error: 'Kredi limiti 0 veya daha büyük pozitif bir sayı olmalıdır.'
+        }, { status: 400 });
+      }
+      validatedCreditLimit = parsedLimit;
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -232,14 +239,20 @@ export async function PUT(
           phone: phone !== undefined ? phone : undefined,
           email: email !== undefined ? email : undefined,
           status: status !== undefined ? status : undefined,
-          customerGroupId
+          customDiscountPercent: validatedDiscount !== undefined ? validatedDiscount : undefined
         }
       });
 
-      if (creditLimit !== undefined && company.currentAccount) {
-        await tx.currentAccount.update({
+      if (validatedCreditLimit !== undefined) {
+        await tx.currentAccount.upsert({
           where: { companyId: id },
-          data: { creditLimit: Number(creditLimit) }
+          create: {
+            companyId: id,
+            creditLimit: validatedCreditLimit
+          },
+          update: {
+            creditLimit: validatedCreditLimit
+          }
         });
       }
 
@@ -251,13 +264,13 @@ export async function PUT(
       action: 'DEALER_PROFILE_UPDATED',
       entityType: 'Company',
       entityId: id,
-      afterJson: { legalName, status, tier, creditLimit }
+      afterJson: { legalName, status, customDiscountPercent: validatedDiscount, creditLimit: validatedCreditLimit }
     });
 
     return NextResponse.json({
       success: true,
       data: updated,
-      message: 'Bayi bilgileri başarıyla güncellendi.'
+      message: 'Bayi bilgileri, özel iskonto ve kredi limiti başarıyla kaydedildi.'
     });
   } catch (error: unknown) {
     console.error('PUT /api/admin/dealers/[id] error:', error);

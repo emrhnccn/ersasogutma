@@ -413,7 +413,8 @@ function ProductsContent() {
                 {displayProducts.map((product) => {
                   const isFav = isFavorite(product.id);
                   const qty = getQty(product);
-                  const discountedPriceTRY = product.priceTRY * (1 - (profile.discountRate || 0.20));
+                  const effectivePrice = product.priceTRY * (1 - (profile.discountRate || 0.20));
+                  const basePrice = product.priceTRY;
 
                   return (
                     <tr
@@ -427,10 +428,10 @@ function ProductsContent() {
                           className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-950 border border-slate-800 cursor-pointer hover:border-sky-500 transition relative"
                         >
                           <img
-                            src={product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
+                            src={product.image || '/placeholder.svg'}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition"
-                            onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
+                            onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
                           />
                         </div>
                       </td>
@@ -477,16 +478,16 @@ function ProductsContent() {
 
                       {/* List Price */}
                       <td className="py-3 px-4 text-right font-mono text-slate-400 line-through">
-                        {formatCurrency(product.priceTRY)}
+                        {basePrice > effectivePrice ? formatCurrency(basePrice) : '—'}
                       </td>
 
                       {/* Dealer Special Net Price */}
                       <td className="py-3 px-4 text-right">
                         <div className="font-mono font-black text-emerald-400 text-sm">
-                          {formatCurrency(discountedPriceTRY)}
+                          {formatCurrency(effectivePrice)}
                         </div>
                         <div className="text-[10px] font-mono text-slate-400">
-                          {convertPrice(discountedPriceTRY).formatted}
+                          + KDV
                         </div>
                       </td>
 
@@ -520,7 +521,7 @@ function ProductsContent() {
 
                           <button
                             onClick={() => addToCart(product, qty)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg shadow-md shadow-emerald-900/30 transition flex items-center justify-center"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition shadow-md shadow-emerald-900/30 flex items-center justify-center"
                             title="Sepete Ekle"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
@@ -537,25 +538,26 @@ function ProductsContent() {
       ) : (
         
         /* GRID / CARD VIEW */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {displayProducts.map((product) => {
             const isFav = isFavorite(product.id);
             const qty = getQty(product);
-            const discountedPriceTRY = product.priceTRY * (1 - (profile.discountRate || 0.20));
+            const effectivePrice = product.priceTRY * (1 - (profile.discountRate || 0.20));
+            const basePrice = product.priceTRY;
 
             return (
               <div
                 key={product.id}
-                className="bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-2xl p-4 flex flex-col justify-between shadow-xl transition group"
+                className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-slate-700 transition group"
               >
                 <div>
                   <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 mb-3 cursor-pointer">
                     <img
-                      src={product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
+                      src={product.image || '/placeholder.svg'}
                       alt={product.name}
                       onClick={() => setSelectedProductForModal(product)}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
+                      onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
                     />
                     {product.isNew && (
                       <span className="absolute top-2 left-2 bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded shadow">
@@ -595,14 +597,16 @@ function ProductsContent() {
                   <div className="flex items-baseline justify-between">
                     <div>
                       <div className="text-base font-black font-mono text-emerald-400">
-                        {formatCurrency(discountedPriceTRY)}
+                        {formatCurrency(effectivePrice)}
                       </div>
-                      <div className="text-[10px] text-slate-400 line-through">
-                        {formatCurrency(product.priceTRY)}
-                      </div>
+                      {basePrice > effectivePrice && (
+                        <div className="text-[10px] text-slate-400 line-through">
+                          {formatCurrency(basePrice)}
+                        </div>
+                      )}
                     </div>
                     <div className="text-xs font-mono text-slate-400">
-                      {convertPrice(discountedPriceTRY).formatted}
+                      + KDV
                     </div>
                   </div>
 

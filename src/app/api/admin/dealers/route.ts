@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
       const availableCredit = Math.max(0, creditLimit - (currentBalance > 0 ? currentBalance : 0));
       const totalOrderSum = c.orders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
       const lastOrder = c.orders[0];
+      const customDiscount = Number(c.customDiscountPercent || 0);
 
       return {
         id: c.id,
@@ -86,8 +87,8 @@ export async function GET(request: NextRequest) {
         email: c.email || primaryUser?.email || '',
         taxNo: c.taxNo || '—',
         taxOffice: c.taxOffice || '—',
-        tier: c.customerGroup?.name || 'Standart',
-        discountRate: c.customerGroup?.name === 'Platinum' ? 50 : c.customerGroup?.name === 'Gold' ? 40 : c.customerGroup?.name === 'Silver' ? 30 : 20,
+        customDiscountPercent: customDiscount,
+        discountRate: customDiscount,
         creditLimit,
         currentBalance,
         availableCredit,
@@ -99,14 +100,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      success: true,
-      data: mapped,
-      count: mapped.length
-    });
+    return NextResponse.json({ success: true, data: mapped });
   } catch (error: unknown) {
     console.error('GET /api/admin/dealers error:', error);
-    const message = error instanceof Error ? error.message : 'Bayiler yüklenirken hata oluştu.';
+    const message = error instanceof Error ? error.message : 'Bayiler listelenirken hata oluştu.';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

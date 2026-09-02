@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-guard';
+import { auth } from '@/auth';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/products — Fetch products with database-level pagination, filters, and lean projection
+// GET /api/products — Fetch products with database-level pagination, filters, and dealer pricing
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -77,6 +78,23 @@ export async function GET(request: NextRequest) {
       orderBy = { name: 'asc' };
     }
 
+    // Get logged-in dealer session if any to apply custom dealer discount
+    let dealerDiscount = 0;
+    try {
+      const session = await auth();
+      if (session?.user?.id) {
+        const member = await prisma.companyMember.findFirst({
+          where: { userId: session.user.id },
+          include: { company: true }
+        });
+        if (member?.company?.customDiscountPercent) {
+          dealerDiscount = Number(member.company.customDiscountPercent);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     // Optimized lean query
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
@@ -113,15 +131,25 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where })
     ]);
 
+    const mappedProducts = products.map((p) => {
+      const base = Number(p.salePrice || 0);
+      const effectivePrice = dealerDiscount > 0 ? Number((base * (1 - dealerDiscount / 100)).toFixed(2)) : base;
+      return {
+        ...p,
+        salePrice: effectivePrice,
+        basePrice: base
+      };
+    });
+
     const totalPages = Math.ceil(totalCount / limit);
     const hasMore = page < totalPages;
 
     return NextResponse.json({
       success: true,
-      data: products,
+      data: mappedProducts,
       page,
       limit,
-      count: products.length,
+      count: mappedProducts.length,
       totalCount,
       totalPages,
       hasMore
@@ -139,77 +167,41 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const guard = await requireAdmin();
   if (guard instanceof NextResponse) return guard;
+
   try {
     const body = await request.json();
-
-    const {
-      name, sku, barcode, description, specsJson,
-      status = 'ACTIVE', unit = 'ADET', vatRate = 20,
-      currency = 'TRY', costPrice, salePrice,
-      stockQty = 0, minOrderQty = 1,
-      brandId, categoryId, imageUrl
-    } = body;
+    const { name, sku, salePrice, costPrice, stockQty, categoryId, brandId, description, images } = body;
 
     if (!name || !sku) {
-      return NextResponse.json(
-        { success: false, error: 'Ürün adı ve SKU zorunludur.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Ürün adı ve stok kodu (SKU) zorunludur.' }, { status: 400 });
     }
 
-    // Generate slug from name
-    const slug = name
-      .toLowerCase()
-      .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
-      .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      + '-' + Date.now().toString(36);
+    const slug = `${sku.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString().slice(-4)}`;
 
     const product = await prisma.product.create({
       data: {
         name,
-        slug,
         sku,
-        barcode: barcode || null,
-        description: description || null,
-        specsJson: specsJson ? JSON.stringify(specsJson) : null,
-        status,
-        unit,
-        vatRate: vatRate ? Number(vatRate) : 20,
-        currency,
-        costPrice: costPrice ? Number(costPrice) : null,
-        salePrice: Number(salePrice) || 0,
-        stockQty: Number(stockQty) || 0,
-        minOrderQty: Number(minOrderQty) || 1,
-        brandId: brandId || null,
+        slug,
+        salePrice: salePrice ? parseFloat(salePrice) : 0,
+        costPrice: costPrice ? parseFloat(costPrice) : null,
+        stockQty: stockQty ? parseInt(stockQty, 10) : 0,
         categoryId: categoryId || null,
-        ...(imageUrl ? {
-          images: {
-            create: {
-              url: imageUrl,
-              sortOrder: 0
-            }
-          }
-        } : {})
-      },
-      include: {
-        brand: true,
-        category: true,
-        images: true
+        brandId: brandId || null,
+        description: description || null,
+        status: 'PUBLISHED',
+        images: images && Array.isArray(images) && images.length > 0 ? {
+          create: images.map((url: string, idx: number) => ({
+            url,
+            sortOrder: idx
+          }))
+        } : undefined
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: product,
-      message: 'Ürün başarıyla oluşturuldu.'
-    }, { status: 201 });
+    return NextResponse.json({ success: true, data: product });
   } catch (error) {
     console.error('POST /api/products error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Ürün oluşturulurken hata oluştu.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Ürün eklenirken hata oluştu.' }, { status: 500 });
   }
 }

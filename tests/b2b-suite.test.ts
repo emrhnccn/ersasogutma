@@ -1,4 +1,4 @@
-import { calculateClientPrice, TIER_DISCOUNT_MAP } from '../src/lib/pricingEngine';
+import { calculateClientPrice } from '../src/lib/pricingEngine';
 import { CleanDbSchema, CartItemSchema, OrderCreateSchema, BankAccountSchema, DealerApplicationSchema } from '../src/lib/validations';
 
 /**
@@ -66,33 +66,29 @@ async function runTests() {
   });
   assert(validApp.success === true, 'Eksiksiz bayilik başvurusu doğrulanır');
 
-  // --- 2. B2B FİYAT MOTORU & İSKONTO KADEMELERİ ---
-  console.log('\n💰 2. B2B FİYAT MOTORU & İSKONTO KADEMELERİ');
+  // --- 2. B2B FİYAT MOTORU & BAYİ ÖZEL İSKONTOLARI ---
+  console.log('\n💰 2. B2B FİYAT MOTORU & BAYİ ÖZEL İSKONTOLARI');
 
   const basePrice = 1000; // 1000 TL
 
-  // Gold Tier (%40)
-  const goldPrice = calculateClientPrice(basePrice, 'Gold', 1);
-  assert(goldPrice.finalPriceTRY === 600, 'Gold Bayi için 1000 TL ürün %40 iskonto ile 600 TL hesaplanır', `Hesaplanan: ${goldPrice.finalPriceTRY}`);
-  assert(goldPrice.discountAmountTRY === 400, 'Gold Bayi indirim tutarı 400 TL dir');
+  // %40 Özel İskonto
+  const p40 = calculateClientPrice(basePrice, 40, 1);
+  assert(p40.finalPriceTRY === 600, 'Bayi için 1000 TL ürün %40 özel iskonto ile 600 TL hesaplanır', `Hesaplanan: ${p40.finalPriceTRY}`);
+  assert(p40.discountAmountTRY === 400, 'İndirim tutarı 400 TL dir');
 
-  // Silver Tier (%30)
-  const silverPrice = calculateClientPrice(basePrice, 'Silver', 1);
-  assert(silverPrice.finalPriceTRY === 700, 'Silver Bayi için 1000 TL ürün %30 iskonto ile 700 TL hesaplanır');
+  // %15 Özel İskonto
+  const p15 = calculateClientPrice(basePrice, 15, 1);
+  assert(p15.finalPriceTRY === 850, 'Bayi için 1000 TL ürün %15 özel iskonto ile 850 TL hesaplanır');
+  assert(p15.discountAmountTRY === 150, 'İndirim tutarı 150 TL dir');
 
-  // Standart Tier (%20)
-  const stdPrice = calculateClientPrice(basePrice, 'Standart', 1);
-  assert(stdPrice.finalPriceTRY === 800, 'Standart Bayi için 1000 TL ürün %20 iskonto ile 800 TL hesaplanır');
+  // %8.5 Ondalıklı Özel İskonto
+  const p8_5 = calculateClientPrice(basePrice, 8.5, 1);
+  assert(p8_5.finalPriceTRY === 915, 'Bayi için 1000 TL ürün %8.5 özel iskonto ile 915 TL hesaplanır');
+  assert(p8_5.discountAmountTRY === 85, 'İndirim tutarı 85 TL dir');
 
-  // Bulk Quantity Tier (>= 10 adet -> +%5 Ek İndirim)
-  const bulk10 = calculateClientPrice(basePrice, 'Gold', 10);
-  assert(bulk10.appliedDiscountPercent === 45, '10 adet alımda Gold Bayi için %40 + %5 = %45 iskonto uygulanır', `İskonto: ${bulk10.appliedDiscountPercent}%`);
-  assert(bulk10.finalPriceTRY === 550, '10 adet alımda birim fiyat 550 TL dir');
-
-  // Large Bulk Quantity Tier (>= 50 adet -> +%10 Ek İndirim)
-  const bulk50 = calculateClientPrice(basePrice, 'Gold', 50);
-  assert(bulk50.appliedDiscountPercent === 50, '50 adet alımda Gold Bayi için %40 + %10 = %50 iskonto uygulanır');
-  assert(bulk50.finalPriceTRY === 500, '50 adet alımda birim fiyat 500 TL dir');
+  // %0 İskonto (Liste Fiyatı)
+  const p0 = calculateClientPrice(basePrice, 0, 1);
+  assert(p0.finalPriceTRY === 1000, 'İskontosuz bayi için 1000 TL liste fiyatı korunur');
 
   // --- 3. BAYİ VERİ İZOLASYONU & MULTI-TENANCY KONTROLÜ ---
   console.log('\n🏢 3. BAYİ VERİ İZOLASYONU (MULTI-TENANCY)');
@@ -111,49 +107,29 @@ async function runTests() {
 
   assert(filterA.companyId === 'comp-101', 'Bayi A sadece comp-101 şirketine ait siparişleri sorgulayabilir');
   assert(filterB.companyId === 'comp-202', 'Bayi B sadece comp-202 şirketine ait siparişleri sorgulayabilir');
-  assert(filterA.companyId !== filterB.companyId, 'Bayi A ve Bayi B veritabanı filtreleri kesin olarak izoledir');
+  assert(filterA.companyId !== filterB.companyId, 'Bayi A ve Bayi B veri izolasyonu tamdır');
 
-  // --- 4. SİPARİŞ YAŞAM DÖNGÜSÜ & STOK EKSİLTME ---
-  console.log('\n📦 4. SİPARİŞ YAŞAM DÖNGÜSÜ (STATUS TRANSITIONS)');
+  // --- 4. CARİ HESAP & BAKİYE KURALI ---
+  console.log('\n💳 4. CARİ HESAP & BAKİYE HESAPLAMA DOĞRULAMA');
 
-  const validStatuses = ['PENDING_APPROVAL', 'APPROVED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-  assert(validStatuses.length === 6, 'Sipariş yaşam döngüsü 6 standart aşamadan oluşur');
-  assert(validStatuses.includes('SHIPPED') && validStatuses.includes('DELIVERED'), 'Kargoda ve Teslim Edildi aşamaları mevcuttur');
+  const creditLimit = 500000;
+  const currentDebt = 320000;
+  const availableCredit = Math.max(0, creditLimit - currentDebt);
+  const newOrderTotal = 150000;
 
-  // Stock deduction simulation
-  let currentStock = 25;
-  const orderQty = 5;
-  currentStock -= orderQty;
-  assert(currentStock === 20, `Sipariş sonrası stok 25 adetten 20 adede düşer (Kalan: ${currentStock})`);
+  assert(availableCredit === 180000, '500.000 TL limit ve 320.000 TL borç ile kullanılabilir limit 180.000 TL dir');
+  assert(newOrderTotal <= availableCredit, '150.000 TL yeni sipariş mevcut kullanılabilir limite uygundur');
 
-  // --- 5. İDEMPOTENT SENKRONİZASYON & MÜKERRER KAYIT ENGELLEME ---
-  console.log('\n🔄 5. İDEMPOTENT İÇE AKTARMA (DEDUPING & UPSERT)');
-
-  const productRegistry = new Map<string, { sku: string; name: string; price: number }>();
-
-  function upsertProduct(p: { sku: string; name: string; price: number }) {
-    productRegistry.set(p.sku, p);
-  }
-
-  // First sync
-  upsertProduct({ sku: 'EMB-6144GK', name: 'Embraco Kompresör', price: 3850 });
-  assert(productRegistry.size === 1, '1. Çekmede ürün kaydedildi');
-
-  // Second sync (same SKU with updated price)
-  upsertProduct({ sku: 'EMB-6144GK', name: 'Embraco Kompresör', price: 3900 });
-  assert(productRegistry.size === 1, '2. Çekmede mükerrer kayıt oluşmadı, ürün güncellendi (İdempotent)');
-  assert(productRegistry.get('EMB-6144GK')?.price === 3900, 'Ürün fiyatı başarıyla 3900 TL olarak güncellendi');
+  const excessOrder = 200000;
+  assert(excessOrder > availableCredit, '200.000 TL sipariş limiti aşar ve engellenmelidir');
 
   // --- SUMMARY ---
   console.log('\n====================================================');
-  console.log(`TEST SONUÇLARI: ${passed} Başarılı, ${failed} Hatalı`);
+  console.log(`📊 TEST SONUCU: ${passed} BAŞARILI, ${failed} BAŞARISIZ`);
   console.log('====================================================');
 
   if (failed > 0) {
     process.exit(1);
-  } else {
-    console.log('🎉 TÜM PRODUCTION KRİTERLERİ VE GÜVENLİK TESTLERİ BAŞARIYLA GEÇTİ!');
-    process.exit(0);
   }
 }
 

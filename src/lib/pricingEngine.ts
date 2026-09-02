@@ -7,29 +7,10 @@ export interface PriceCalculationResult {
   discountAmountTRY: number;
   ruleAppliedName?: string;
   ruleType?: string;
-  tierName: string;
-  tierDiscountPercent: number;
-}
-
-export interface PricingContext {
-  companyId?: string;
-  customerGroupId?: string;
-  tier?: string; // 'Standart' | 'Silver' | 'Gold' | 'Platinum' | 'VIP'
 }
 
 /**
- * Standard Tier Discount Map
- */
-export const TIER_DISCOUNT_MAP: Record<string, number> = {
-  Standart: 20,
-  Silver: 30,
-  Gold: 40,
-  Platinum: 50,
-  VIP: 60,
-};
-
-/**
- * Server-side Price Calculator using Prisma Database PriceRules
+ * Server-side Price Calculator using Prisma Database Custom Discount & PriceRules
  */
 export async function calculateServerPrice(params: {
   productId: string;
@@ -44,13 +25,11 @@ export async function calculateServerPrice(params: {
       basePriceTRY: 0,
       finalPriceTRY: 0,
       appliedDiscountPercent: 0,
-      discountAmountTRY: 0,
-      tierName: 'Standart',
-      tierDiscountPercent: 20
+      discountAmountTRY: 0
     };
   }
 
-  // 1. Fetch Company, CustomerGroup, Product Category & Brand
+  // 1. Fetch Company & Product
   let company = null;
   if (companyId) {
     company = await prisma.company.findUnique({
@@ -64,10 +43,10 @@ export async function calculateServerPrice(params: {
     select: { id: true, categoryId: true, brandId: true }
   });
 
-  const tier = company?.customerGroup?.name || 'Gold';
-  const tierDiscount = TIER_DISCOUNT_MAP[tier] ?? 20;
+  // 2. Custom Dealer Discount from Company record
+  const customDiscount = company?.customDiscountPercent ? Number(company.customDiscountPercent) : 0;
 
-  // 2. Fetch all matching active PriceRules ordered by priority (1 is highest priority)
+  // 3. Fetch active PriceRules ordered by priority (1 is highest priority)
   const rules = await prisma.priceRule.findMany({
     where: {
       active: true,
@@ -82,34 +61,19 @@ export async function calculateServerPrice(params: {
     orderBy: { priority: 'asc' }
   });
 
-  // Evaluate rules in priority order
   for (const rule of rules) {
-    // Check quantity constraint
-    if (rule.minQty && quantity < rule.minQty) {
-      continue;
-    }
-
-    // Check validity date
+    if (rule.minQty && quantity < rule.minQty) continue;
     const now = new Date();
     if (rule.validFrom && now < rule.validFrom) continue;
     if (rule.validTo && now > rule.validTo) continue;
 
-    // Rule match checking
     let isMatch = false;
-
-    if (rule.type === 'CUSTOMER_PRODUCT' && rule.companyId === companyId && rule.productId === productId) {
-      isMatch = true;
-    } else if (rule.type === 'GROUP_PRODUCT' && rule.customerGroupId === company?.customerGroupId && rule.productId === productId) {
-      isMatch = true;
-    } else if (rule.type === 'GROUP_BRAND' && rule.customerGroupId === company?.customerGroupId && rule.brandId === product?.brandId) {
-      isMatch = true;
-    } else if (rule.type === 'GROUP_CATEGORY' && rule.customerGroupId === company?.customerGroupId && rule.categoryId === product?.categoryId) {
-      isMatch = true;
-    } else if (rule.type === 'QTY_TIER' && rule.minQty && quantity >= rule.minQty) {
-      isMatch = true;
-    } else if (rule.type === 'GROUP_PERCENT' && rule.customerGroupId === company?.customerGroupId) {
-      isMatch = true;
-    }
+    if (rule.type === 'CUSTOMER_PRODUCT' && rule.companyId === companyId && rule.productId === productId) isMatch = true;
+    else if (rule.type === 'GROUP_PRODUCT' && rule.customerGroupId === company?.customerGroupId && rule.productId === productId) isMatch = true;
+    else if (rule.type === 'GROUP_BRAND' && rule.customerGroupId === company?.customerGroupId && rule.brandId === product?.brandId) isMatch = true;
+    else if (rule.type === 'GROUP_CATEGORY' && rule.customerGroupId === company?.customerGroupId && rule.categoryId === product?.categoryId) isMatch = true;
+    else if (rule.type === 'QTY_TIER' && rule.minQty && quantity >= rule.minQty) isMatch = true;
+    else if (rule.type === 'GROUP_PERCENT' && rule.customerGroupId === company?.customerGroupId) isMatch = true;
 
     if (isMatch) {
       if (rule.specialPrice) {
@@ -122,12 +86,9 @@ export async function calculateServerPrice(params: {
           appliedDiscountPercent: discPct,
           discountAmountTRY: discountAmt,
           ruleAppliedName: rule.name,
-          ruleType: rule.type,
-          tierName: tier,
-          tierDiscountPercent: tierDiscount
+          ruleType: rule.type
         };
       }
-
       if (rule.discountPercent) {
         const discPct = Number(rule.discountPercent);
         const discountAmt = Number(((basePriceTRY * discPct) / 100).toFixed(2));
@@ -138,54 +99,41 @@ export async function calculateServerPrice(params: {
           appliedDiscountPercent: discPct,
           discountAmountTRY: discountAmt,
           ruleAppliedName: rule.name,
-          ruleType: rule.type,
-          tierName: tier,
-          tierDiscountPercent: tierDiscount
+          ruleType: rule.type
         };
       }
     }
   }
 
-  // 3. Fallback to standard Company Tier Discount
-  const discountAmt = Number(((basePriceTRY * tierDiscount) / 100).toFixed(2));
+  // 4. Fallback: Apply Dealer's Custom Discount percentage from Database
+  const discountAmt = Number(((basePriceTRY * customDiscount) / 100).toFixed(2));
   const finalPrice = Number((basePriceTRY - discountAmt).toFixed(2));
 
   return {
     basePriceTRY,
     finalPriceTRY: finalPrice,
-    appliedDiscountPercent: tierDiscount,
+    appliedDiscountPercent: customDiscount,
     discountAmountTRY: discountAmt,
-    tierName: tier,
-    tierDiscountPercent: tierDiscount
+    ruleAppliedName: customDiscount > 0 ? 'Bayi Özel İskonto' : undefined
   };
 }
 
 /**
- * Client-side sync Price Calculator (Fast UI computation)
+ * Client-side sync Price Calculator
  */
 export function calculateClientPrice(
   basePriceTRY: number,
-  tier: string = 'Gold',
+  discountPercent: number = 0,
   quantity: number = 1
 ): PriceCalculationResult {
-  const tierDiscount = TIER_DISCOUNT_MAP[tier] ?? 40;
-  
-  // Apply additional bulk quantity discount if qty >= 10 (+5%) or qty >= 50 (+10%)
-  let extraQtyDiscount = 0;
-  if (quantity >= 50) extraQtyDiscount = 10;
-  else if (quantity >= 10) extraQtyDiscount = 5;
-
-  const totalDiscount = Math.min(80, tierDiscount + extraQtyDiscount);
-  const discountAmt = Number(((basePriceTRY * totalDiscount) / 100).toFixed(2));
+  const safeDiscount = Math.min(100, Math.max(0, Number(discountPercent) || 0));
+  const discountAmt = Number(((basePriceTRY * safeDiscount) / 100).toFixed(2));
   const finalPrice = Number((basePriceTRY - discountAmt).toFixed(2));
 
   return {
     basePriceTRY,
     finalPriceTRY: finalPrice,
-    appliedDiscountPercent: totalDiscount,
-    discountAmountTRY: discountAmt,
-    tierName: tier,
-    tierDiscountPercent: tierDiscount,
-    ruleAppliedName: extraQtyDiscount > 0 ? `Toplu Alım İndirimi (+%${extraQtyDiscount})` : undefined
+    appliedDiscountPercent: safeDiscount,
+    discountAmountTRY: discountAmt
   };
 }

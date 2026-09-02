@@ -168,7 +168,7 @@ export default function AdminControlPanel() {
   const [editPhone, setEditPhone] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editStatus, setEditStatus] = useState('ACTIVE');
-  const [editTier, setEditTier] = useState('Standart');
+  const [editCustomDiscount, setEditCustomDiscount] = useState('0');
   const [editCreditLimit, setEditCreditLimit] = useState('');
 
   // Dealer Drawer Manual Cari Form
@@ -228,7 +228,7 @@ export default function AdminControlPanel() {
         setEditPhone(json.data.phone || '');
         setEditEmail(json.data.email || '');
         setEditStatus(json.data.status || 'ACTIVE');
-        setEditTier(json.data.tier || 'Standart');
+        setEditCustomDiscount(json.data.customDiscountPercent?.toString() || '0');
         setEditCreditLimit(json.data.finance?.creditLimit?.toString() || '0');
       } else {
         showToast(json.error || 'Bayi detayları alınamadı', 'error');
@@ -1747,7 +1747,7 @@ export default function AdminControlPanel() {
                     <tr>
                       <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
                       <th className="py-3 px-4">Yetkili & İletişim</th>
-                      <th className="py-3 px-4">Kademe</th>
+                      <th className="py-3 px-4">Özel İskonto</th>
                       <th className="py-3 px-4">Kredi Limiti</th>
                       <th className="py-3 px-4">Cari Bakiye</th>
                       <th className="py-3 px-4">Kullanılabilir Limit</th>
@@ -1770,16 +1770,8 @@ export default function AdminControlPanel() {
                           <div className="text-slate-500 text-[10px]">{dealer.email}</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-black text-[11px] ${
-                            dealer.tier === 'Platinum'
-                              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                              : dealer.tier === 'Gold'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : dealer.tier === 'Silver'
-                              ? 'bg-slate-300/20 text-slate-200 border border-slate-400/40'
-                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                          }`}>
-                            {dealer.tier} (%{dealer.discountRate})
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                            %{dealer.customDiscountPercent || 0}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
@@ -1795,7 +1787,7 @@ export default function AdminControlPanel() {
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-white">{dealer.totalOrders} Sipariş</div>
-                          <div className="text-slate-500 text-[10px]">Son: {dealer.lastOrderDate}</div>
+                          <div className="text-[10px] text-slate-500">Son: {dealer.lastOrderDate}</div>
                         </td>
                         <td className="py-3.5 px-4">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -1836,7 +1828,7 @@ export default function AdminControlPanel() {
                     <div>
                       <h2 className="text-base font-black text-white">{selectedDealerDetail.legalName}</h2>
                       <p className="text-xs text-slate-400 font-mono">
-                        {selectedDealerDetail.user?.username} • {selectedDealerDetail.tier} Bayi • {selectedDealerDetail.phone}
+                        {selectedDealerDetail.user?.username} • Özel İskonto: %{selectedDealerDetail.customDiscountPercent || 0} • {selectedDealerDetail.phone}
                       </p>
                     </div>
                   </div>
@@ -1897,13 +1889,13 @@ export default function AdminControlPanel() {
                               phone: editPhone,
                               email: editEmail,
                               status: editStatus,
-                              tier: editTier,
+                              customDiscountPercent: parseFloat(editCustomDiscount) || 0,
                               creditLimit: parseFloat(editCreditLimit) || 0
                             })
                           });
                           const json = await res.json();
                           if (json.success) {
-                            showToast('Bayi bilgileri ve limit başarıyla güncellendi!', 'success');
+                            showToast('Bayi bilgileri, iskonto ve limit başarıyla güncellendi!', 'success');
                             loadDealers();
                             openDealerDrawer(selectedDealerDetail.id);
                           } else {
@@ -1967,17 +1959,21 @@ export default function AdminControlPanel() {
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">İskonto Kademesi:</label>
-                        <select
-                          value={editTier}
-                          onChange={(e) => setEditTier(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                        >
-                          <option value="Standart">Standart (%20 İskonto)</option>
-                          <option value="Silver">Silver (%30 İskonto)</option>
-                          <option value="Gold">Gold (%40 İskonto)</option>
-                          <option value="Platinum">Platinum (%50 İskonto)</option>
-                        </select>
+                        <label className="block text-slate-400 mb-1 font-semibold">Bayi Özel İskonto Oranı (%):</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            placeholder="0.00"
+                            value={editCustomDiscount}
+                            onChange={(e) => setEditCustomDiscount(e.target.value)}
+                            className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-8 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
+                          />
+                          <span className="absolute right-3 top-2 text-slate-500 font-bold">%</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-1">Bayiye özel uygulanacak net indirim yüzdesi (0.00 - 100.00)</p>
                       </div>
 
                       <div>

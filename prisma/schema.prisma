@@ -38,11 +38,12 @@ model Company {
   taxOffice       String?
   phone           String?
   email           String?
-  status          String   @default("PENDING")
-  paymentTerm     String   @default("PREPAID")
-  customerGroupId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status                String   @default("PENDING")
+  paymentTerm           String   @default("PREPAID")
+  customDiscountPercent Decimal  @default(0)
+  customerGroupId       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   customerGroup  CustomerGroup?   @relation(fields: [customerGroupId], references: [id])
   members        CompanyMember[]

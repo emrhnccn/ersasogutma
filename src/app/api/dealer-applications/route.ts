@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, status, assignedTier = 'Silver' } = body;
+    const { id, status, assignedTier = 'Silver', customDiscountPercent, creditLimit: customCreditLimit } = body;
 
     if (!id || !status) {
       return NextResponse.json({ success: false, error: 'Başvuru ID ve durum zorunludur.' }, { status: 400 });
@@ -127,14 +127,8 @@ export async function PUT(request: NextRequest) {
       });
     }
 
-    // Determine credit limit according to tier
-    const tierLimitMap: Record<string, number> = {
-      'Standart': 50000,
-      'Silver': 150000,
-      'Gold': 500000,
-      'Platinum': 1000000
-    };
-    const creditLimit = tierLimitMap[assignedTier] || 150000;
+    const discountPercent = customDiscountPercent !== undefined ? Number(customDiscountPercent) : 0;
+    const creditLimit = customCreditLimit !== undefined ? Number(customCreditLimit) : 150000;
 
     // Clean username from phone or company name
     const rawDigits = application.phone.replace(/\D/g, '');
@@ -208,6 +202,7 @@ export async function PUT(request: NextRequest) {
             taxNo: cleanTaxNo,
             taxOffice: application.taxOffice !== 'Belirtilmedi' ? application.taxOffice : null,
             status: 'ACTIVE',
+            customDiscountPercent: discountPercent,
             customerGroupId: group.id
           }
         });
@@ -216,6 +211,7 @@ export async function PUT(request: NextRequest) {
           where: { id: company.id },
           data: {
             status: 'ACTIVE',
+            customDiscountPercent: discountPercent,
             customerGroupId: group.id,
             phone: application.phone || company.phone,
             email: application.email || company.email

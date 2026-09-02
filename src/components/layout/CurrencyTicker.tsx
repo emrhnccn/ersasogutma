@@ -85,20 +85,6 @@ export function CurrencyTicker() {
             </div>
           </div>
 
-          {/* Quick Dealer Tier Indicator & Selector */}
-          <div className="hidden md:flex items-center gap-1.5 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded text-sky-300">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>Kademe:</span>
-            <select
-              value={profile.tier}
-              onChange={(e) => setDealerTier(e.target.value as 'Standart' | 'Silver' | 'Gold')}
-              className="bg-transparent text-amber-300 font-bold border-none text-xs focus:outline-none cursor-pointer"
-            >
-              <option value="Standart" className="bg-slate-900 text-white">Standart (%20 İskonto)</option>
-              <option value="Silver" className="bg-slate-900 text-white">Silver (%30 İskonto)</option>
-              <option value="Gold" className="bg-slate-900 text-white">Gold (%40 İskonto)</option>
-            </select>
-          </div>
 
           {/* Direct WhatsApp B2B Order Desk */}
           <a

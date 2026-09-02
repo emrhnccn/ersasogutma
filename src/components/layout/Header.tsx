@@ -351,8 +351,8 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 <div className="text-xs font-bold text-white leading-tight truncate max-w-[120px]">
                   {profile.companyName}
                 </div>
-                <div className="text-[9px] text-emerald-400 font-medium leading-none">
-                  {profile.tier} Bayi (%{profile.discountRate * 100})
+                <div className="text-[9px] text-sky-400 font-medium leading-none">
+                  Bayi Hesabı
                 </div>
               </div>
               <ChevronDown className="w-3 h-3 text-slate-400" />

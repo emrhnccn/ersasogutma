@@ -255,8 +255,9 @@ export interface DealerProfile {
   city: string;
   district: string;
   address: string;
-  tier: 'Standart' | 'Silver' | 'Gold';
-  discountRate: number; // e.g. 0.20, 0.30, 0.40
+  tier?: string;
+  customDiscountPercent?: number;
+  discountRate: number; // e.g. 0.15 for 15%
   creditLimit: number;
   riskLimit: number;
   currentBalance: number;

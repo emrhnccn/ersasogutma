@@ -73,9 +73,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <div className="text-xs font-black text-white truncate">{profile.companyName}</div>
               <div className="text-[10px] text-slate-400 font-mono mt-0.5">{profile.dealerCode}</div>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 <span className="text-[10px] text-emerald-400 font-bold">
-                  {profile.tier} Bayi (%{profile.discountRate * 100})
+                  B2B Bayi Portalı
                 </span>
               </div>
             </div>
