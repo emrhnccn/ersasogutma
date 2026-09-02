@@ -258,20 +258,32 @@ export async function POST(request: NextRequest) {
       }
 
       // 3. Create Current Account Transaction (Cari borç kaydı)
-      if (currentAccount) {
-        const newBalance = lastBalance + grandTotal;
+      let accountId = currentAccount?.id;
+      let prevBal = lastBalance;
 
-        await tx.currentAccountTransaction.create({
+      if (!accountId) {
+        const createdAcc = await tx.currentAccount.create({
           data: {
-            accountId: currentAccount.id,
-            orderId: order.id,
-            type: 'ORDER_DEBIT',
-            amount: grandTotal,
-            balanceAfter: newBalance,
-            note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı${isLimitExceeded ? ' (Limit Aşımı)' : ''}`
+            companyId,
+            creditLimit: 150000
           }
         });
+        accountId = createdAcc.id;
+        prevBal = 0;
       }
+
+      const newBalance = Number((prevBal + grandTotal).toFixed(2));
+
+      await tx.currentAccountTransaction.create({
+        data: {
+          accountId,
+          orderId: order.id,
+          type: 'ORDER_DEBIT',
+          amount: grandTotal,
+          balanceAfter: newBalance,
+          note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı${isLimitExceeded ? ' (Limit Aşımı)' : ''}`
+        }
+      });
 
       // 4. Clear cart
       await tx.cartItem.deleteMany({

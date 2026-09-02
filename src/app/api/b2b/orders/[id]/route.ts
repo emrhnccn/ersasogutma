@@ -76,11 +76,67 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Sipariş bulunamadı.' }, { status: 404 });
     }
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status: status || existingOrder.status,
+    const isCancelling = status === 'CANCELLED' && existingOrder.status !== 'CANCELLED';
+
+    const updated = await prisma.$transaction(async (tx) => {
+      // 1. Update Order Status
+      const ord = await tx.order.update({
+        where: { id },
+        data: {
+          status: status || existingOrder.status,
+        },
+        include: {
+          items: true
+        }
+      });
+
+      // 2. If cancelling, restore stocks and create reversal cari credit transaction
+      if (isCancelling) {
+        // Restore stocks
+        for (const item of ord.items) {
+          if (item.productId) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stockQty: {
+                  increment: Number(item.quantity)
+                }
+              }
+            });
+          }
+        }
+
+        // Reversal cari transaction
+        if (existingOrder.companyId) {
+          const currentAccount = await tx.currentAccount.findUnique({
+            where: { companyId: existingOrder.companyId },
+            include: {
+              transactions: {
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          });
+
+          if (currentAccount) {
+            const lastBalance = currentAccount.transactions?.[0] ? Number(currentAccount.transactions[0].balanceAfter) : 0;
+            const newBalance = Number((lastBalance - Number(existingOrder.grandTotal)).toFixed(2));
+
+            await tx.currentAccountTransaction.create({
+              data: {
+                accountId: currentAccount.id,
+                orderId: id,
+                type: 'ORDER_CANCEL_CREDIT',
+                amount: Number(existingOrder.grandTotal),
+                balanceAfter: newBalance,
+                note: `Sipariş #${existingOrder.orderNo} İptal / Bakiye Düzeltme İadesi`
+              }
+            });
+          }
+        }
       }
+
+      return ord;
     });
 
     if (trackingNumber || carrier) {
@@ -112,13 +168,13 @@ export async function PUT(
       entityType: 'Order',
       entityId: id,
       beforeJson: { status: existingOrder.status },
-      afterJson: { status, trackingNumber, carrier }
+      afterJson: { status, trackingNumber, carrier, isCancelling }
     });
 
     return NextResponse.json({
       success: true,
       data: updated,
-      message: `Sipariş durumu "${status}" olarak güncellendi.`
+      message: `Sipariş durumu "${status}" olarak güncellendi.${isCancelling ? ' Stoklar iade edildi ve cari hesap düzeltildi.' : ''}`
     });
   } catch (error: unknown) {
     console.error('PUT /api/b2b/orders/[id] error:', error);

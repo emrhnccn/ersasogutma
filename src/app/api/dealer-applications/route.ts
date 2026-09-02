@@ -153,7 +153,8 @@ export async function PUT(request: NextRequest) {
     const cleanUsername = rawDigits.length >= 7 
       ? `bayi${rawDigits.slice(-7)}` 
       : `bayi_${application.companyName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10)}`;
-    const defaultPasswordHash = await bcrypt.hash('Bayi1234!', 10);
+    const randomTempPassword = `Bayi${Math.floor(100000 + Math.random() * 900000)}!`;
+    const defaultPasswordHash = await bcrypt.hash(randomTempPassword, 10);
 
     // ATOMIC TRANSACTION FOR FULL B2B ONBOARDING
     const result = await prisma.$transaction(async (tx) => {
@@ -318,7 +319,8 @@ export async function PUT(request: NextRequest) {
         company,
         user: dealerUser,
         currentAccount,
-        username: cleanUsername
+        username: cleanUsername,
+        tempPassword: randomTempPassword
       };
     });
 
@@ -338,7 +340,11 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: result,
-      message: `"${result.company.legalName}" başarıyla onaylandı! Bayi Kodu/Kullanıcı Adı: ${result.username} (Şifre: Bayi1234!)`
+      credentials: {
+        username: result.username,
+        tempPassword: result.tempPassword
+      },
+      message: `"${result.company.legalName}" başarıyla onaylandı! Bayi Kullanıcı Adı: ${result.username} (Geçici Şifre: ${result.tempPassword})`
     });
   } catch (error: unknown) {
     console.error('PUT /api/dealer-applications error:', error);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { CATEGORIES, BRANDS } from '@/data/categories';
@@ -30,7 +30,8 @@ import {
   Waves,
   Zap,
   Wrench,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 
 function ProductsContent() {
@@ -38,7 +39,7 @@ function ProductsContent() {
   const queryParam = searchParams.get('q') || '';
   const favoriteOnlyParam = searchParams.get('favori') === '1';
 
-  const { products, addToCart, toggleFavorite, isFavorite, convertPrice, profile } = useStore();
+  const { addToCart, toggleFavorite, isFavorite, convertPrice, profile } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
@@ -48,8 +49,19 @@ function ProductsContent() {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [selectedProductForModal, setSelectedProductForModal] = useState<Product | null>(null);
 
+  // Infinite Scroll & Pagination States
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [totalCount, setTotalCount] = useState<number>(0);
+
   // Local state for quantity stepper per product
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  // Observer sentinel ref
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (queryParam) setSearchQuery(queryParam);
@@ -68,34 +80,103 @@ function ProductsContent() {
     return quantities[product.id] || product.pim || 1;
   };
 
-  // Filtered list
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (selectedCategory !== 'all' && product.category !== selectedCategory) {
-        return false;
+  // Map server DB item to frontend Product model
+  const mapServerProduct = (p: any): Product => ({
+    id: p.id,
+    code: p.sku,
+    name: p.name,
+    category: p.category?.name || 'Genel',
+    brand: p.brand?.name || 'Ersa',
+    pim: p.minOrderQty || 1,
+    priceTRY: p.salePrice || 0,
+    priceUSD: Number(((p.salePrice || 0) / 38.45).toFixed(2)),
+    priceEUR: Number(((p.salePrice || 0) / 42.10).toFixed(2)),
+    originalCurrency: (p.currency as any) || 'TRY',
+    stock: p.stockQty || 0,
+    inStock: (p.stockQty || 0) > 0,
+    image: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80',
+    unit: p.unit || 'Adet',
+    description: p.description || '',
+    specifications: {},
+    barcode: p.barcode || undefined,
+    isNew: true
+  });
+
+  // Fetch products from server (Page 1 or Next Pages)
+  const fetchProducts = useCallback(async (targetPage: number, isNewFilter: boolean = false) => {
+    if (isNewFilter) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const params = new URLSearchParams();
+      params.set('page', targetPage.toString());
+      params.set('limit', '100');
+      params.set('status', 'ALL');
+
+      if (selectedCategory !== 'all') params.set('category', selectedCategory);
+      if (selectedBrand !== 'all') params.set('brand', selectedBrand);
+      if (searchQuery.trim() !== '') params.set('q', searchQuery.trim());
+      if (onlyInStock) params.set('stok', '1');
+
+      const res = await fetch(`/api/products?${params.toString()}`);
+      const json = await res.json();
+
+      if (json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map(mapServerProduct);
+        setTotalCount(json.totalCount || 0);
+        setHasMore(Boolean(json.hasMore));
+        setPage(targetPage);
+
+        setProductsList((prev) => {
+          if (isNewFilter || targetPage === 1) {
+            return mapped;
+          }
+          // Prevent duplicates
+          const existingIds = new Set(prev.map((i) => i.id));
+          const newItems = mapped.filter((i: Product) => !existingIds.has(i.id));
+          return [...prev, ...newItems];
+        });
       }
-      if (selectedBrand !== 'all' && product.brand !== selectedBrand) {
-        return false;
-      }
-      if (onlyInStock && !product.inStock) {
-        return false;
-      }
-      if (onlyFavorites && !isFavorite(product.id)) {
-        return false;
-      }
-      if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase().trim();
-        const matchesName = product.name.toLowerCase().includes(query);
-        const matchesCode = product.code.toLowerCase().includes(query);
-        const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesBarcode = product.barcode?.toLowerCase().includes(query);
-        if (!matchesName && !matchesCode && !matchesBrand && !matchesBarcode) {
-          return false;
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [selectedCategory, selectedBrand, searchQuery, onlyInStock]);
+
+  // Reset and fetch Page 1 whenever filters change
+  useEffect(() => {
+    fetchProducts(1, true);
+  }, [fetchProducts]);
+
+  // Infinite scroll intersection observer
+  useEffect(() => {
+    if (!observerTarget.current || !hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          fetchProducts(page + 1, false);
         }
-      }
-      return true;
-    });
-  }, [products, selectedCategory, selectedBrand, onlyInStock, onlyFavorites, searchQuery, isFavorite]);
+      },
+      { rootMargin: '400px' }
+    );
+
+    observer.observe(observerTarget.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loading, loadingMore, page, fetchProducts]);
+
+  // Optional favorite filter in memory on loaded items
+  const displayProducts = onlyFavorites 
+    ? productsList.filter((p) => isFavorite(p.id))
+    : productsList;
 
   const resetFilters = () => {
     setSelectedCategory('all');
@@ -118,107 +199,169 @@ function ProductsContent() {
       case 'pisiriciler': return <Soup className="w-5 h-5 text-red-400" />;
       case 'elektrik-elektronik': return <Zap className="w-5 h-5 text-yellow-400" />;
       case 'hirdavat-el-aletleri': return <Wrench className="w-5 h-5 text-emerald-400" />;
-      default: return <Snowflake className="w-5 h-5 text-sky-400" />;
+      default: return <ShieldCheck className="w-5 h-5 text-sky-400" />;
     }
   };
 
   return (
     <div className="space-y-6">
       
-      {/* Category Icons Carousel Header (Matching Girdap Bayi layout) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-sky-400" />
-            <span>Kategoriler & Hızlı Filtre</span>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span>Ersa B2B Ürün Kataloğu</span>
           </div>
-          <span className="text-[11px] text-slate-400">
-            Toplam {CATEGORIES.length} Kategori
-          </span>
+          <h1 className="text-2xl font-black text-white">Yedek Parça & Ekipman Kataloğu</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            İskontonuza tanımlı güncel bayi fiyatları ({profile.tier} Kademe - %{(profile.discountRate * 100).toFixed(0)} İskonto)
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700">
+        {/* View mode toggle & total count */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-slate-300 font-mono">
+            {totalCount > 0 ? `${totalCount} Ürün` : '0 Ürün'}
+          </span>
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                viewMode === 'table'
+                  ? 'bg-sky-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Tablo / Liste Görünümü"
+            >
+              <List className="w-4 h-4" />
+              <span className="hidden sm:inline">Liste</span>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                viewMode === 'grid'
+                  ? 'bg-sky-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Grid / Kart Görünümü"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Vitrin</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Icons Bar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl overflow-x-auto">
+        <div className="flex items-center gap-2 min-w-max">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`flex-shrink-0 flex flex-col items-center justify-center p-3 rounded-xl min-w-[100px] border transition ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition ${
               selectedCategory === 'all'
-                ? 'bg-sky-600 border-sky-500 text-white shadow-lg shadow-sky-600/30'
-                : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/30'
+                : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
             }`}
           >
-            <Sparkles className="w-5 h-5 mb-1 text-amber-300" />
-            <span className="text-[11px] font-bold text-center">Tüm Ürünler</span>
+            <ShieldCheck className="w-4 h-4" />
+            <span>Tüm Kategoriler</span>
           </button>
 
           {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.slug;
+            const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name;
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`flex-shrink-0 flex flex-col items-center justify-center p-3 rounded-xl min-w-[110px] max-w-[130px] border transition ${
+                onClick={() => setSelectedCategory(isSelected ? 'all' : cat.name)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition ${
                   isSelected
-                    ? 'bg-sky-600 border-sky-500 text-white shadow-lg shadow-sky-600/30'
-                    : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/30'
+                    : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
                 }`}
               >
-                <div className="mb-1">{getCategoryIcon(cat.slug)}</div>
-                <span className="text-[11px] font-semibold text-center line-clamp-1 leading-tight">
-                  {cat.name}
-                </span>
-                <span className="text-[9px] opacity-75 font-mono">({cat.count})</span>
+                {getCategoryIcon(cat.slug)}
+                <span>{cat.name}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Filter & Search Bar (Matching screenshot 2) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+      {/* Search & Filter Bar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           
-          {/* Brand Selector */}
+          {/* Search Box */}
+          <div className="sm:col-span-6 relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Ürün adı, parça kodu (SKU), marka veya barkod ile arayın..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Brand Filter */}
           <div className="sm:col-span-3">
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 font-medium"
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 transition"
             >
-              <option value="all">Marka Seçiniz (Tümü)</option>
-              {BRANDS.map((b) => (
-                <option key={b.id} value={b.name}>
-                  {b.name}
-                </option>
-              ))}
+              <option value="all">Tüm Markalar</option>
+              {BRANDS.map((b) => {
+                const brandName = typeof b === 'string' ? b : b.name;
+                const brandKey = typeof b === 'string' ? b : (b.id || b.name);
+                return (
+                  <option key={brandKey} value={brandName}>
+                    {brandName}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
-          {/* Search Input */}
-          <div className="sm:col-span-6 relative">
-            <input
-              type="text"
-              placeholder="Ürün Adı / Kodu / OEM / Barkod arayın..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-          </div>
-
-          {/* Search & Reset Buttons */}
+          {/* Toggles */}
           <div className="sm:col-span-3 flex items-center gap-2">
             <button
-              onClick={() => {}}
-              className="flex-1 bg-sky-600 hover:bg-sky-500 text-white py-2.5 px-4 rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition flex items-center justify-center gap-2"
+              onClick={() => setOnlyInStock(!onlyInStock)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition border ${
+                onlyInStock
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+              }`}
             >
-              <Search className="w-3.5 h-3.5" />
-              <span>ARAMA YAP</span>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Stoktakiler</span>
+            </button>
+
+            <button
+              onClick={() => setOnlyFavorites(!onlyFavorites)}
+              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition border ${
+                onlyFavorites
+                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+              title="Sadece Favorilerim"
+            >
+              <Star className={`w-3.5 h-3.5 ${onlyFavorites ? 'fill-amber-400' : ''}`} />
             </button>
 
             {(selectedCategory !== 'all' || selectedBrand !== 'all' || searchQuery || onlyInStock || onlyFavorites) && (
               <button
                 onClick={resetFilters}
-                className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition"
+                className="p-2.5 bg-slate-950 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-800 transition"
                 title="Filtreleri Temizle"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -227,100 +370,49 @@ function ProductsContent() {
           </div>
 
         </div>
-
-        {/* Sub-Filters: Stock Only, Favorites Only, View Toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs">
-          
-          <div className="flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={onlyInStock}
-                onChange={(e) => setOnlyInStock(e.target.checked)}
-                className="rounded border-slate-700 text-sky-600 focus:ring-0"
-              />
-              <span className="text-slate-300">Sadece Stoktakiler</span>
-            </label>
-
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={onlyFavorites}
-                onChange={(e) => setOnlyFavorites(e.target.checked)}
-                className="rounded border-slate-700 text-amber-500 focus:ring-0"
-              />
-              <span className="text-amber-300 flex items-center gap-1">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>Sadece Favorilerim</span>
-              </span>
-            </label>
-
-            <span className="text-slate-500 font-medium">
-              Toplam <strong className="text-sky-400">{filteredProducts.length}</strong> ürün bulundu.
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-[11px]">Görünüm:</span>
-            <div className="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700">
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                title="Tablo Görünümü (Hızlı Sipariş)"
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                title="Kart Izgara Görünümü"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-        </div>
       </div>
 
-      {/* Product List Render */}
-      {filteredProducts.length === 0 ? (
+      {/* Main Content Area */}
+      {loading ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-16 text-center text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin text-sky-400 mx-auto mb-3" />
+          <div className="text-sm font-semibold text-white">Ürün kataloğu veritabanından çekiliyor...</div>
+          <p className="text-xs text-slate-500 mt-1">İlk 100 ürün yükleniyor</p>
+        </div>
+      ) : displayProducts.length === 0 ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
-          <Filter className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-white">Aradığınız kriterlere uygun ürün bulunamadı</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-            Farklı bir arama terimi deneyebilir veya filtreleri sıfırlayabilirsiniz.
-          </p>
+          <XCircle className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+          <div className="text-sm font-bold text-white">Aradığınız kriterlere uygun ürün bulunamadı.</div>
+          <p className="text-xs text-slate-500 mt-1">Filtreleri sıfırlayarak tekrar deneyebilirsiniz.</p>
           <button
             onClick={resetFilters}
-            className="mt-4 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition"
+            className="mt-4 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition"
           >
-            Tüm Ürünleri Göster
+            Filtreleri Sıfırla
           </button>
         </div>
       ) : viewMode === 'table' ? (
         
-        /* 1. Industrial High-Speed Table View (Matches Girdap Bayi screenshot 2) */
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        /* TABLE VIEW */
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
-                  <th className="py-3.5 px-4 w-16 text-center">Ürün Görseli</th>
-                  <th className="py-3.5 px-4 w-32">Ürün Kodu</th>
-                  <th className="py-3.5 px-4">Ürün Adı</th>
-                  <th className="py-3.5 px-4 w-28">Marka</th>
-                  <th className="py-3.5 px-4 w-16 text-center">PİM</th>
-                  <th className="py-3.5 px-4 w-36">Fiyat</th>
-                  <th className="py-3.5 px-4 w-20 text-center">Stok</th>
-                  <th className="py-3.5 px-4 w-28 text-center">Adet</th>
-                  <th className="py-3.5 px-4 w-36 text-right">İşlem</th>
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4 w-12 text-center">Görsel</th>
+                  <th className="py-3 px-4">Parça Kodu</th>
+                  <th className="py-3 px-4">Ürün Adı / Özellikler</th>
+                  <th className="py-3 px-4">Marka</th>
+                  <th className="py-3 px-4">Stok</th>
+                  <th className="py-3 px-4 text-right">Liste Fiyatı</th>
+                  <th className="py-3 px-4 text-right">Bayi Özel Fiyat</th>
+                  <th className="py-3 px-4 text-center w-36">Miktar / Sepet</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80 text-slate-200">
-                {filteredProducts.map((product) => {
-                  const qty = getQty(product);
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {displayProducts.map((product) => {
                   const isFav = isFavorite(product.id);
+                  const qty = getQty(product);
                   const discountedPriceTRY = product.priceTRY * (1 - (profile.discountRate || 0.20));
 
                   return (
@@ -357,108 +449,81 @@ function ProductsContent() {
                           >
                             {product.name}
                           </span>
-                          {product.isNew && (
-                            <span className="bg-rose-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded shadow">
-                              Yeni Ürün
-                            </span>
-                          )}
-                          {product.isOpportunity && (
-                            <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded shadow">
-                              Fırsat
-                            </span>
-                          )}
+                          <button
+                            onClick={() => toggleFavorite(product.id)}
+                            className="text-slate-500 hover:text-amber-400 transition"
+                            title="Favoriye Ekle"
+                          >
+                            <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
+                          </button>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                          {product.description}
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          {product.category} • PİM: {product.pim} Adet
                         </div>
                       </td>
 
                       {/* Brand */}
-                      <td className="py-3 px-4 text-slate-300 font-medium">
+                      <td className="py-3 px-4 font-semibold text-slate-400">
                         {product.brand}
                       </td>
 
-                      {/* PİM (Pack Quantity / Min Order) */}
-                      <td className="py-3 px-4 text-center font-mono font-bold text-slate-300">
-                        <span className="bg-slate-800 px-2 py-1 rounded border border-slate-700">
-                          {product.pim}
+                      {/* Stock Status */}
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Stokta Var</span>
                         </span>
                       </td>
 
-                      {/* Price (Dual Currency & Discount) */}
-                      <td className="py-3 px-4">
+                      {/* List Price */}
+                      <td className="py-3 px-4 text-right font-mono text-slate-400 line-through">
+                        {formatCurrency(product.priceTRY)}
+                      </td>
+
+                      {/* Dealer Special Net Price */}
+                      <td className="py-3 px-4 text-right">
                         <div className="font-mono font-black text-emerald-400 text-sm">
                           {formatCurrency(discountedPriceTRY)}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
-                          <span className="line-through">{formatCurrency(product.priceTRY)}</span>
-                          <span>•</span>
-                          <span className="text-sky-400">{convertPrice(discountedPriceTRY).formatted}</span>
+                        <div className="text-[10px] font-mono text-slate-400">
+                          {convertPrice(discountedPriceTRY).formatted}
                         </div>
                       </td>
 
-                      {/* Stock Checkmark */}
-                      <td className="py-3 px-4 text-center">
-                        {product.inStock ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" title={`Stokta ${product.stock} adet var`}>
-                            <CheckCircle2 className="w-4 h-4" />
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Tükendi">
-                            <XCircle className="w-4 h-4" />
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Quantity Input Stepper */}
-                      <td className="py-3 px-4 text-center">
-                        <div className="inline-flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
-                          <button
-                            type="button"
-                            onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
-                            className="px-1.5 py-0.5 text-slate-400 hover:text-white font-bold"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min={product.pim || 1}
-                            step={product.pim || 1}
-                            value={qty}
-                            onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
-                            className="w-10 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
-                            className="px-1.5 py-0.5 text-slate-400 hover:text-white font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-
-                      {/* Action Buttons: Sepete Ekle + Favori */}
-                      <td className="py-3 px-4 text-right">
+                      {/* Stepper + Add To Cart Button */}
+                      <td className="py-3 px-4">
                         <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
+                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={product.pim || 1}
+                              step={product.pim || 1}
+                              value={qty}
+                              onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
+                              className="w-8 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
+                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+
                           <button
                             onClick={() => addToCart(product, qty)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-emerald-900/30 transition flex items-center gap-1"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg shadow-md shadow-emerald-900/30 transition flex items-center justify-center"
+                            title="Sepete Ekle"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
-                            <span>Sepete Ekle</span>
-                          </button>
-
-                          <button
-                            onClick={() => toggleFavorite(product.id)}
-                            className={`p-1.5 rounded-lg border transition ${
-                              isFav
-                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-                            }`}
-                            title="Favorilere Ekle/Çıkar"
-                          >
-                            <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400' : ''}`} />
                           </button>
                         </div>
                       </td>
@@ -469,14 +534,13 @@ function ProductsContent() {
             </table>
           </div>
         </div>
-
       ) : (
-
-        /* 2. Modern Grid Card View */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredProducts.map((product) => {
-            const qty = getQty(product);
+        
+        /* GRID / CARD VIEW */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {displayProducts.map((product) => {
             const isFav = isFavorite(product.id);
+            const qty = getQty(product);
             const discountedPriceTRY = product.priceTRY * (1 - (profile.discountRate || 0.20));
 
             return (
@@ -582,6 +646,21 @@ function ProductsContent() {
           })}
         </div>
       )}
+
+      {/* Infinite Scroll Trigger Sentinel & Loading Indicator */}
+      <div ref={observerTarget} className="py-6 text-center">
+        {loadingMore && (
+          <div className="inline-flex items-center gap-2 bg-slate-900 border border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Daha fazla ürün yükleniyor...</span>
+          </div>
+        )}
+        {!hasMore && displayProducts.length > 0 && (
+          <div className="text-xs text-slate-500">
+            Tüm ürünler listelendi ({displayProducts.length} / {totalCount})
+          </div>
+        )}
+      </div>
 
       {/* Product Detail Modal */}
       <ProductDetailModal

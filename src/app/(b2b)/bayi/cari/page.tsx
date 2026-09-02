@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { formatCurrency } from '@/lib/utils';
 import { InvoiceDetailModal } from '@/components/finance/InvoiceDetailModal';
@@ -26,17 +26,52 @@ import Link from 'next/link';
 import * as XLSX from 'xlsx';
 
 export default function CariPage() {
-  const { cariTransactions, cariSummary, showToast, profile } = useStore();
+  const { showToast, profile } = useStore();
   
+  const [loading, setLoading] = useState(true);
+  const [liveCariData, setLiveCariData] = useState<{
+    companyName?: string;
+    taxNo?: string;
+    creditLimit?: number;
+    currentBalance?: number;
+    availableCredit?: number;
+    totalDebit?: number;
+    totalCredit?: number;
+    balance?: number;
+    balanceType?: string;
+    transactions?: CariTransaction[];
+  } | null>(null);
+
   const [docTypeFilter, setDocTypeFilter] = useState<string>('all');
   const [balanceFilter, setBalanceFilter] = useState<'all' | 'debt_only' | 'credit_only'>('all');
   const [datePreset, setDatePreset] = useState<'all' | 'today' | 'last30' | 'last90' | 'thisYear'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDetail | null>(null);
 
+  const fetchCariData = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/b2b/cari');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setLiveCariData(json.data);
+      }
+    } catch (err) {
+      console.error('Failed to load cari statement:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCariData();
+  }, [fetchCariData]);
+
+  const transactionsList = liveCariData?.transactions || [];
+
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
-    return cariTransactions.filter((tx) => {
+    return transactionsList.filter((tx) => {
       if (docTypeFilter !== 'all' && tx.documentType !== docTypeFilter) {
         return false;
       }
@@ -52,7 +87,7 @@ export default function CariPage() {
       }
       return true;
     });
-  }, [cariTransactions, docTypeFilter, balanceFilter, searchQuery]);
+  }, [transactionsList, docTypeFilter, balanceFilter, searchQuery]);
 
   // Export to Excel
   const handleExportExcel = () => {
@@ -133,14 +168,14 @@ export default function CariPage() {
         
         <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
           <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 mb-1">
-            TOPLAM FATURA HACMİ
+            KREDİ LİMİTİ
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(cariSummary.totalOrders)}
+            {formatCurrency(liveCariData?.creditLimit ?? profile.creditLimit)}
           </div>
           <div className="mt-3 text-[11px] text-emerald-200 flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Tüm onaylanan siparişler</span>
+            <span>Tanımlı açık hesap limiti</span>
           </div>
         </div>
 
@@ -149,7 +184,7 @@ export default function CariPage() {
             BORÇ TOPLAMI (ALINAN MALLAR)
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(cariSummary.totalDebt)}
+            {formatCurrency(liveCariData?.totalDebit ?? 0)}
           </div>
           <div className="mt-3 text-[11px] text-sky-200 flex items-center gap-1">
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -162,7 +197,7 @@ export default function CariPage() {
             ALACAK TOPLAMI (ÖDEMELER)
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(cariSummary.totalCredit)}
+            {formatCurrency(liveCariData?.totalCredit ?? 0)}
           </div>
           <div className="mt-3 text-[11px] text-amber-200 flex items-center gap-1">
             <ArrowDownLeft className="w-3.5 h-3.5" />
@@ -172,14 +207,14 @@ export default function CariPage() {
 
         <div className="bg-gradient-to-br from-teal-600 to-emerald-700 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
           <div className="text-[11px] font-bold uppercase tracking-wider text-teal-100 mb-1">
-            NET CARİ BAKİYE
+            GÜNCEL CARİ BAKİYE
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(cariSummary.balance)} ({cariSummary.balanceType})
+            {formatCurrency(liveCariData?.currentBalance ?? profile.currentBalance)} ({liveCariData?.balanceType ?? 'B'})
           </div>
           <div className="mt-3 text-[11px] text-emerald-200 font-bold flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
-            <span>Alacaklı Durumdasınız (A)</span>
+            <span>{(liveCariData?.currentBalance ?? 0) > 0 ? 'Ödenecek Borç (B)' : 'Alacaklı Durumdasınız (A)'}</span>
           </div>
         </div>
 

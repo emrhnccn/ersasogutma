@@ -39,6 +39,7 @@ import {
   Settings,
   ExternalLink,
   Loader2,
+  Key,
   Sparkles,
   ArrowUpRight,
   Eye,
@@ -165,6 +166,12 @@ export default function AdminControlPanel() {
 
   // Dealer Applications State (Başvurular)
   const [dealerApplications, setDealerApplications] = useState<any[]>([]);
+  const [createdCredentialsModal, setCreatedCredentialsModal] = useState<{
+    username: string;
+    tempPassword: string;
+    companyName: string;
+    title: string;
+  } | null>(null);
 
   // Manual Cari Transaction
   const [manualDocNo, setManualDocNo] = useState('');
@@ -1412,6 +1419,15 @@ export default function AdminControlPanel() {
                                     if (data.success) {
                                       showToast(`"${app.companyName}" başvurusu onaylandı ve veritabanına işlendi!`, 'success');
                                       loadDealerApplications();
+                                      loadDealers();
+                                      if (data.credentials) {
+                                        setCreatedCredentialsModal({
+                                          username: data.credentials.username,
+                                          tempPassword: data.credentials.tempPassword,
+                                          companyName: app.companyName,
+                                          title: 'Yeni Bayi Hesabı Açıldı'
+                                        });
+                                      }
                                     } else {
                                       showToast(data.error || 'Onaylama başarısız oldu.', 'error');
                                     }
@@ -1664,6 +1680,46 @@ export default function AdminControlPanel() {
                       }}
                       className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
                     >
+                      <div className="md:col-span-2 bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                          <span className="text-slate-400 block text-[11px] font-semibold">Bayi Giriş Kullanıcı Adı:</span>
+                          <span className="text-sm font-mono font-bold text-sky-400">
+                            {selectedDealerDetail.user?.username || selectedDealerDetail.dealerCode}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block mt-0.5">
+                            Giriş Rolü: {selectedDealerDetail.user?.role || 'B2B_DEALER'} • Son Giriş: {selectedDealerDetail.user?.lastLoginAt ? new Date(selectedDealerDetail.user.lastLoginAt).toLocaleString('tr-TR') : 'Henüz Giriş Yapılmadı'}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/reset-password`, {
+                                method: 'POST'
+                              });
+                              const json = await res.json();
+                              if (json.success) {
+                                setCreatedCredentialsModal({
+                                  username: json.username,
+                                  tempPassword: json.tempPassword,
+                                  companyName: selectedDealerDetail.legalName,
+                                  title: 'Yeni Geçici Şifre Oluşturuldu'
+                                });
+                              } else {
+                                showToast(json.error || 'Şifre sıfırlanamadı', 'error');
+                              }
+                            } catch {
+                              showToast('İşlem sırasında hata oluştu', 'error');
+                            }
+                          }}
+                          className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                          <span>Yeni Geçici Şifre Üret</span>
+                        </button>
+                      </div>
+
                       <div>
                         <label className="block text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
                         <input
@@ -2424,6 +2480,66 @@ export default function AdminControlPanel() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: New Dealer Credentials / Temporary Password */}
+      {createdCredentialsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <span>{createdCredentialsModal.title}</span>
+              </div>
+              <button
+                onClick={() => setCreatedCredentialsModal(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              <strong className="text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
+            </p>
+
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-slate-400">Kullanıcı Adı:</span>
+                <span className="text-sky-400 font-bold text-sm">{createdCredentialsModal.username}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Geçici Şifre:</span>
+                <span className="text-emerald-400 font-bold text-sm bg-slate-900 px-2 py-1 rounded border border-slate-800">
+                  {createdCredentialsModal.tempPassword}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
+              <strong>Önemli Güvenlik Notu:</strong> Bu geçici şifre veritabanında plain-text olarak tutulmaz, yalnızca bcrypt hash'i saklanır. Lütfen şifreyi şimdi kopyalayarak bayinizle paylaşınız.
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`Ersa Soğutma B2B Bayi Girişi\nKullanıcı Adı: ${createdCredentialsModal.username}\nGeçici Şifre: ${createdCredentialsModal.tempPassword}\nGiriş URL: https://ersasogutma.vercel.app/bayi/login`);
+                  showToast('Giriş bilgileri panoya kopyalandı!', 'success');
+                }}
+                className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+              >
+                <Layers className="w-4 h-4" />
+                <span>Bilgileri Kopyala</span>
+              </button>
+              <button
+                onClick={() => setCreatedCredentialsModal(null)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl transition"
+              >
+                Tamam
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -4,67 +4,127 @@ import { requireAdmin } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/products — Fetch all active products with brand, category, images
+// GET /api/products — Fetch products with database-level pagination, filters, and lean projection
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'ALL';
-    const categoryId = searchParams.get('categoryId');
-    const brandId = searchParams.get('brandId');
-    const search = searchParams.get('search');
-    const hasExplicitPagination = searchParams.has('page') || searchParams.has('limit');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = searchParams.has('limit') ? parseInt(searchParams.get('limit')!, 10) : (hasExplicitPagination ? 50 : undefined);
-    const skip = hasExplicitPagination && limit ? (page - 1) * limit : undefined;
+    const category = searchParams.get('category') || searchParams.get('categoryId');
+    const brand = searchParams.get('brand') || searchParams.get('brandId');
+    const search = searchParams.get('search') || searchParams.get('q');
+    const inStockOnly = searchParams.get('inStockOnly') === 'true' || searchParams.get('stok') === '1';
+    const sort = searchParams.get('sort') || 'newest';
 
-    const where: Record<string, unknown> = {};
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') || '100', 10)));
+    const skip = (page - 1) * limit;
 
-    // Filter by status (ACTIVE, PUBLISHED, DRAFT, ALL)
+    const where: any = {};
+
+    // Status filter
     if (status !== 'ALL') {
       where.status = status;
     }
 
-    if (categoryId) {
-      where.categoryId = categoryId;
+    // In Stock filter
+    if (inStockOnly) {
+      where.stockQty = { gt: 0 };
     }
 
-    if (brandId) {
-      where.brandId = brandId;
+    // Category filter (by ID, Slug, or Name)
+    if (category && category !== 'all') {
+      where.OR = where.OR || [];
+      where.category = {
+        OR: [
+          { id: category },
+          { slug: category },
+          { name: { equals: category, mode: 'insensitive' } }
+        ]
+      };
     }
 
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { barcode: { contains: search, mode: 'insensitive' } }
-      ];
+    // Brand filter (by ID, Slug, or Name)
+    if (brand && brand !== 'all') {
+      where.brand = {
+        OR: [
+          { id: brand },
+          { slug: brand },
+          { name: { equals: brand, mode: 'insensitive' } }
+        ]
+      };
     }
 
+    // Search query across name, sku, barcode
+    if (search && search.trim() !== '') {
+      const q = search.trim();
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { sku: { contains: q, mode: 'insensitive' } },
+          { barcode: { contains: q, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    // Order By
+    let orderBy: any = { createdAt: 'desc' };
+    if (sort === 'price_asc') {
+      orderBy = { salePrice: 'asc' };
+    } else if (sort === 'price_desc') {
+      orderBy = { salePrice: 'desc' };
+    } else if (sort === 'name_asc') {
+      orderBy = { name: 'asc' };
+    }
+
+    // Optimized lean query
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: {
-          brand: true,
-          category: true,
-          images: {
-            orderBy: { sortOrder: 'asc' }
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          sku: true,
+          barcode: true,
+          salePrice: true,
+          unit: true,
+          stockQty: true,
+          minOrderQty: true,
+          currency: true,
+          vatRate: true,
+          description: true,
+          category: {
+            select: { id: true, name: true, slug: true }
           },
-          documents: true
+          brand: {
+            select: { id: true, name: true, slug: true }
+          },
+          images: {
+            select: { id: true, url: true },
+            take: 1,
+            orderBy: { sortOrder: 'asc' }
+          }
         },
-        orderBy: { createdAt: 'desc' },
-        ...(limit ? { take: limit } : {}),
-        ...(skip !== undefined ? { skip } : {})
+        orderBy,
+        take: limit,
+        skip
       }),
       prisma.product.count({ where })
     ]);
 
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasMore = page < totalPages;
+
     return NextResponse.json({
       success: true,
       data: products,
+      page,
+      limit,
       count: products.length,
       totalCount,
-      page: hasExplicitPagination ? page : 1,
-      totalPages: limit ? Math.ceil(totalCount / limit) : 1
+      totalPages,
+      hasMore
     });
   } catch (error) {
     console.error('GET /api/products error:', error);
@@ -119,18 +179,19 @@ export async function POST(request: NextRequest) {
         vatRate: vatRate ? Number(vatRate) : 20,
         currency,
         costPrice: costPrice ? Number(costPrice) : null,
-        salePrice: salePrice ? Number(salePrice) : null,
-        stockQty: stockQty ? Number(stockQty) : 0,
-        minOrderQty: minOrderQty ? Number(minOrderQty) : 1,
+        salePrice: Number(salePrice) || 0,
+        stockQty: Number(stockQty) || 0,
+        minOrderQty: Number(minOrderQty) || 1,
         brandId: brandId || null,
         categoryId: categoryId || null,
-        images: imageUrl ? {
-          create: {
-            url: imageUrl,
-            alt: name,
-            sortOrder: 0
+        ...(imageUrl ? {
+          images: {
+            create: {
+              url: imageUrl,
+              sortOrder: 0
+            }
           }
-        } : undefined
+        } : {})
       },
       include: {
         brand: true,
@@ -139,12 +200,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ success: true, data: product }, { status: 201 });
-  } catch (error: unknown) {
+    return NextResponse.json({
+      success: true,
+      data: product,
+      message: 'Ürün başarıyla oluşturuldu.'
+    }, { status: 201 });
+  } catch (error) {
     console.error('POST /api/products error:', error);
-    const message = error instanceof Error ? error.message : 'Ürün eklenirken hata oluştu.';
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: 'Ürün oluşturulurken hata oluştu.' },
       { status: 500 }
     );
   }
