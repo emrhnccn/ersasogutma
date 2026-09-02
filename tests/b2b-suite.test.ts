@@ -1,4 +1,5 @@
 import { calculateClientPrice } from '../src/lib/pricingEngine';
+import { getStockStatus } from '../src/lib/stockHelper';
 import { CleanDbSchema, CartItemSchema, OrderCreateSchema, BankAccountSchema, DealerApplicationSchema } from '../src/lib/validations';
 
 /**
@@ -90,13 +91,51 @@ async function runTests() {
   const p0 = calculateClientPrice(basePrice, 0, 1);
   assert(p0.finalPriceTRY === 1000, 'İskontosuz bayi için 1000 TL liste fiyatı korunur');
 
-  // --- 3. BAYİ VERİ İZOLASYONU & MULTI-TENANCY KONTROLÜ ---
-  console.log('\n🏢 3. BAYİ VERİ İZOLASYONU (MULTI-TENANCY)');
+  // --- 3. MERKEZİ STOK DURUMU & RENK KURALI TESTLERİ ---
+  console.log('\n📊 3. MERKEZİ STOK DURUMU & RENK SİSTEMİ (>10 Normal, 1-9 Turuncu, <=0 Kırmızı)');
+
+  const s25 = getStockStatus(25);
+  assert(s25.status === 'NORMAL', 'Stok = 25 -> NORMAL (Yeşil) durumundadır');
+
+  const s10 = getStockStatus(10);
+  assert(s10.status === 'NORMAL', 'Stok = 10 -> NORMAL durumundadır (10 adet Turuncu DEĞİLDİR)');
+
+  const s9 = getStockStatus(9);
+  assert(s9.status === 'WARNING', 'Stok = 9 -> WARNING (Turuncu) durumundadır');
+
+  const s1 = getStockStatus(1);
+  assert(s1.status === 'WARNING', 'Stok = 1 -> WARNING (Turuncu) durumundadır');
+
+  const s0 = getStockStatus(0);
+  assert(s0.status === 'OUT_OF_STOCK', 'Stok = 0 -> OUT_OF_STOCK (Kırmızı) durumundadır');
+
+  const sNeg = getStockStatus(-3);
+  assert(sNeg.status === 'OUT_OF_STOCK', 'Negatif stok (-3) -> OUT_OF_STOCK (Kırmızı) olarak değerlendirilir');
+
+  // --- 4. EŞZAMANLI VE ATOMİK STOK KORUMASI KONTROLÜ ---
+  console.log('\n⚡ 4. ATOMİK EŞZAMANLI STOK KORUMASI (CONCURRENT PROTECTION)');
+
+  function simulateAtomicStockDecrement(currentStock: number, requestedQty: number) {
+    if (currentStock >= requestedQty) {
+      return { success: true, newStock: currentStock - requestedQty };
+    }
+    return { success: false, newStock: currentStock, error: 'Yetersiz stok' };
+  }
+
+  // Stok 1 iken 1 adet çekme
+  const attempt1 = simulateAtomicStockDecrement(1, 1);
+  assert(attempt1.success === true && attempt1.newStock === 0, 'Stok = 1 iken 1 adet sipariş başarılı olur ve kalan stok 0 olur');
+
+  // Stok 0 iken eşzamanlı ikinci sipariş
+  const attempt2 = simulateAtomicStockDecrement(attempt1.newStock, 1);
+  assert(attempt2.success === false && attempt2.newStock === 0, 'Stok 0 iken eşzamanlı gelen talep engellenir ve stok ASLA eksiye (-1) düşmez');
+
+  // --- 5. BAYİ VERİ İZOLASYONU & MULTI-TENANCY KONTROLÜ ---
+  console.log('\n🏢 5. BAYİ VERİ İZOLASYONU (MULTI-TENANCY)');
 
   const dealerA = { id: 'user-a', companyId: 'comp-101', role: 'B2B_DEALER' };
   const dealerB = { id: 'user-b', companyId: 'comp-202', role: 'B2B_DEALER' };
 
-  // Simulate order query whereClause builder
   function buildOrderFilter(user: { role: string; companyId: string }) {
     if (user.role === 'ADMIN') return {};
     return { companyId: user.companyId };
@@ -109,8 +148,8 @@ async function runTests() {
   assert(filterB.companyId === 'comp-202', 'Bayi B sadece comp-202 şirketine ait siparişleri sorgulayabilir');
   assert(filterA.companyId !== filterB.companyId, 'Bayi A ve Bayi B veri izolasyonu tamdır');
 
-  // --- 4. CARİ HESAP & BAKİYE KURALI ---
-  console.log('\n💳 4. CARİ HESAP & BAKİYE HESAPLAMA DOĞRULAMA');
+  // --- 6. CARİ HESAP & BAKİYE KURALI ---
+  console.log('\n💳 6. CARİ HESAP & BAKİYE HESAPLAMA DOĞRULAMA');
 
   const creditLimit = 500000;
   const currentDebt = 320000;

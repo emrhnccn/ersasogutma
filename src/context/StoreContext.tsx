@@ -211,7 +211,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isAdminView, setIsAdminView] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // Load / Save localStorage if on client
+  // Load / Save localStorage if on client & sync with DB
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('ersa_b2b_cart');
@@ -228,6 +228,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+
+    // Fetch DB cart if user is authenticated dealer
+    async function loadDbCart() {
+      try {
+        const res = await fetch('/api/b2b/cart');
+        const json = await res.json();
+        if (json.success && json.data?.items && Array.isArray(json.data.items)) {
+          const dbItems: CartItem[] = json.data.items.map((i: any) => ({
+            product: {
+              id: i.productId,
+              code: i.productCode,
+              name: i.productName,
+              category: i.categoryName,
+              brand: i.brandName,
+              pim: i.minOrderQty || 1,
+              priceTRY: i.basePriceTRY,
+              priceUSD: Number((i.basePriceTRY / 38.45).toFixed(2)),
+              priceEUR: Number((i.basePriceTRY / 42.10).toFixed(2)),
+              originalCurrency: 'TRY',
+              stock: i.stockQty || 0,
+              inStock: i.inStock,
+              image: i.image || '/placeholder.svg',
+              unit: i.unit || 'Adet',
+              description: '',
+              specifications: {}
+            },
+            quantity: i.quantity,
+            unitPriceTRY: i.unitPriceTRY,
+            totalTRY: i.totalTRY,
+            appliedDiscountRate: i.appliedDiscountRate
+          }));
+          if (dbItems.length > 0) {
+            setCart(dbItems);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load DB cart on mount:', err);
+      }
+    }
+    loadDbCart();
   }, []);
 
   useEffect(() => {
@@ -340,7 +380,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
-      const discountedPrice = product.priceTRY * (1 - profile.discountRate);
+      const discountedPrice = product.priceTRY * (1 - (profile.customDiscountPercent ? profile.customDiscountPercent / 100 : profile.discountRate || 0));
       return [
         ...prev,
         {
@@ -348,10 +388,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           quantity: addedQty,
           unitPriceTRY: discountedPrice,
           totalTRY: addedQty * discountedPrice,
-          appliedDiscountRate: profile.discountRate
+          appliedDiscountRate: profile.customDiscountPercent ? profile.customDiscountPercent / 100 : profile.discountRate || 0
         }
       ];
     });
+
+    // Async sync to DB
+    fetch('/api/b2b/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: product.id, quantity: addedQty, isIncrement: true })
+    }).catch((err) => console.error('Failed to sync addToCart with DB:', err));
 
     showToast(`"${product.name}" sepete eklendi!`, 'success');
   };
@@ -372,15 +419,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           : item
       )
     );
+
+    // Async sync to DB
+    fetch('/api/b2b/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity, isIncrement: false })
+    }).catch((err) => console.error('Failed to sync updateCartQuantity with DB:', err));
   };
 
   const removeFromCart = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
+
+    // Async sync to DB
+    fetch(`/api/b2b/cart?productId=${productId}`, {
+      method: 'DELETE'
+    }).catch((err) => console.error('Failed to sync removeFromCart with DB:', err));
+
     showToast('Ürün sepetten çıkarıldı.', 'info');
   };
 
   const clearCart = () => {
     setCart([]);
+
+    // Async sync to DB
+    fetch('/api/b2b/cart?clearAll=true', {
+      method: 'DELETE'
+    }).catch((err) => console.error('Failed to sync clearCart with DB:', err));
   };
 
   const cartTotals = React.useMemo(() => {

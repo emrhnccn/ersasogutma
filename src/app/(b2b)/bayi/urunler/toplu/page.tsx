@@ -6,6 +6,7 @@ import { useStore } from '@/context/StoreContext';
 import { BRANDS } from '@/data/categories';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { StockBadge } from '@/components/common/StockBadge';
 import {
   FileSpreadsheet,
   Upload,
@@ -322,11 +323,7 @@ export default function BulkOrderPage() {
                       {formatCurrency(discountedPrice)}
                     </td>
                     <td className="py-2 px-4 text-center">
-                      {p.inStock ? (
-                        <span className="text-emerald-400 font-bold text-[11px]">Var</span>
-                      ) : (
-                        <span className="text-rose-400 font-bold text-[11px]">Yok</span>
-                      )}
+                      <StockBadge stock={p.stock} unit={p.unit} size="sm" showIcon={false} />
                     </td>
 
                     {/* Fast Direct Number Input */}

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin, logAuditAction } from '@/lib/auth-guard';
+import { calculateServerPrice } from '@/lib/pricingEngine';
+import { getStockStatus } from '@/lib/stockHelper';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/admin/dealers/[id]/cart — View dealer's live database cart
+// GET /api/admin/dealers/[id]/cart — View dealer's live database cart with custom dealer prices & stocks
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -61,20 +63,44 @@ export async function GET(
       });
     }
 
-    const items = cart.items.map((i) => ({
-      id: i.id,
-      productId: i.productId,
-      name: i.product.name,
-      sku: i.product.sku,
-      quantity: Number(i.quantity),
-      unit: i.product.unit || 'ADET',
-      salePrice: Number(i.product.salePrice || 0),
-      vatRate: Number(i.product.vatRate || 20),
-      image: i.product.images?.[0]?.url || '',
-      lineTotal: Number(i.quantity) * Number(i.product.salePrice || 0)
-    }));
+    const computedItems = await Promise.all(
+      cart.items.map(async (i) => {
+        const basePrice = Number(i.product.salePrice || 0);
+        const qty = Number(i.quantity);
+        const stockQty = Number(i.product.stockQty || 0);
+        const priceInfo = await calculateServerPrice({
+          productId: i.productId,
+          basePriceTRY: basePrice,
+          quantity: qty,
+          companyId: company.id
+        });
 
-    const totalTRY = items.reduce((sum, i) => sum + i.lineTotal, 0);
+        const lineTotal = Number((priceInfo.finalPriceTRY * qty).toFixed(2));
+        const stockInfo = getStockStatus(stockQty, i.product.unit || 'Adet');
+
+        return {
+          id: i.id,
+          productId: i.productId,
+          name: i.product.name,
+          sku: i.product.sku,
+          quantity: qty,
+          unit: i.product.unit || 'Adet',
+          stockQty,
+          stockStatus: stockInfo.status,
+          stockLabel: stockInfo.label,
+          isOverStock: qty > stockQty,
+          basePriceTRY: basePrice,
+          salePrice: priceInfo.finalPriceTRY,
+          unitPriceTRY: priceInfo.finalPriceTRY,
+          discountPercent: priceInfo.appliedDiscountPercent,
+          vatRate: Number(i.product.vatRate || 20),
+          image: i.product.images?.[0]?.url || '/placeholder.svg',
+          lineTotal
+        };
+      })
+    );
+
+    const totalTRY = computedItems.reduce((sum, i) => sum + i.lineTotal, 0);
 
     return NextResponse.json({
       success: true,
@@ -82,8 +108,10 @@ export async function GET(
         cartId: cart.id,
         dealerName: company.legalName,
         userName: primaryUser.name || primaryUser.username,
-        items,
-        itemCount: items.length,
+        customDiscountPercent: Number(company.customDiscountPercent || 0),
+        items: computedItems,
+        itemCount: computedItems.length,
+        totalQuantity: computedItems.reduce((sum, i) => sum + i.quantity, 0),
         totalTRY
       }
     });
@@ -107,7 +135,6 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-
     const { action, itemId, productId, quantity } = body;
 
     const company = await prisma.company.findUnique({
@@ -116,9 +143,7 @@ export async function PUT(
         members: {
           include: {
             user: {
-              include: {
-                carts: true
-              }
+              include: { carts: true }
             }
           }
         }
@@ -131,7 +156,7 @@ export async function PUT(
 
     const primaryUser = company.members[0]?.user;
     if (!primaryUser) {
-      return NextResponse.json({ success: false, error: 'Bayiye ait kullanıcı bulunamadı.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Bayiye ait kullanıcı bulunamadı.' }, { status: 404 });
     }
 
     let cart = primaryUser.carts[0];
@@ -141,24 +166,24 @@ export async function PUT(
       });
     }
 
-    if (action === 'update_qty') {
-      const numQty = Number(quantity);
-      if (numQty <= 0) {
+    if (action === 'update_qty' && itemId) {
+      const parsedQty = parseInt(quantity, 10);
+      if (parsedQty <= 0) {
         await prisma.cartItem.delete({
           where: { id: itemId }
         });
       } else {
         await prisma.cartItem.update({
           where: { id: itemId },
-          data: { quantity: numQty }
+          data: { quantity: parsedQty }
         });
       }
-    } else if (action === 'remove_item') {
+    } else if (action === 'remove_item' && itemId) {
       await prisma.cartItem.delete({
         where: { id: itemId }
       });
-    } else if (action === 'add_item') {
-      const numQty = Number(quantity) || 1;
+    } else if (action === 'add_item' && productId) {
+      const parsedQty = Math.max(1, parseInt(quantity, 10) || 1);
       const existing = await prisma.cartItem.findUnique({
         where: {
           cartId_productId: {
@@ -171,38 +196,39 @@ export async function PUT(
       if (existing) {
         await prisma.cartItem.update({
           where: { id: existing.id },
-          data: { quantity: Number(existing.quantity) + numQty }
+          data: { quantity: Number(existing.quantity) + parsedQty }
         });
       } else {
         await prisma.cartItem.create({
           data: {
             cartId: cart.id,
             productId,
-            quantity: numQty
+            quantity: parsedQty
           }
         });
       }
-    } else if (action === 'clear_cart') {
-      await prisma.cartItem.deleteMany({
-        where: { cartId: cart.id }
-      });
     }
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: { updatedAt: new Date() }
+    });
 
     await logAuditAction({
       actorId: user.id,
-      action: 'ADMIN_DEALER_CART_UPDATED',
+      action: 'ADMIN_CART_MODIFIED',
       entityType: 'Cart',
       entityId: cart.id,
-      afterJson: { companyId: id, action, itemId, productId, quantity }
+      afterJson: { action, itemId, productId, quantity, companyId: id }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Bayi sepeti başarıyla güncellendi.'
+      message: 'Sepet başarıyla güncellendi.'
     });
   } catch (error: unknown) {
     console.error('PUT /api/admin/dealers/[id]/cart error:', error);
-    const message = error instanceof Error ? error.message : 'Sepet güncellenirken hata oluştu.';
+    const message = error instanceof Error ? error.message : 'Sepet düzenlenirken hata oluştu.';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

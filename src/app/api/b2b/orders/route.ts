@@ -300,16 +300,24 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // B. Deduct stock for all items
+      // B. Deduct stock atomically with gte check (Guarantees stock >= 0 under concurrent load)
       for (const item of cart.items) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const qty = Number(item.quantity);
+        const updateResult = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stockQty: { gte: qty }
+          },
           data: {
-            stockQty: {
-              decrement: Number(item.quantity)
-            }
+            stockQty: { decrement: qty }
           }
         });
+
+        if (updateResult.count === 0) {
+          throw new Error(
+            `Yetersiz stok: "${item.product.name}" için talep edilen ${qty} adet stok kalmadı. Lütfen sepetinizi güncelleyiniz.`
+          );
+        }
       }
 
       // C. Handle Payment Method

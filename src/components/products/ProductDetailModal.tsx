@@ -5,6 +5,7 @@ import { Product } from '@/types';
 import { useStore } from '@/context/StoreContext';
 import { X, ShoppingCart, Star, ShieldCheck, CheckCircle2, Copy, Check } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { StockBadge } from '@/components/common/StockBadge';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -84,15 +85,12 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
               {product.name}
             </h3>
 
-            <div className="flex items-center gap-3 text-xs text-slate-400 mb-4 pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-3 text-xs text-slate-400 mb-4 pb-3 border-b border-slate-800 flex-wrap">
               <span>Marka: <strong className="text-slate-200">{product.brand}</strong></span>
               <span>•</span>
               <span>PİM: <strong className="text-sky-400">{product.pim} {product.unit}</strong></span>
               <span>•</span>
-              <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Stokta {product.stock} {product.unit}</span>
-              </span>
+              <StockBadge stock={product.stock} unit={product.unit} />
             </div>
 
             <p className="text-xs text-slate-300 mb-4 leading-relaxed">

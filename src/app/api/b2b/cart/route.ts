@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
-import { CartItemSchema } from '@/lib/validations';
 import { calculateServerPrice } from '@/lib/pricingEngine';
 
 export const dynamic = 'force-dynamic';
@@ -71,6 +70,7 @@ export async function GET() {
           brandName: item.product.brand?.name || 'Ersa',
           image: item.product.images?.[0]?.url || '',
           quantity: qty,
+          unit: item.product.unit || 'Adet',
           minOrderQty: Number(item.product.minOrderQty || 1),
           unitPriceTRY: priceInfo.finalPriceTRY,
           basePriceTRY: priceInfo.basePriceTRY,
@@ -118,14 +118,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const parsed = CartItemSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
+    const { productId, quantity, isIncrement = false } = body;
+
+    if (!productId || typeof quantity !== 'number' || quantity <= 0) {
+      return NextResponse.json({ success: false, error: 'Geçersiz ürün veya miktar.' }, { status: 400 });
     }
 
-    const { productId, quantity } = parsed.data;
-
-    // Verify product exists and check stock
+    // Verify product exists
     const product = await prisma.product.findUnique({
       where: { id: productId }
     });
@@ -144,22 +143,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Upsert cart item
-    await prisma.cartItem.upsert({
+    // Check existing item
+    const existing = await prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
           productId
         }
-      },
-      create: {
-        cartId: cart.id,
-        productId,
-        quantity
-      },
-      update: {
-        quantity
       }
+    });
+
+    if (existing) {
+      const newQty = isIncrement ? Number(existing.quantity) + quantity : quantity;
+      await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity: Math.max(1, newQty) }
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity: Math.max(1, quantity)
+        }
+      });
+    }
+
+    // Update cart updatedAt timestamp
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: { updatedAt: new Date() }
     });
 
     return NextResponse.json({
@@ -173,7 +186,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/b2b/cart?productId=xxx
+// DELETE /api/b2b/cart?productId=xxx&clearAll=true
 export async function DELETE(request: NextRequest) {
   const guard = await requireDealer();
   if (guard instanceof NextResponse) return guard;
@@ -197,6 +210,10 @@ export async function DELETE(request: NextRequest) {
       await prisma.cartItem.deleteMany({
         where: { cartId: cart.id }
       });
+      await prisma.cart.update({
+        where: { id: cart.id },
+        data: { updatedAt: new Date() }
+      });
       return NextResponse.json({ success: true, message: 'Sepet tamamen temizlendi.' });
     }
 
@@ -209,6 +226,11 @@ export async function DELETE(request: NextRequest) {
         cartId: cart.id,
         productId
       }
+    });
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: { updatedAt: new Date() }
     });
 
     return NextResponse.json({ success: true, message: 'Ürün sepetten kaldırıldı.' });

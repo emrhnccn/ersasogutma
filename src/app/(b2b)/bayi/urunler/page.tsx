@@ -7,6 +7,7 @@ import { CATEGORIES, BRANDS } from '@/data/categories';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductDetailModal } from '@/components/products/ProductDetailModal';
+import { StockBadge } from '@/components/common/StockBadge';
 import {
   Search,
   Filter,
@@ -470,10 +471,7 @@ function ProductsContent() {
 
                       {/* Stock Status */}
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Stokta Var</span>
-                        </span>
+                        <StockBadge stock={product.stock} unit={product.unit} />
                       </td>
 
                       {/* List Price */}
@@ -586,10 +584,7 @@ function ProductsContent() {
 
                   <div className="flex items-center justify-between text-[11px] text-slate-400 mb-3">
                     <span>Marka: <strong className="text-slate-200">{product.brand}</strong></span>
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      <span>Stokta Var</span>
-                    </span>
+                    <StockBadge stock={product.stock} unit={product.unit} size="sm" />
                   </div>
                 </div>
 

@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   TrendingUp,
   ShoppingBag,
+  ShoppingCart,
   CheckCircle2,
   Clock,
   Truck,
@@ -48,6 +49,7 @@ import {
 } from 'lucide-react';
 import { OrderStatus, BankAccount } from '@/types';
 import { ScraperProgress, ScraperLog } from '@/lib/scrapers/types';
+import { StockBadge } from '@/components/common/StockBadge';
 
 interface DBProduct {
   id: string;
@@ -89,7 +91,13 @@ export default function AdminControlPanel() {
   } = useStore();
 
   // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'carts' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
+
+  // Live Carts State (Real PostgreSQL DB)
+  const [adminCarts, setAdminCarts] = useState<any[]>([]);
+  const [loadingAdminCarts, setLoadingAdminCarts] = useState(false);
+  const [selectedAdminCart, setSelectedAdminCart] = useState<any | null>(null);
+  const [cartSearchQuery, setCartSearchQuery] = useState('');
 
   // DB Products State (Paginated & Infinite Scroll)
   const [dbProducts, setDbProducts] = useState<DBProduct[]>([]);
@@ -239,6 +247,28 @@ export default function AdminControlPanel() {
       setLoadingDealerDetail(false);
     }
   };
+
+  // Fetch Live Carts from Real DB
+  const loadAdminCarts = useCallback(async () => {
+    setLoadingAdminCarts(true);
+    try {
+      const res = await fetch('/api/admin/carts');
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAdminCarts(json.data);
+      }
+    } catch (err) {
+      console.error('Failed to load admin carts:', err);
+    } finally {
+      setLoadingAdminCarts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'carts') {
+      loadAdminCarts();
+    }
+  }, [activeTab, loadAdminCarts]);
 
   // 1. Fetch Products (Paginated from Database)
   const loadAdminProducts = useCallback(async (targetPage: number, isNewFilter: boolean = false) => {
@@ -751,6 +781,7 @@ export default function AdminControlPanel() {
           { id: 'products', label: `Ürün Kataloğu (${dbProducts.length})`, icon: Package },
           { id: 'categories', label: `Kategoriler (${dbCategories.length})`, icon: FolderTree },
           { id: 'orders', label: `Siparişler (${orders.length})`, icon: ShoppingBag },
+          { id: 'carts', label: `Canlı Sepetler (${adminCarts.length})`, icon: ShoppingCart, highlight: adminCarts.length > 0 },
           { id: 'dealers', label: 'Bayi Cari & İskonto', icon: UserCheck },
           { id: 'bank_accounts', label: 'Banka Hesapları & Ayarlar', icon: Building2 },
           { id: 'audit', label: `Güvenlik & Audit Log (${auditLogs.length})`, icon: ShieldCheck }
@@ -1230,17 +1261,20 @@ export default function AdminControlPanel() {
                             />
                           </td>
                           <td className="p-3.5">
-                            <input
-                              type="number"
-                              defaultValue={p.stockQty}
-                              onBlur={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                if (!isNaN(val) && val !== p.stockQty) {
-                                  handleUpdateProductInline(p.id, { stockQty: val });
-                                }
-                              }}
-                              className="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
-                            />
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                defaultValue={p.stockQty}
+                                onBlur={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val) && val !== p.stockQty) {
+                                    handleUpdateProductInline(p.id, { stockQty: val });
+                                  }
+                                }}
+                                className="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
+                              />
+                              <StockBadge stock={p.stockQty} size="sm" showIcon={false} />
+                            </div>
                           </td>
                           <td className="p-3.5 text-center">
                             <button
@@ -1569,7 +1603,246 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* TAB 6: DEALERS & APPLICATIONS */}
+      {/* TAB: LIVE CARTS (CANLI SEPETLER) */}
+      {activeTab === 'carts' && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>Aktif Bayi Canlı Sepetleri</span>
+                    <span className="text-xs bg-cyan-500/20 text-cyan-400 font-mono px-2 py-0.5 rounded-full border border-cyan-500/30">
+                      {adminCarts.length} Aktif Sepet
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Bayilerin veritabanındaki canlı sepetleri, anlık adetler, bayiye özel hesaplanmış tutarlar ve stok uyarıları
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Bayi adı, kullanıcı veya ürün ara..."
+                    value={cartSearchQuery}
+                    onChange={(e) => setCartSearchQuery(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
+                  />
+                </div>
+                <button
+                  onClick={loadAdminCarts}
+                  disabled={loadingAdminCarts}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingAdminCarts ? 'animate-spin text-cyan-400' : ''}`} />
+                  <span>Yenile</span>
+                </button>
+              </div>
+            </div>
+
+            {loadingAdminCarts ? (
+              <div className="p-12 text-center text-xs text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto mb-2" />
+                <span>Canlı sepet verileri yükleniyor...</span>
+              </div>
+            ) : adminCarts.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
+                Şu anda sistemde ürün eklenmiş aktif bir bayi sepeti bulunmuyor.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="py-3 px-4">Bayi Bilgisi</th>
+                      <th className="py-3 px-4">İletişim</th>
+                      <th className="py-3 px-4 text-center">Özel İskonto</th>
+                      <th className="py-3 px-4 text-center">Ürün / Adet</th>
+                      <th className="py-3 px-4 text-right">Sepet Toplamı</th>
+                      <th className="py-3 px-4 text-center">Stok Durumu</th>
+                      <th className="py-3 px-4 text-center">Son Güncelleme</th>
+                      <th className="py-3 px-4 text-right">İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {adminCarts
+                      .filter((c) => {
+                        if (!cartSearchQuery.trim()) return true;
+                        const q = cartSearchQuery.toLowerCase();
+                        return (
+                          c.dealer.companyName.toLowerCase().includes(q) ||
+                          c.dealer.username.toLowerCase().includes(q) ||
+                          c.items.some((i: any) => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q))
+                        );
+                      })
+                      .map((cart) => (
+                        <tr key={cart.cartId} className="hover:bg-slate-800/40 transition group">
+                          <td className="py-3.5 px-4">
+                            <div className="font-mono font-bold text-sky-400">{cart.dealer.username}</div>
+                            <div className="font-bold text-white text-sm">{cart.dealer.companyName}</div>
+                            <div className="text-[10px] text-slate-500">VN: {cart.dealer.taxNo}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="text-slate-300 font-semibold">{cart.dealer.contactName}</div>
+                            <div className="text-slate-500 text-[11px] font-mono">{cart.dealer.phone}</div>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                              %{cart.dealer.customDiscountPercent || 0}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-mono">
+                            <span className="font-bold text-white">{cart.summary.distinctItemCount} Çeşit</span>
+                            <span className="text-slate-500 block text-[10px]">Toplam {cart.summary.totalQuantity} Adet</span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="font-mono font-black text-emerald-400 text-sm">
+                              {formatCurrency(cart.summary.totalAmountTRY)}
+                            </div>
+                            <span className="text-[10px] text-slate-500">+ KDV Dahil</span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            {cart.summary.hasOverStock ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>Stok Yetersiz</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Stoklar Uygun</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-mono text-[11px] text-slate-400">
+                            {new Date(cart.updatedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              onClick={() => setSelectedAdminCart(cart)}
+                              className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Sepet Detayı</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Interactive Modal for Cart Details */}
+          {selectedAdminCart && (
+            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-sm">
+                      <ShoppingBag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-white">{selectedAdminCart.dealer.companyName}</h3>
+                      <p className="text-xs text-slate-400 font-mono">
+                        {selectedAdminCart.dealer.username} • Özel İskonto: %{selectedAdminCart.dealer.customDiscountPercent || 0} • Tel: {selectedAdminCart.dealer.phone}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedAdminCart(null)}
+                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                  <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                    <div>
+                      <span className="text-xs text-slate-400">Toplam Sepet Kalem / Adet:</span>
+                      <div className="text-sm font-bold text-white font-mono">
+                        {selectedAdminCart.summary.distinctItemCount} Çeşit • {selectedAdminCart.summary.totalQuantity} Adet
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-slate-400">Bayiye Özel Sepet Toplamı:</span>
+                      <div className="text-xl font-black font-mono text-emerald-400">
+                        {formatCurrency(selectedAdminCart.summary.totalAmountTRY)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80">
+                    {selectedAdminCart.items.map((item: any) => (
+                      <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-800/30 transition">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-12 h-12 rounded-xl object-cover bg-slate-950 border border-slate-800 shrink-0"
+                            onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
+                          />
+                          <div>
+                            <div className="font-bold text-white text-xs">{item.name}</div>
+                            <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              Liste: {formatCurrency(item.basePriceTRY)} • Bayi Fiyatı: <strong className="text-emerald-400">{formatCurrency(item.unitPriceTRY)}</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                          <div className="text-center">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Stok Durumu</span>
+                            <StockBadge stock={item.stockQty} unit={item.unit} />
+                          </div>
+
+                          <div className="text-center font-mono">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Sepetteki Adet</span>
+                            <span className={`text-sm font-bold ${item.isOverStock ? 'text-rose-400' : 'text-white'}`}>
+                              {item.quantity} {item.unit}
+                            </span>
+                            {item.isOverStock && (
+                              <span className="text-[9px] text-rose-400 font-bold block">Stoktan Fazla!</span>
+                            )}
+                          </div>
+
+                          <div className="text-right min-w-[100px]">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Satır Toplamı</span>
+                            <div className="font-mono font-black text-emerald-400 text-sm">
+                              {formatCurrency(item.totalTRY)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+                  <button
+                    onClick={() => setSelectedAdminCart(null)}
+                    className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                  >
+                    Kapat
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 7: DEALERS & APPLICATIONS */}
       {activeTab === 'dealers' && (
         <div className="space-y-8">
           
@@ -2262,7 +2535,10 @@ export default function AdminControlPanel() {
                                 <div>
                                   <div className="font-bold text-white text-xs">{item.name}</div>
                                   <div className="text-[10px] font-mono text-sky-400 mt-0.5">{item.sku}</div>
-                                  <div className="text-[10px] text-slate-400 mt-0.5">Birim: {formatCurrency(item.salePrice)} + KDV</div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[10px] text-slate-400">Birim: {formatCurrency(item.salePrice)} + KDV</span>
+                                    <StockBadge stock={item.stockQty} unit={item.unit} size="sm" />
+                                  </div>
                                 </div>
                               </div>
 
