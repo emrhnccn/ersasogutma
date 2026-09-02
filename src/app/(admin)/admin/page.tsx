@@ -138,54 +138,30 @@ export default function AdminControlPanel() {
   // Dealer Risk Limit Editing
   const [creditLimitInput, setCreditLimitInput] = useState(profile.creditLimit.toString());
 
-  // Registered Dealers State
-  const [dealersList, setDealersList] = useState([
-    {
-      id: 'dealer-1',
-      dealerCode: 'bayitest',
-      companyName: 'Test Bayi A.Ş.',
-      contactPerson: 'Sadık Usta',
-      phone: '0552 584 30 73',
-      email: 'bayi@ersasogutma.com.test',
-      city: 'Darıca / Kocaeli',
-      tier: 'Gold',
-      discountRate: 40,
-      creditLimit: 250000,
-      currentBalance: 42500,
-      status: 'ACTIVE',
-      registeredAt: '15.01.2026'
-    },
-    {
-      id: 'dealer-2',
-      dealerCode: 'bayi-gebze',
-      companyName: 'Gebze Soğutma & Klima Ltd.',
-      contactPerson: 'Ahmet Yılmaz',
-      phone: '0532 111 22 33',
-      email: 'info@gebzesogutma.com',
-      city: 'Gebze / Kocaeli',
-      tier: 'Silver',
-      discountRate: 30,
-      creditLimit: 150000,
-      currentBalance: 0,
-      status: 'ACTIVE',
-      registeredAt: '02.02.2026'
-    },
-    {
-      id: 'dealer-3',
-      dealerCode: 'bayi-marmara',
-      companyName: 'Marmara Endüstriyel Soğutma San.',
-      contactPerson: 'Mehmet Demir',
-      phone: '0533 444 55 66',
-      email: 'satis@marmarasogutma.com',
-      city: 'Pendik / İstanbul',
-      tier: 'Platinum',
-      discountRate: 50,
-      creditLimit: 500000,
-      currentBalance: 118400,
-      status: 'ACTIVE',
-      registeredAt: '20.02.2026'
-    }
-  ]);
+  // Registered Dealers State (Real PostgreSQL DB)
+  const [dealersList, setDealersList] = useState<any[]>([]);
+  const [loadingDealers, setLoadingDealers] = useState(false);
+  const [selectedDealerId, setSelectedDealerId] = useState<string | null>(null);
+  const [selectedDealerDetail, setSelectedDealerDetail] = useState<any | null>(null);
+  const [loadingDealerDetail, setLoadingDealerDetail] = useState(false);
+  const [dealerDrawerTab, setDealerDrawerTab] = useState<'info' | 'finance' | 'cart' | 'orders'>('info');
+
+  // Dealer Drawer Edit Form
+  const [editLegalName, setEditLegalName] = useState('');
+  const [editTaxNo, setEditTaxNo] = useState('');
+  const [editTaxOffice, setEditTaxOffice] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editStatus, setEditStatus] = useState('ACTIVE');
+  const [editTier, setEditTier] = useState('Standart');
+  const [editCreditLimit, setEditCreditLimit] = useState('');
+
+  // Dealer Drawer Manual Cari Form
+  const [drawerDocNo, setDrawerDocNo] = useState('');
+  const [drawerDocType, setDrawerDocType] = useState('MANUAL_DEBIT');
+  const [drawerAmount, setDrawerAmount] = useState('');
+  const [drawerNote, setDrawerNote] = useState('');
+  const [submittingCari, setSubmittingCari] = useState(false);
 
   // Dealer Applications State (Başvurular)
   const [dealerApplications, setDealerApplications] = useState<any[]>([]);
@@ -199,6 +175,49 @@ export default function AdminControlPanel() {
 
   // Clean DB confirmation state
   const [isCleaningDb, setIsCleaningDb] = useState(false);
+
+  // 1. Fetch Dealers
+  const loadDealers = useCallback(async () => {
+    setLoadingDealers(true);
+    try {
+      const res = await fetch('/api/admin/dealers');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        setDealersList(data.data);
+      }
+    } catch (err) {
+      console.error('Dealers load error:', err);
+    } finally {
+      setLoadingDealers(false);
+    }
+  }, []);
+
+  // Fetch Dealer Detail
+  const openDealerDrawer = async (dealerId: string) => {
+    setSelectedDealerId(dealerId);
+    setLoadingDealerDetail(true);
+    try {
+      const res = await fetch(`/api/admin/dealers/${dealerId}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setSelectedDealerDetail(json.data);
+        setEditLegalName(json.data.legalName || '');
+        setEditTaxNo(json.data.taxNo || '');
+        setEditTaxOffice(json.data.taxOffice || '');
+        setEditPhone(json.data.phone || '');
+        setEditEmail(json.data.email || '');
+        setEditStatus(json.data.status || 'ACTIVE');
+        setEditTier(json.data.tier || 'Standart');
+        setEditCreditLimit(json.data.finance?.creditLimit?.toString() || '0');
+      } else {
+        showToast(json.error || 'Bayi detayları alınamadı', 'error');
+      }
+    } catch (err) {
+      showToast('Bağlantı hatası', 'error');
+    } finally {
+      setLoadingDealerDetail(false);
+    }
+  };
 
   // 1. Fetch Products
   const loadProducts = useCallback(async () => {
@@ -304,8 +323,9 @@ export default function AdminControlPanel() {
     loadBankAccounts();
     loadAuditLogs();
     loadDealerApplications();
+    loadDealers();
     checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, checkScraperStatus]);
+  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, checkScraperStatus]);
 
   // Polling during active scraping
   useEffect(() => {
@@ -1440,252 +1460,628 @@ export default function AdminControlPanel() {
             )}
           </div>
 
-          {/* Section 2: Registered Dealers Table & Tier Management */}
+          {/* Section 2: Registered Dealers Table & Management */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-sky-400" />
-                  <span>Kayıtlı Bayiler & İskonto Kademesi Yönetimi ({dealersList.length})</span>
+                  <span>Kayıtlı Bayiler & Cari Yönetimi ({dealersList.length})</span>
                 </h2>
-                <p className="text-xs text-slate-400">Bayilerin iskonto oranlarını, kredi limitlerini ve erişim durumlarını yönetin</p>
+                <p className="text-xs text-slate-400">Veritabanındaki gerçek bayileri, cari bakiyelerini, kredi limitlerini ve canlı sepetlerini yönetin</p>
               </div>
+              <button
+                onClick={loadDealers}
+                disabled={loadingDealers}
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingDealers ? 'animate-spin text-sky-400' : ''}`} />
+                <span>Listeyi Yenile</span>
+              </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
-                  <tr>
-                    <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
-                    <th className="py-3 px-4">Yetkili / Şehir</th>
-                    <th className="py-3 px-4">İskonto Kademesi</th>
-                    <th className="py-3 px-4">Tanımlı Limit</th>
-                    <th className="py-3 px-4">Güncel Bakiye</th>
-                    <th className="py-3 px-4">Durum</th>
-                    <th className="py-3 px-4 text-right">Kademe Değiştir</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {dealersList.map((dealer) => (
-                    <tr key={dealer.id} className="hover:bg-slate-800/40 transition">
-                      <td className="py-3.5 px-4">
-                        <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
-                        <div className="font-bold text-white text-sm">{dealer.companyName}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="text-slate-300 font-semibold">{dealer.contactPerson}</div>
-                        <div className="text-slate-500 text-[11px]">{dealer.city} • {dealer.phone}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-black text-xs ${
-                          dealer.tier === 'VIP'
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                            : dealer.tier === 'Platinum'
-                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                            : dealer.tier === 'Gold'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            : dealer.tier === 'Silver'
-                            ? 'bg-slate-300/20 text-slate-200 border border-slate-400/40'
-                            : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                        }`}>
-                          {dealer.tier} (%{dealer.discountRate} İskonto)
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
-                        {formatCurrency(dealer.creditLimit)}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
-                        {formatCurrency(dealer.currentBalance)}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                          {dealer.status === 'ACTIVE' ? 'Aktif Bayi' : 'Askıda'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {(['Standart', 'Silver', 'Gold', 'Platinum'] as const).map((t) => {
-                            const discMap = { Standart: 20, Silver: 30, Gold: 40, Platinum: 50 };
-                            return (
-                              <button
-                                key={t}
-                                onClick={() => {
-                                  setDealersList(prev => prev.map(d => d.id === dealer.id ? { ...d, tier: t, discountRate: discMap[t] } : d));
-                                  if (dealer.dealerCode === 'bayitest') {
-                                    setDealerTier(t as any);
-                                  }
-                                  showToast(`${dealer.companyName} kademesi ${t} (%${discMap[t]}) olarak güncellendi!`, 'success');
-                                }}
-                                className={`px-2 py-1 rounded text-[10px] font-bold transition ${
-                                  dealer.tier === t
-                                    ? 'bg-sky-600 text-white shadow'
-                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-                                }`}
-                              >
-                                {t}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </td>
+            {loadingDealers ? (
+              <div className="p-8 text-center text-xs text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin text-sky-400 mx-auto mb-2" />
+                <span>Bayiler yükleniyor...</span>
+              </div>
+            ) : dealersList.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
+                Kayıtlı bayi bulunamadı. Yukarıdaki başvurulardan bayilik onaylayarak yeni bayi oluşturabilirsiniz.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
+                      <th className="py-3 px-4">Yetkili & İletişim</th>
+                      <th className="py-3 px-4">Kademe</th>
+                      <th className="py-3 px-4">Kredi Limiti</th>
+                      <th className="py-3 px-4">Cari Bakiye</th>
+                      <th className="py-3 px-4">Kullanılabilir Limit</th>
+                      <th className="py-3 px-4">Siparişler</th>
+                      <th className="py-3 px-4">Durum</th>
+                      <th className="py-3 px-4 text-right">İşlemler</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {dealersList.map((dealer) => (
+                      <tr key={dealer.id} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
+                          <div className="font-bold text-white text-sm">{dealer.companyName}</div>
+                          <div className="text-[10px] text-slate-500">Kayıt: {dealer.registeredAt}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="text-slate-300 font-semibold">{dealer.contactPerson}</div>
+                          <div className="text-slate-500 text-[11px]">{dealer.phone}</div>
+                          <div className="text-slate-500 text-[10px]">{dealer.email}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-black text-[11px] ${
+                            dealer.tier === 'Platinum'
+                              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                              : dealer.tier === 'Gold'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              : dealer.tier === 'Silver'
+                              ? 'bg-slate-300/20 text-slate-200 border border-slate-400/40'
+                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                          }`}>
+                            {dealer.tier} (%{dealer.discountRate})
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
+                          {formatCurrency(dealer.creditLimit)}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold">
+                          <span className={dealer.currentBalance > 0 ? 'text-rose-400' : 'text-slate-200'}>
+                            {formatCurrency(dealer.currentBalance)}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                          {formatCurrency(dealer.availableCredit)}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-white">{dealer.totalOrders} Sipariş</div>
+                          <div className="text-slate-500 text-[10px]">Son: {dealer.lastOrderDate}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            dealer.status === 'ACTIVE'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                          }`}>
+                            {dealer.status === 'ACTIVE' ? 'Aktif' : 'Askıda'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => openDealerDrawer(dealer.id)}
+                            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Yönet & Cari</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
-          {/* Section 3: Direct Cari & Transaction Management */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-                <UserCheck className="w-4 h-4 text-amber-400" />
-                <span>Test Bayi Hızlı Limit Düzenleme</span>
-              </h2>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const lim = parseFloat(creditLimitInput);
-                  if (!isNaN(lim) && lim > 0) {
-                    updateProfile({ creditLimit: lim });
-                    setDealersList(prev => prev.map(d => d.dealerCode === 'bayitest' ? { ...d, creditLimit: lim } : d));
-                    showToast(`Bayi kredi limiti ${formatCurrency(lim)} olarak güncellendi!`);
-                  }
-                }}
-                className="space-y-3 text-xs"
-              >
-                <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Seçili Bayi:</label>
-                  <div className="bg-slate-950 border border-slate-800 p-2.5 rounded-xl font-bold text-white">
-                    {profile.companyName} ({profile.dealerCode})
+          {/* Section 3: Interactive Dealer Details & Live Cart & Cari Modal */}
+          {selectedDealerId && selectedDealerDetail && (
+            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                {/* Modal Header */}
+                <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-sm">
+                      {selectedDealerDetail.legalName?.slice(0, 2).toUpperCase() || 'ER'}
+                    </div>
+                    <div>
+                      <h2 className="text-base font-black text-white">{selectedDealerDetail.legalName}</h2>
+                      <p className="text-xs text-slate-400 font-mono">
+                        {selectedDealerDetail.user?.username} • {selectedDealerDetail.tier} Bayi • {selectedDealerDetail.phone}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Tanımlı Kredi Limiti (TL):</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={creditLimitInput}
-                      onChange={(e) => setCreditLimitInput(e.target.value)}
-                      className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow"
-                    >
-                      Kaydet
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-                <Layers className="w-4 h-4 text-purple-400" />
-                <span>Cari Hesaba Fatura / Tahsilat Ekle</span>
-              </h2>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const d = parseFloat(manualDebt) || 0;
-                  const c = parseFloat(manualCredit) || 0;
-                  if (!manualDocNo) {
-                    showToast('Evrak no gereklidir.', 'warning');
-                    return;
-                  }
-                  const now = new Date();
-                  const dateFormatted = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
-                  addCariTransaction({
-                    date: dateFormatted,
-                    documentNo: manualDocNo,
-                    documentType: manualDocType,
-                    debt: d,
-                    credit: c,
-                    balance: profile.currentBalance + (c - d),
-                    balanceType: (profile.currentBalance + (c - d)) >= 0 ? 'A' : 'B',
-                    description: manualDesc || 'Admin Manuel Girişi'
-                  });
-                  setManualDocNo('');
-                  setManualDebt('');
-                  setManualCredit('');
-                  setManualDesc('');
-                  showToast('Cari hareketi başarıyla işlendi!');
-                }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"
-              >
-                <div>
-                  <label className="block text-slate-400 mb-1">Evrak No:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Örn: ERS-202600210"
-                    value={manualDocNo}
-                    onChange={(e) => setManualDocNo(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Evrak Türü:</label>
-                  <select
-                    value={manualDocType}
-                    onChange={(e) => setManualDocType(e.target.value as any)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                  >
-                    <option value="Satış Faturası">Satış Faturası (Borç Ekle)</option>
-                    <option value="Tahsilat Makbuzu">Tahsilat Makbuzu (Alacak Ekle)</option>
-                    <option value="Havale/EFT">Havale/EFT (Alacak Ekle)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Borç Tutarı (TL):</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={manualDebt}
-                    onChange={(e) => setManualDebt(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Alacak Tutarı (TL):</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={manualCredit}
-                    onChange={(e) => setManualCredit(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-400 mb-1">Açıklama:</label>
-                  <input
-                    type="text"
-                    placeholder="Örn: Manuel fatura virmanı"
-                    value={manualDesc}
-                    onChange={(e) => setManualDesc(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 flex justify-end">
                   <button
-                    type="submit"
-                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-5 py-2 rounded-xl shadow-md transition"
+                    onClick={() => {
+                      setSelectedDealerId(null);
+                      setSelectedDealerDetail(null);
+                    }}
+                    className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
                   >
-                    Cariye Ekle
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-              </form>
+
+                {/* Modal Tabs Bar */}
+                <div className="flex border-b border-slate-800 bg-slate-950/40 px-5 gap-2">
+                  {[
+                    { id: 'info', label: 'Genel & Limit', icon: Building2 },
+                    { id: 'finance', label: `Cari & Hareketler (${selectedDealerDetail.finance?.transactions?.length || 0})`, icon: CreditCard },
+                    { id: 'cart', label: `Canlı Sepet (${selectedDealerDetail.cart?.items?.length || 0})`, icon: ShoppingBag },
+                    { id: 'orders', label: `Sipariş Geçmişi (${selectedDealerDetail.orders?.length || 0})`, icon: FileText }
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = dealerDrawerTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setDealerDrawerTab(tab.id as any)}
+                        className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition ${
+                          isActive
+                            ? 'border-sky-500 text-sky-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                  
+                  {/* TAB 1: INFO & LIMIT */}
+                  {dealerDrawerTab === 'info' && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              legalName: editLegalName,
+                              taxNo: editTaxNo,
+                              taxOffice: editTaxOffice,
+                              phone: editPhone,
+                              email: editEmail,
+                              status: editStatus,
+                              tier: editTier,
+                              creditLimit: parseFloat(editCreditLimit) || 0
+                            })
+                          });
+                          const json = await res.json();
+                          if (json.success) {
+                            showToast('Bayi bilgileri ve limit başarıyla güncellendi!', 'success');
+                            loadDealers();
+                            openDealerDrawer(selectedDealerDetail.id);
+                          } else {
+                            showToast(json.error || 'Güncelleme başarısız', 'error');
+                          }
+                        } catch {
+                          showToast('Hata oluştu', 'error');
+                        }
+                      }}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
+                    >
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
+                        <input
+                          type="text"
+                          required
+                          value={editLegalName}
+                          onChange={(e) => setEditLegalName(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">İskonto Kademesi:</label>
+                        <select
+                          value={editTier}
+                          onChange={(e) => setEditTier(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        >
+                          <option value="Standart">Standart (%20 İskonto)</option>
+                          <option value="Silver">Silver (%30 İskonto)</option>
+                          <option value="Gold">Gold (%40 İskonto)</option>
+                          <option value="Platinum">Platinum (%50 İskonto)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Vergi Dairesi:</label>
+                        <input
+                          type="text"
+                          value={editTaxOffice}
+                          onChange={(e) => setEditTaxOffice(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Vergi No / T.C. Kimlik:</label>
+                        <input
+                          type="text"
+                          value={editTaxNo}
+                          onChange={(e) => setEditTaxNo(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Telefon Numarası:</label>
+                        <input
+                          type="text"
+                          value={editPhone}
+                          onChange={(e) => setEditPhone(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">E-posta Adresi:</label>
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Tanımlı Kredi Limiti (TL):</label>
+                        <input
+                          type="number"
+                          value={editCreditLimit}
+                          onChange={(e) => setEditCreditLimit(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-semibold">Hesap Durumu:</label>
+                        <select
+                          value={editStatus}
+                          onChange={(e) => setEditStatus(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        >
+                          <option value="ACTIVE">Aktif (Sipariş Verebilir)</option>
+                          <option value="SUSPENDED">Askıda (Geçici Olarak Kapalı)</option>
+                        </select>
+                      </div>
+
+                      <div className="md:col-span-2 pt-3 flex justify-end">
+                        <button
+                          type="submit"
+                          className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Değişiklikleri Kaydet</span>
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* TAB 2: FINANCE & CARI */}
+                  {dealerDrawerTab === 'finance' && (
+                    <div className="space-y-6">
+                      {/* Financial KPI Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                          <span className="text-slate-400 block mb-1">Cari Bakiye (Borç)</span>
+                          <span className="text-base font-black text-rose-400 font-mono">
+                            {formatCurrency(selectedDealerDetail.finance?.currentBalance || 0)}
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                          <span className="text-slate-400 block mb-1">Kredi Limiti</span>
+                          <span className="text-base font-black text-emerald-400 font-mono">
+                            {formatCurrency(selectedDealerDetail.finance?.creditLimit || 0)}
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                          <span className="text-slate-400 block mb-1">Kullanılabilir Limit</span>
+                          <span className="text-base font-black text-cyan-400 font-mono">
+                            {formatCurrency(selectedDealerDetail.finance?.availableCredit || 0)}
+                          </span>
+                        </div>
+                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                          <span className="text-slate-400 block mb-1">Toplam İşlem Adedi</span>
+                          <span className="text-base font-black text-slate-200 font-mono">
+                            {selectedDealerDetail.finance?.transactions?.length || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Add Transaction Form */}
+                      <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl space-y-3">
+                        <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                          <Plus className="w-4 h-4 text-emerald-400" />
+                          <span>Yeni Cari Hareket Ekle (Borç / Tahsilat)</span>
+                        </h4>
+
+                        <form
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!drawerAmount || parseFloat(drawerAmount) <= 0) {
+                              showToast('Geçerli bir tutar giriniz', 'warning');
+                              return;
+                            }
+                            setSubmittingCari(true);
+                            try {
+                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cari-transaction`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  type: drawerDocType,
+                                  amount: parseFloat(drawerAmount),
+                                  docNo: drawerDocNo,
+                                  note: drawerNote
+                                })
+                              });
+                              const json = await res.json();
+                              if (json.success) {
+                                showToast(json.message, 'success');
+                                setDrawerAmount('');
+                                setDrawerDocNo('');
+                                setDrawerNote('');
+                                loadDealers();
+                                openDealerDrawer(selectedDealerDetail.id);
+                              } else {
+                                showToast(json.error || 'İşlem başarısız', 'error');
+                              }
+                            } catch {
+                              showToast('Hata oluştu', 'error');
+                            } finally {
+                              setSubmittingCari(false);
+                            }
+                          }}
+                          className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
+                        >
+                          <div>
+                            <label className="block text-slate-400 mb-1">İşlem Türü:</label>
+                            <select
+                              value={drawerDocType}
+                              onChange={(e) => setDrawerDocType(e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                            >
+                              <option value="MANUAL_DEBIT">Manuel Borç (Fatura / Satış)</option>
+                              <option value="MANUAL_CREDIT">Tahsilat / Ödeme (Alacak)</option>
+                              <option value="CORRECTION">Bakiye Düzeltme</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1">Tutar (TL):</label>
+                            <input
+                              type="number"
+                              required
+                              placeholder="0.00"
+                              value={drawerAmount}
+                              onChange={(e) => setDrawerAmount(e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1">Evrak / Dekont No:</label>
+                            <input
+                              type="text"
+                              placeholder="Örn: DEK-2026-001"
+                              value={drawerDocNo}
+                              onChange={(e) => setDrawerDocNo(e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1">Açıklama / Not:</label>
+                            <input
+                              type="text"
+                              placeholder="Örn: Havale ile tahsilat"
+                              value={drawerNote}
+                              onChange={(e) => setDrawerNote(e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-4 flex justify-end">
+                            <button
+                              type="submit"
+                              disabled={submittingCari}
+                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
+                            >
+                              <Check className="w-4 h-4" />
+                              <span>{submittingCari ? 'İşleniyor...' : 'Cari Hareketi Kaydet'}</span>
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+
+                      {/* Transactions Table */}
+                      <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                            <tr>
+                              <th className="py-2.5 px-3">Tarih</th>
+                              <th className="py-2.5 px-3">Tür</th>
+                              <th className="py-2.5 px-3">Evrak / Açıklama</th>
+                              <th className="py-2.5 px-3 text-right">Tutar</th>
+                              <th className="py-2.5 px-3 text-right">Son Bakiye</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60">
+                            {selectedDealerDetail.finance?.transactions?.map((t: any) => (
+                              <tr key={t.id} className="hover:bg-slate-800/40">
+                                <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
+                                  {new Date(t.createdAt).toLocaleDateString('tr-TR')} {new Date(t.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                </td>
+                                <td className="py-2 px-3">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT'
+                                      ? 'bg-rose-500/20 text-rose-300'
+                                      : 'bg-emerald-500/20 text-emerald-300'
+                                  }`}>
+                                    {t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'BORÇ' : 'TAHSİLAT/ALACAK'}
+                                  </span>
+                                </td>
+                                <td className="py-2 px-3 text-slate-300 max-w-sm truncate">{t.note}</td>
+                                <td className="py-2 px-3 text-right font-mono font-bold">
+                                  <span className={t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'text-rose-400' : 'text-emerald-400'}>
+                                    {formatCurrency(t.amount)}
+                                  </span>
+                                </td>
+                                <td className="py-2 px-3 text-right font-mono font-bold text-slate-200">
+                                  {formatCurrency(t.balanceAfter)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 3: LIVE CART */}
+                  {dealerDrawerTab === 'cart' && (
+                    <div className="space-y-4 text-xs">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span className="font-bold text-white">
+                          Bayinin Aktif Veritabanı Sepeti ({selectedDealerDetail.cart?.items?.length || 0} Kalem)
+                        </span>
+                        <span className="font-mono text-emerald-400 font-bold text-sm">
+                          {formatCurrency(selectedDealerDetail.cart?.items?.reduce((sum: number, i: any) => sum + (i.quantity * i.salePrice), 0) || 0)}
+                        </span>
+                      </div>
+
+                      {!selectedDealerDetail.cart || selectedDealerDetail.cart.items.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500 bg-slate-950/40 rounded-2xl border border-slate-800">
+                          Bayinin sepeti şu anda boş.
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
+                          {selectedDealerDetail.cart.items.map((item: any) => (
+                            <div key={item.id} className="p-3.5 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 shrink-0 overflow-hidden">
+                                  <img
+                                    src={item.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover rounded-lg"
+                                    onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
+                                  />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-white text-xs">{item.name}</div>
+                                  <div className="text-[10px] font-mono text-sky-400 mt-0.5">{item.sku}</div>
+                                  <div className="text-[10px] text-slate-400 mt-0.5">Birim: {formatCurrency(item.salePrice)} + KDV</div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-1">
+                                  <button
+                                    onClick={async () => {
+                                      await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: item.quantity - 1 })
+                                      });
+                                      openDealerDrawer(selectedDealerDetail.id);
+                                    }}
+                                    className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-8 text-center font-mono font-bold text-white">{item.quantity}</span>
+                                  <button
+                                    onClick={async () => {
+                                      await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: item.quantity + 1 })
+                                      });
+                                      openDealerDrawer(selectedDealerDetail.id);
+                                    }}
+                                    className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+
+                                <div className="text-right min-w-[90px]">
+                                  <div className="font-mono font-bold text-emerald-400 text-xs">
+                                    {formatCurrency(item.quantity * item.salePrice)}
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={async () => {
+                                    await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ action: 'remove_item', itemId: item.id })
+                                    });
+                                    openDealerDrawer(selectedDealerDetail.id);
+                                  }}
+                                  className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition"
+                                  title="Ürünü Sepetten Kaldır"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 4: ORDERS */}
+                  {dealerDrawerTab === 'orders' && (
+                    <div className="space-y-3 text-xs">
+                      {selectedDealerDetail.orders.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500 bg-slate-950/40 rounded-2xl border border-slate-800">
+                          Bu bayiye ait henüz sipariş kaydı bulunmuyor.
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
+                          {selectedDealerDetail.orders.map((order: any) => (
+                            <div key={order.id} className="p-4 space-y-2 hover:bg-slate-800/30 transition">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono font-bold text-sky-400">{order.orderNo}</span>
+                                  <span className="text-slate-500">•</span>
+                                  <span className="text-slate-400">{new Date(order.createdAt).toLocaleDateString('tr-TR')}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="font-mono font-bold text-emerald-400">{formatCurrency(order.grandTotal)}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    order.status === 'DELIVERED'
+                                      ? 'bg-emerald-500/20 text-emerald-300'
+                                      : order.status === 'PENDING_LIMIT_APPROVAL'
+                                      ? 'bg-rose-500/20 text-rose-300'
+                                      : 'bg-amber-500/20 text-amber-300'
+                                  }`}>
+                                    {order.status}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-slate-400 text-[11px]">
+                                {order.items.map((i: any) => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       )}

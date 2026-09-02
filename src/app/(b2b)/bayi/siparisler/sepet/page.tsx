@@ -134,9 +134,10 @@ export default function CartPage() {
                       <tr key={item.product.id} className="hover:bg-slate-800/50 transition">
                         <td className="py-3 px-4 text-center">
                           <img
-                            src={item.product.image}
+                            src={item.product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
                             alt={item.product.name}
                             className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
+                            onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
                           />
                         </td>
 

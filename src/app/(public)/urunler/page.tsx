@@ -214,7 +214,7 @@ export default function PublicProductsPage() {
                       alt={product.name}
                       className="max-h-40 max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
+                        (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80';
                       }}
                     />
                     {/* Badge */}
@@ -286,9 +286,10 @@ export default function PublicProductsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="bg-slate-50 rounded-2xl p-6 flex items-center justify-center min-h-[220px]">
                   <img
-                    src={selectedProduct.images?.[0]?.url || '/placeholder.png'}
+                    src={selectedProduct.images?.[0]?.url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
                     alt={selectedProduct.name}
                     className="max-h-56 max-w-full object-contain"
+                    onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
                   />
                 </div>
 

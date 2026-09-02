@@ -38,9 +38,10 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
         {/* Left: Big Product Image */}
         <div className="md:w-1/2 bg-slate-950 p-6 flex flex-col items-center justify-center relative border-b md:border-b-0 md:border-r border-slate-800">
           <img
-            src={product.image}
+            src={product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
             alt={product.name}
             className="w-full max-h-72 object-contain rounded-xl shadow-lg"
+            onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
           />
           {product.isNew && (
             <span className="absolute top-4 left-4 bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-md shadow">

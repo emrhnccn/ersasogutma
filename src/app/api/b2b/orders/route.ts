@@ -189,6 +189,30 @@ export async function POST(request: NextRequest) {
     totalVat = Number(totalVat.toFixed(2));
     const grandTotal = Number((subtotalExVat + totalVat).toFixed(2));
 
+    // Check credit limit and risk
+    const currentAccount = await prisma.currentAccount.findUnique({
+      where: { companyId },
+      include: {
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
+    });
+
+    const creditLimit = Number(currentAccount?.creditLimit || 0);
+    const lastBalance = currentAccount?.transactions?.[0] ? Number(currentAccount.transactions[0].balanceAfter) : 0;
+    const currentDebt = lastBalance > 0 ? lastBalance : 0;
+    const totalExposure = currentDebt + grandTotal;
+    const isLimitExceeded = creditLimit > 0 && totalExposure > creditLimit;
+
+    const initialOrderStatus = isLimitExceeded ? 'PENDING_LIMIT_APPROVAL' : 'PENDING_APPROVAL';
+    const limitNote = isLimitExceeded 
+      ? `[KREDİ LİMİTİ AŞIMI: Limit ${creditLimit.toLocaleString('tr-TR')} ₺, Talep Edilen Toplam Borç: ${totalExposure.toLocaleString('tr-TR')} ₺ - Yönetici Onayı Bekliyor]` 
+      : '';
+
+    const combinedNotes = [orderNote, accountingNote ? `[Muhasebe Notu: ${accountingNote}]` : '', limitNote].filter(Boolean).join(' | ');
+
     // Use transaction for atomicity: create order + deduct stock + create cari entry + clear cart
     const newOrder = await prisma.$transaction(async (tx) => {
       // 1. Create Order with Items
@@ -198,13 +222,13 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           companyId,
           buyerType: 'B2B',
-          status: 'PENDING_APPROVAL',
+          status: initialOrderStatus,
           currency: 'TRY',
           subtotalExVat,
           vatTotal: totalVat,
           grandTotal,
           paymentMethod,
-          notes: [orderNote, accountingNote ? `[Muhasebe Notu: ${accountingNote}]` : ''].filter(Boolean).join(' | '),
+          notes: combinedNotes,
           addressId: addressId || undefined,
           items: {
             create: orderItemsData
@@ -234,18 +258,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 3. Create Current Account Transaction (Cari borç kaydı)
-      const currentAccount = await tx.currentAccount.findUnique({
-        where: { companyId }
-      });
-
       if (currentAccount) {
-        // Calculate current balance from existing transactions
-        const existingTxs = await tx.currentAccountTransaction.findMany({
-          where: { accountId: currentAccount.id },
-          orderBy: { createdAt: 'desc' },
-          take: 1
-        });
-        const lastBalance = existingTxs.length > 0 ? Number(existingTxs[0].balanceAfter) : 0;
         const newBalance = lastBalance + grandTotal;
 
         await tx.currentAccountTransaction.create({
@@ -255,7 +268,7 @@ export async function POST(request: NextRequest) {
             type: 'ORDER_DEBIT',
             amount: grandTotal,
             balanceAfter: newBalance,
-            note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı`
+            note: `Sipariş #${orderNo} Satış Faturası Borç Kaydı${isLimitExceeded ? ' (Limit Aşımı)' : ''}`
           }
         });
       }

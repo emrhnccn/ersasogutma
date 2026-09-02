@@ -335,9 +335,10 @@ function ProductsContent() {
                           className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-950 border border-slate-800 cursor-pointer hover:border-sky-500 transition relative"
                         >
                           <img
-                            src={product.image}
+                            src={product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
                             alt={product.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition"
+                            onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
                           />
                         </div>
                       </td>
@@ -486,10 +487,11 @@ function ProductsContent() {
                 <div>
                   <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 mb-3 cursor-pointer">
                     <img
-                      src={product.image}
+                      src={product.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
                       alt={product.name}
                       onClick={() => setSelectedProductForModal(product)}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
                     />
                     {product.isNew && (
                       <span className="absolute top-2 left-2 bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded shadow">
