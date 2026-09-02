@@ -22,21 +22,17 @@ export async function GET() {
       phone: app.phone,
       email: app.email,
       city: app.city,
-      taxOffice: app.taxOffice || 'Belirtilmedi',
-      taxNumber: app.taxNumber || 'Belirtilmedi',
-      notes: app.notes || '',
+      taxOffice: app.taxOffice,
+      taxNumber: app.taxNumber,
+      notes: app.notes,
       status: app.status,
-      assignedTier: app.assignedTier || 'Silver',
-      appliedAt: app.createdAt.toLocaleDateString('tr-TR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      appliedAt: new Date(app.createdAt).toLocaleDateString('tr-TR')
     }));
 
-    return NextResponse.json({ success: true, data: mapped });
+    return NextResponse.json({
+      success: true,
+      data: mapped
+    });
   } catch (error: unknown) {
     console.error('GET /api/dealer-applications error:', error);
     const message = error instanceof Error ? error.message : 'Başvurular yüklenirken hata oluştu.';
@@ -48,15 +44,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Parse and fallback for fields
-    const companyName = body.companyName || body.fullName || 'Bayi Adayı';
-    const contactPerson = body.contactPerson || body.fullName || 'Yetkili';
-    const phone = body.phone || '';
-    const email = body.email || '';
-    const city = body.city || 'Belirtilmedi';
-    const taxOffice = body.taxOffice || 'Belirtilmedi';
-    const taxNumber = body.taxNumber || '1111111111';
+    const { companyName, contactPerson, phone, email, city, taxOffice, taxNumber } = body;
     const notes = body.notes || body.message || '';
 
     if (!phone || !companyName) {
@@ -69,12 +57,12 @@ export async function POST(request: NextRequest) {
     const application = await prisma.dealerApplication.create({
       data: {
         companyName,
-        contactPerson,
+        contactPerson: contactPerson || companyName,
         phone,
-        email,
-        city,
-        taxOffice,
-        taxNumber,
+        email: email || '',
+        city: city || 'İstanbul',
+        taxOffice: taxOffice || 'Belirtilmedi',
+        taxNumber: taxNumber || 'Belirtilmedi',
         notes,
         status: 'PENDING'
       }
@@ -150,11 +138,23 @@ export async function PUT(request: NextRequest) {
 
     // Clean username from phone or company name
     const rawDigits = application.phone.replace(/\D/g, '');
-    const cleanUsername = rawDigits.length >= 7 
+    let baseUsername = rawDigits.length >= 7 
       ? `bayi${rawDigits.slice(-7)}` 
       : `bayi_${application.companyName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10)}`;
+
+    if (!baseUsername || baseUsername.length < 4) {
+      baseUsername = `bayi_${Date.now().toString().slice(-6)}`;
+    }
+
     const randomTempPassword = `Bayi${Math.floor(100000 + Math.random() * 900000)}!`;
     const defaultPasswordHash = await bcrypt.hash(randomTempPassword, 10);
+
+    // Filter valid tax number
+    const isTaxNoValid = application.taxNumber && 
+      application.taxNumber.trim() !== '' && 
+      application.taxNumber !== 'Belirtilmedi' && 
+      application.taxNumber !== '1111111111';
+    const cleanTaxNo = isTaxNoValid ? application.taxNumber.trim() : null;
 
     // ATOMIC TRANSACTION FOR FULL B2B ONBOARDING
     const result = await prisma.$transaction(async (tx) => {
@@ -170,37 +170,42 @@ export async function PUT(request: NextRequest) {
 
       // 2. Find or Create CustomerGroup
       let group = await tx.customerGroup.findFirst({
-        where: { name: assignedTier }
+        where: {
+          OR: [
+            { name: assignedTier },
+            { code: assignedTier.toUpperCase() }
+          ]
+        }
       });
+
       if (!group) {
         group = await tx.customerGroup.create({
           data: {
             name: assignedTier,
-            code: assignedTier.toUpperCase(),
+            code: `${assignedTier.toUpperCase()}_${Date.now().toString().slice(-4)}`,
             description: `${assignedTier} Bayi Fiyat Grubu`
           }
         });
       }
 
-      // 3. Find or Create Company
-      let company = await tx.company.findFirst({
-        where: {
-          OR: [
-            { legalName: application.companyName },
-            ...(application.taxNumber && application.taxNumber !== 'Belirtilmedi' && application.taxNumber !== '1111111111' 
-                ? [{ taxNo: application.taxNumber }] 
-                : [])
-          ]
-        }
-      });
+      // 3. Find or Create Company (Idempotent)
+      let company = cleanTaxNo 
+        ? await tx.company.findUnique({ where: { taxNo: cleanTaxNo } })
+        : null;
+
+      if (!company) {
+        company = await tx.company.findFirst({
+          where: { legalName: application.companyName }
+        });
+      }
 
       if (!company) {
         company = await tx.company.create({
           data: {
             legalName: application.companyName,
             phone: application.phone,
-            email: application.email,
-            taxNo: application.taxNumber !== 'Belirtilmedi' ? application.taxNumber : null,
+            email: application.email || null,
+            taxNo: cleanTaxNo,
             taxOffice: application.taxOffice !== 'Belirtilmedi' ? application.taxOffice : null,
             status: 'ACTIVE',
             customerGroupId: group.id
@@ -231,7 +236,7 @@ export async function PUT(request: NextRequest) {
           }
         });
 
-        // Add Initial Transaction
+        // Add Initial Transaction (0 Balance)
         await tx.currentAccountTransaction.create({
           data: {
             accountId: currentAccount.id,
@@ -242,28 +247,35 @@ export async function PUT(request: NextRequest) {
           }
         });
       } else {
-        // Update credit limit if tier changed
         currentAccount = await tx.currentAccount.update({
           where: { id: currentAccount.id },
           data: { creditLimit }
         });
       }
 
-      // 5. Find or Create User for Dealer Login
-      let dealerUser = await tx.user.findFirst({
-        where: {
-          OR: [
-            { username: cleanUsername },
-            ...(application.email ? [{ email: application.email }] : [])
-          ]
-        }
+      // 5. Find or Create User for Dealer Login (Idempotent)
+      let targetUsername = baseUsername;
+      const existingUserByName = await tx.user.findUnique({
+        where: { username: targetUsername }
       });
+
+      if (existingUserByName && application.email && existingUserByName.email !== application.email) {
+        targetUsername = `${baseUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
+      let dealerUser = application.email
+        ? await tx.user.findUnique({ where: { email: application.email } })
+        : null;
+
+      if (!dealerUser) {
+        dealerUser = await tx.user.findUnique({ where: { username: targetUsername } });
+      }
 
       if (!dealerUser) {
         dealerUser = await tx.user.create({
           data: {
-            username: cleanUsername,
-            email: application.email || `${cleanUsername}@ersasogutma.com.tr`,
+            username: targetUsername,
+            email: application.email || `${targetUsername}@ersasogutma.com.tr`,
             name: application.contactPerson,
             phone: application.phone,
             role: 'B2B_DEALER',
@@ -276,30 +288,30 @@ export async function PUT(request: NextRequest) {
           where: { id: dealerUser.id },
           data: {
             role: 'B2B_DEALER',
-            status: 'ACTIVE'
+            status: 'ACTIVE',
+            passwordHash: defaultPasswordHash
           }
         });
+        targetUsername = dealerUser.username || targetUsername;
       }
 
       // 6. Link User to Company (CompanyMember)
-      const existingMember = await tx.companyMember.findUnique({
+      await tx.companyMember.upsert({
         where: {
           companyId_userId: {
             companyId: company.id,
             userId: dealerUser.id
           }
+        },
+        create: {
+          companyId: company.id,
+          userId: dealerUser.id,
+          memberRole: 'OWNER'
+        },
+        update: {
+          memberRole: 'OWNER'
         }
       });
-
-      if (!existingMember) {
-        await tx.companyMember.create({
-          data: {
-            companyId: company.id,
-            userId: dealerUser.id,
-            memberRole: 'OWNER'
-          }
-        });
-      }
 
       // 7. Ensure active Cart exists for user
       const existingCart = await tx.cart.findFirst({
@@ -319,7 +331,7 @@ export async function PUT(request: NextRequest) {
         company,
         user: dealerUser,
         currentAccount,
-        username: cleanUsername,
+        username: targetUsername,
         tempPassword: randomTempPassword
       };
     });

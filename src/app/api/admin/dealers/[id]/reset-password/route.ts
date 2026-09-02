@@ -21,17 +21,35 @@ export async function POST(
       where: { id },
       include: {
         members: {
-          include: { user: true },
-          take: 1
+          include: { user: true }
         }
       }
     });
 
     if (!company) {
-      return NextResponse.json({ success: false, error: 'Bayi bulunamadı.' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Bayi firması bulunamadı.' }, { status: 404 });
     }
 
-    const dealerUser = company.members?.[0]?.user;
+    // Find associated dealer user
+    let dealerUser = company.members?.[0]?.user;
+
+    if (!dealerUser && company.email) {
+      dealerUser = await prisma.user.findUnique({
+        where: { email: company.email }
+      }) as any;
+    }
+
+    if (!dealerUser) {
+      dealerUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { phone: company.phone },
+            { role: 'B2B_DEALER' }
+          ]
+        }
+      }) as any;
+    }
+
     if (!dealerUser) {
       return NextResponse.json({ success: false, error: 'Bayiye bağlı kullanıcı hesabı bulunamadı.' }, { status: 404 });
     }
@@ -44,7 +62,10 @@ export async function POST(
     // Update password hash in DB (plain text is NEVER stored in database)
     await prisma.user.update({
       where: { id: dealerUser.id },
-      data: { passwordHash }
+      data: {
+        passwordHash,
+        status: 'ACTIVE'
+      }
     });
 
     // Write audit log
@@ -59,7 +80,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: 'Yeni geçici şifre başarıyla oluşturuldu.',
-      username: dealerUser.username,
+      username: dealerUser.username || company.legalName,
       tempPassword
     });
   } catch (error: unknown) {

@@ -91,11 +91,20 @@ export default function AdminControlPanel() {
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
 
-  // DB Products State
+  // DB Products State (Paginated & Infinite Scroll)
   const [dbProducts, setDbProducts] = useState<DBProduct[]>([]);
+  const [adminProductPage, setAdminProductPage] = useState(1);
+  const [adminHasMoreProducts, setAdminHasMoreProducts] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
+  const [adminTotalProducts, setAdminTotalProducts] = useState(0);
+
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
+  const [productBrandFilter, setProductBrandFilter] = useState('ALL');
+  const [productSort, setProductSort] = useState('newest');
+
+  const adminProductObserverTarget = React.useRef<HTMLDivElement>(null);
 
   // DB Categories State
   const [dbCategories, setDbCategories] = useState<DBCategory[]>([]);
@@ -226,21 +235,78 @@ export default function AdminControlPanel() {
     }
   };
 
-  // 1. Fetch Products
-  const loadProducts = useCallback(async () => {
-    setLoadingProducts(true);
+  // 1. Fetch Products (Paginated from Database)
+  const loadAdminProducts = useCallback(async (targetPage: number, isNewFilter: boolean = false) => {
+    if (isNewFilter) {
+      setLoadingProducts(true);
+    } else {
+      setLoadingMoreProducts(true);
+    }
+
     try {
-      const res = await fetch('/api/products?status=ALL');
-      const data = await res.json();
-      if (data?.success && Array.isArray(data.data)) {
-        setDbProducts(data.data);
+      const params = new URLSearchParams();
+      params.set('page', targetPage.toString());
+      params.set('limit', '100');
+      params.set('status', 'ALL');
+
+      if (productCategoryFilter !== 'ALL') params.set('category', productCategoryFilter);
+      if (productBrandFilter !== 'ALL') params.set('brand', productBrandFilter);
+      if (productSearch.trim()) params.set('q', productSearch.trim());
+      if (productSort) params.set('sort', productSort);
+
+      const res = await fetch(`/api/products?${params.toString()}`);
+      const json = await res.json();
+
+      if (json?.success && Array.isArray(json.data)) {
+        setAdminTotalProducts(json.totalCount || 0);
+        setAdminHasMoreProducts(Boolean(json.hasMore));
+        setAdminProductPage(targetPage);
+
+        setDbProducts((prev) => {
+          if (isNewFilter || targetPage === 1) {
+            return json.data;
+          }
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newItems = json.data.filter((p: any) => !existingIds.has(p.id));
+          return [...prev, ...newItems];
+        });
       }
     } catch (err) {
-      console.error('Products load error:', err);
+      console.error('Failed to load admin products:', err);
     } finally {
       setLoadingProducts(false);
+      setLoadingMoreProducts(false);
     }
-  }, []);
+  }, [productCategoryFilter, productBrandFilter, productSearch, productSort]);
+
+  useEffect(() => {
+    if (activeTab === 'products') {
+      loadAdminProducts(1, true);
+    }
+  }, [activeTab, loadAdminProducts]);
+
+  useEffect(() => {
+    if (activeTab !== 'products' || !adminProductObserverTarget.current || !adminHasMoreProducts || loadingProducts || loadingMoreProducts) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && adminHasMoreProducts && !loadingProducts && !loadingMoreProducts) {
+          loadAdminProducts(adminProductPage + 1, false);
+        }
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(adminProductObserverTarget.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [activeTab, adminHasMoreProducts, loadingProducts, loadingMoreProducts, adminProductPage, loadAdminProducts]);
+
+  const loadProducts = useCallback(() => {
+    return loadAdminProducts(1, true);
+  }, [loadAdminProducts]);
 
   // 2. Fetch Categories
   const loadCategories = useCallback(async () => {
@@ -586,19 +652,6 @@ export default function AdminControlPanel() {
       showToast('Hata oluştu.', 'error');
     }
   };
-
-  // Filtered Products
-  const filteredProducts = dbProducts.filter((p) => {
-    const matchesSearch =
-      !productSearch ||
-      p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-      p.sku.toLowerCase().includes(productSearch.toLowerCase());
-    const matchesCategory =
-      productCategoryFilter === 'ALL' ||
-      p.category?.id === productCategoryFilter ||
-      p.category?.name === productCategoryFilter;
-    return matchesSearch && matchesCategory;
-  });
 
   return (
     <div className="space-y-6">
@@ -1001,16 +1054,16 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* TAB 3: PRODUCTS */}
+      {/* TAB 3: PRODUCTS (Paginated Database Infinite Scroll) */}
       {activeTab === 'products' && (
         <div className="space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="relative flex-1 max-w-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
+              <div className="relative flex-1 min-w-[200px] max-w-sm">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="Ürün adı veya SKU ile ara..."
+                  placeholder="Ürün adı, SKU veya barkod ile ara..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
@@ -1020,18 +1073,34 @@ export default function AdminControlPanel() {
               <select
                 value={productCategoryFilter}
                 onChange={(e) => setProductCategoryFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none"
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
               >
-                <option value="ALL">Tüm Kategoriler ({dbProducts.length})</option>
+                <option value="ALL">Tüm Kategoriler</option>
                 {dbCategories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+
+              <select
+                value={productSort}
+                onChange={(e) => setProductSort(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+              >
+                <option value="newest">En Yeniler</option>
+                <option value="price_asc">Fiyat: Düşükten Yükseğe</option>
+                <option value="price_desc">Fiyat: Yüksekten Düşüğe</option>
+                <option value="name_asc">İsim: A - Z</option>
+                <option value="stock_desc">Stok: Çoktan Aza</option>
+              </select>
+
+              <span className="text-[11px] font-mono text-slate-400 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                Toplam: <strong className="text-sky-400">{adminTotalProducts.toLocaleString('tr-TR')}</strong> Ürün
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
               <button
-                onClick={loadProducts}
+                onClick={() => loadAdminProducts(1, true)}
                 className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
                 title="Yenile"
               >
@@ -1048,12 +1117,12 @@ export default function AdminControlPanel() {
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-            {loadingProducts ? (
+            {loadingProducts && dbProducts.length === 0 ? (
               <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
                 <span>Ürünler veritabanından çekiliyor...</span>
               </div>
-            ) : filteredProducts.length === 0 ? (
+            ) : dbProducts.length === 0 ? (
               <div className="p-12 text-center text-slate-400 space-y-3">
                 <Package className="w-12 h-12 text-slate-600 mx-auto" />
                 <h3 className="text-base font-bold text-white">Ürün Bulunamadı</h3>
@@ -1077,78 +1146,100 @@ export default function AdminControlPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-medium">
-                    {filteredProducts.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-800/40 transition">
-                        <td className="p-3.5">
-                          {p.images && p.images.length > 0 ? (
-                            <img src={p.images[0].url} alt="" className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 border border-slate-700" />
-                          ) : (
-                            <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-slate-500">📦</div>
-                          )}
-                        </td>
-                        <td className="p-3.5 max-w-sm">
-                          <div className="font-bold text-white line-clamp-1">{p.name}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">
-                            {p.category?.name || 'Kategorisiz'} {p.brand?.name ? `• ${p.brand.name}` : ''}
-                          </div>
-                        </td>
-                        <td className="p-3.5 font-mono text-sky-300">
-                          <div>{p.sku}</div>
-                          {p.barcode && <div className="text-[10px] text-slate-500">{p.barcode}</div>}
-                        </td>
-                        <td className="p-3.5 font-mono text-slate-400">
-                          {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
-                        </td>
-                        <td className="p-3.5">
-                          <input
-                            type="number"
-                            step="0.1"
-                            defaultValue={p.salePrice || 0}
-                            onBlur={(e) => {
-                              const val = parseFloat(e.target.value);
-                              if (!isNaN(val) && val !== Number(p.salePrice)) {
-                                handleUpdateProductInline(p.id, { salePrice: val });
-                              }
-                            }}
-                            className="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-emerald-400 text-xs focus:outline-none focus:border-emerald-500"
-                          />
-                        </td>
-                        <td className="p-3.5">
-                          <input
-                            type="number"
-                            defaultValue={p.stockQty}
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val) && val !== p.stockQty) {
-                                handleUpdateProductInline(p.id, { stockQty: val });
-                              }
-                            }}
-                            className="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
-                          />
-                        </td>
-                        <td className="p-3.5 text-center">
-                          <button
-                            onClick={() => handleUpdateProductInline(p.id, { status: p.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE' })}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
-                              p.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'
-                            }`}
-                          >
-                            {p.status === 'ACTIVE' ? 'Aktif' : 'Taslak'}
-                          </button>
-                        </td>
-                        <td className="p-3.5 text-right">
-                          <button
-                            onClick={() => handleDeleteProduct(p.id, p.name)}
-                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
-                            title="Ürünü Sil"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {dbProducts.map((p) => {
+                      const imgUrl = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder.svg';
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-800/40 transition">
+                          <td className="p-3.5">
+                            <img
+                              src={imgUrl}
+                              alt={p.name}
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/placeholder.svg';
+                              }}
+                              className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 border border-slate-700"
+                            />
+                          </td>
+                          <td className="p-3.5 max-w-sm">
+                            <div className="font-bold text-white line-clamp-1">{p.name}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              {p.category?.name || 'Kategorisiz'} {p.brand?.name ? `• ${p.brand.name}` : ''}
+                            </div>
+                          </td>
+                          <td className="p-3.5 font-mono text-sky-300">
+                            <div>{p.sku}</div>
+                            {p.barcode && <div className="text-[10px] text-slate-500">{p.barcode}</div>}
+                          </td>
+                          <td className="p-3.5 font-mono text-slate-400">
+                            {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
+                          </td>
+                          <td className="p-3.5">
+                            <input
+                              type="number"
+                              step="0.1"
+                              defaultValue={p.salePrice || 0}
+                              onBlur={(e) => {
+                                const val = parseFloat(e.target.value);
+                                if (!isNaN(val) && val !== Number(p.salePrice)) {
+                                  handleUpdateProductInline(p.id, { salePrice: val });
+                                }
+                              }}
+                              className="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-emerald-400 text-xs focus:outline-none focus:border-emerald-500"
+                            />
+                          </td>
+                          <td className="p-3.5">
+                            <input
+                              type="number"
+                              defaultValue={p.stockQty}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value, 10);
+                                if (!isNaN(val) && val !== p.stockQty) {
+                                  handleUpdateProductInline(p.id, { stockQty: val });
+                                }
+                              }}
+                              className="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
+                            />
+                          </td>
+                          <td className="p-3.5 text-center">
+                            <button
+                              onClick={() => handleUpdateProductInline(p.id, { status: p.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE' })}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
+                                p.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'
+                              }`}
+                            >
+                              {p.status === 'ACTIVE' ? 'Aktif' : 'Taslak'}
+                            </button>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => handleDeleteProduct(p.id, p.name)}
+                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
+                              title="Ürünü Sil"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+
+                {/* Infinite Scroll Sentinel for Admin */}
+                <div ref={adminProductObserverTarget} className="py-6 text-center border-t border-slate-800/40">
+                  {loadingMoreProducts && (
+                    <div className="inline-flex items-center gap-2 bg-slate-950 border border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+                      <span>Daha fazla ürün yükleniyor...</span>
+                    </div>
+                  )}
+                  {!adminHasMoreProducts && dbProducts.length > 0 && (
+                    <div className="text-xs text-slate-500 font-medium">
+                      Tüm ürünler listelendi ({dbProducts.length} / {adminTotalProducts})
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
