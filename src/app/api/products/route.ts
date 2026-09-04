@@ -106,14 +106,18 @@ export async function GET(request: NextRequest) {
           sku: true,
           barcode: true,
           salePrice: true,
+          costPrice: true,
+          discountPercent: true,
           unit: true,
           stockQty: true,
           minOrderQty: true,
           currency: true,
           vatRate: true,
+          status: true,
           description: true,
+          createdAt: true,
           category: {
-            select: { id: true, name: true, slug: true }
+            select: { id: true, name: true, slug: true, discountPercent: true, sortOrder: true }
           },
           brand: {
             select: { id: true, name: true, slug: true }
@@ -133,11 +137,37 @@ export async function GET(request: NextRequest) {
 
     const mappedProducts = products.map((p) => {
       const base = Number(p.salePrice || 0);
-      const effectivePrice = dealerDiscount > 0 ? Number((base * (1 - dealerDiscount / 100)).toFixed(2)) : base;
+      const productDiscount = p.discountPercent ? Number(p.discountPercent) : 0;
+      const categoryDiscount = p.category?.discountPercent ? Number(p.category.discountPercent) : 0;
+
+      // Discount hierarchy: Product discount > Category discount > Dealer discount
+      let effectiveDiscount = 0;
+      let discountSource = 'NONE';
+
+      if (productDiscount > 0) {
+        effectiveDiscount = productDiscount;
+        discountSource = 'PRODUCT';
+      } else if (categoryDiscount > 0) {
+        effectiveDiscount = categoryDiscount;
+        discountSource = 'CATEGORY';
+      } else if (dealerDiscount > 0) {
+        effectiveDiscount = dealerDiscount;
+        discountSource = 'DEALER';
+      }
+
+      const discountAmount = Number(((base * effectiveDiscount) / 100).toFixed(2));
+      const effectivePrice = Number((base - discountAmount).toFixed(2));
+
       return {
         ...p,
         salePrice: effectivePrice,
-        basePrice: base
+        basePrice: base,
+        discountPercent: effectiveDiscount,
+        productDiscount,
+        categoryDiscount,
+        dealerDiscount,
+        discountSource,
+        discountAmount
       };
     });
 
@@ -170,7 +200,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, sku, salePrice, costPrice, stockQty, categoryId, brandId, description, images } = body;
+    const {
+      name,
+      sku,
+      barcode,
+      salePrice,
+      costPrice,
+      discountPercent,
+      stockQty,
+      categoryId,
+      brandId,
+      description,
+      images,
+      imageUrl
+    } = body;
 
     if (!name || !sku) {
       return NextResponse.json({ success: false, error: 'Ürün adı ve stok kodu (SKU) zorunludur.' }, { status: 400 });
@@ -178,24 +221,40 @@ export async function POST(request: NextRequest) {
 
     const slug = `${sku.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString().slice(-4)}`;
 
+    const imageList: string[] = [];
+    if (Array.isArray(images) && images.length > 0) {
+      images.forEach((img: any) => {
+        if (typeof img === 'string' && img.trim()) imageList.push(img.trim());
+      });
+    } else if (typeof imageUrl === 'string' && imageUrl.trim()) {
+      imageList.push(imageUrl.trim());
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
         sku,
+        barcode: barcode || null,
         slug,
         salePrice: salePrice ? parseFloat(salePrice) : 0,
         costPrice: costPrice ? parseFloat(costPrice) : null,
+        discountPercent: discountPercent ? parseFloat(discountPercent) : 0,
         stockQty: stockQty ? parseInt(stockQty, 10) : 0,
         categoryId: categoryId || null,
         brandId: brandId || null,
         description: description || null,
         status: 'PUBLISHED',
-        images: images && Array.isArray(images) && images.length > 0 ? {
-          create: images.map((url: string, idx: number) => ({
+        images: imageList.length > 0 ? {
+          create: imageList.map((url: string, idx: number) => ({
             url,
             sortOrder: idx
           }))
         } : undefined
+      },
+      include: {
+        images: true,
+        category: true,
+        brand: true
       }
     });
 

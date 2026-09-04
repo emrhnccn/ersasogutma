@@ -32,7 +32,9 @@ import {
   Zap,
   Wrench,
   ShieldCheck,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 function ProductsContent() {
@@ -57,6 +59,28 @@ function ProductsContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
+
+  // Dynamic Categories from PostgreSQL API
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setCategoriesList(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    if (categoryScrollRef.current) {
+      const amount = direction === 'left' ? -250 : 250;
+      categoryScrollRef.current.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+  };
 
   // Local state for quantity stepper per product
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -90,6 +114,9 @@ function ProductsContent() {
     brand: p.brand?.name || 'Ersa',
     pim: p.minOrderQty || 1,
     priceTRY: p.salePrice || 0,
+    basePriceTRY: p.basePrice || p.salePrice || 0,
+    discountPercent: p.discountPercent || 0,
+    discountSource: p.discountSource || 'NONE',
     priceUSD: Number(((p.salePrice || 0) / 38.45).toFixed(2)),
     priceEUR: Number(((p.salePrice || 0) / 42.10).toFixed(2)),
     originalCurrency: (p.currency as any) || 'TRY',
@@ -210,28 +237,24 @@ function ProductsContent() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span>Ersa B2B Ürün Kataloğu</span>
-          </div>
-          <h1 className="text-2xl font-black text-white">Yedek Parça & Ekipman Kataloğu</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Ürün Kataloğu</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
             İskontonuza tanımlı güncel bayi fiyatları ({profile.tier} Kademe - %{(profile.discountRate * 100).toFixed(0)} İskonto)
           </p>
         </div>
 
         {/* View mode toggle & total count */}
         <div className="flex items-center gap-2">
-          <span className="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-slate-300 font-mono">
+          <span className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 font-mono shadow-xs">
             {totalCount > 0 ? `${totalCount} Ürün` : '0 Ürün'}
           </span>
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1">
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              className={`p-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                 viewMode === 'table'
-                  ? 'bg-sky-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Tablo / Liste Görünümü"
             >
@@ -240,10 +263,10 @@ function ProductsContent() {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+              className={`p-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                 viewMode === 'grid'
-                  ? 'bg-sky-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Grid / Kart Görünümü"
             >
@@ -255,42 +278,81 @@ function ProductsContent() {
       </div>
 
       {/* Category Icons Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl overflow-x-auto">
-        <div className="flex items-center gap-2 min-w-max">
+      <div className="bg-white border border-slate-200 rounded-2xl p-2.5 shadow-xs relative group">
+        <div className="flex items-center gap-2">
+          {/* Scroll left button */}
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition ${
-              selectedCategory === 'all'
-                ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/30'
-                : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
-            }`}
+            type="button"
+            onClick={() => scrollCategories('left')}
+            className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex-shrink-0"
+            title="Sola Kaydır"
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Tüm Kategoriler</span>
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(isSelected ? 'all' : cat.name)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition ${
-                  isSelected
-                    ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/30'
-                    : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
-                }`}
-              >
-                {getCategoryIcon(cat.slug)}
-                <span>{cat.name}</span>
-              </button>
-            );
-          })}
+          {/* Scrollable Container */}
+          <div
+            ref={categoryScrollRef}
+            className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 flex-1 scroll-smooth"
+          >
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 ${
+                selectedCategory === 'all'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Tüm Kategoriler</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${selectedCategory === 'all' ? 'bg-blue-700 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}>
+                {totalCount}
+              </span>
+            </button>
+
+            {categoriesList.map((cat) => {
+              const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(isSelected ? 'all' : cat.name)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 group/item ${
+                    isSelected
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  {getCategoryIcon(cat.slug)}
+                  <span className="whitespace-nowrap">{cat.name}</span>
+                  {cat.discountPercent > 0 && (
+                    <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200">
+                      -%{cat.discountPercent}
+                    </span>
+                  )}
+                  {cat._count?.products !== undefined && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-blue-700 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                      {cat._count.products}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Scroll right button */}
+          <button
+            type="button"
+            onClick={() => scrollCategories('right')}
+            className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex-shrink-0"
+            title="Sağa Kaydır"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           
           {/* Search Box */}
@@ -301,16 +363,24 @@ function ProductsContent() {
               placeholder="Ürün adı, parça kodu (SKU), marka veya barkod ile arayın..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 transition"
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
-              >
-                ✕
-              </button>
-            )}
+          </div>
+
+          {/* Category Filter */}
+          <div className="sm:col-span-3">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600"
+            >
+              <option value="all">Tüm Kategoriler ({categoriesList.length})</option>
+              {categoriesList.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name} {cat.discountPercent > 0 ? `(-%${cat.discountPercent})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Brand Filter */}
@@ -318,14 +388,13 @@ function ProductsContent() {
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 transition"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600"
             >
-              <option value="all">Tüm Markalar</option>
+              <option value="all">Tüm Markalar ({BRANDS.length})</option>
               {BRANDS.map((b) => {
                 const brandName = typeof b === 'string' ? b : b.name;
-                const brandKey = typeof b === 'string' ? b : (b.id || b.name);
                 return (
-                  <option key={brandKey} value={brandName}>
+                  <option key={brandName} value={brandName}>
                     {brandName}
                   </option>
                 );
@@ -333,43 +402,45 @@ function ProductsContent() {
             </select>
           </div>
 
-          {/* Toggles */}
-          <div className="sm:col-span-3 flex items-center gap-2">
+        </div>
+
+        {/* Quick Toggles */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setOnlyInStock(!onlyInStock)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition font-medium ${
                 onlyInStock
-                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
               }`}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Stoktakiler</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Sadece Stoktakiler</span>
             </button>
 
             <button
               onClick={() => setOnlyFavorites(!onlyFavorites)}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition font-medium ${
                 onlyFavorites
-                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                  ? 'bg-amber-50 border-amber-300 text-amber-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
               }`}
-              title="Sadece Favorilerim"
             >
-              <Star className={`w-3.5 h-3.5 ${onlyFavorites ? 'fill-amber-400' : ''}`} />
+              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+              <span>Favorilerim</span>
             </button>
-
-            {(selectedCategory !== 'all' || selectedBrand !== 'all' || searchQuery || onlyInStock || onlyFavorites) && (
-              <button
-                onClick={resetFilters}
-                className="p-2.5 bg-slate-950 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-800 transition"
-                title="Filtreleri Temizle"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            )}
           </div>
 
+          {(selectedCategory !== 'all' || selectedBrand !== 'all' || searchQuery !== '' || onlyInStock || onlyFavorites) && (
+            <button
+              onClick={resetFilters}
+              className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition font-medium"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Filtreleri Temizle</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -395,10 +466,10 @@ function ProductsContent() {
       ) : viewMode === 'table' ? (
         
         /* TABLE VIEW */
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                 <tr>
                   <th className="py-3 px-4 w-12 text-center">Görsel</th>
                   <th className="py-3 px-4">Parça Kodu</th>
@@ -410,23 +481,24 @@ function ProductsContent() {
                   <th className="py-3 px-4 text-center w-36">Miktar / Sepet</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {displayProducts.map((product) => {
                   const isFav = isFavorite(product.id);
                   const qty = getQty(product);
-                  const effectivePrice = product.priceTRY * (1 - (profile.discountRate || 0.20));
-                  const basePrice = product.priceTRY;
+                  const basePrice = product.basePriceTRY || product.priceTRY;
+                  const effectivePrice = product.priceTRY;
+                  const discountPct = product.discountPercent || (basePrice > effectivePrice && basePrice > 0 ? Math.round(((basePrice - effectivePrice) / basePrice) * 100) : 0);
 
                   return (
                     <tr
                       key={product.id}
-                      className="hover:bg-slate-800/60 transition group"
+                      className="hover:bg-slate-50/80 transition group"
                     >
                       {/* Image with zoom click */}
                       <td className="py-3 px-4 text-center">
                         <div
                           onClick={() => setSelectedProductForModal(product)}
-                          className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-950 border border-slate-800 cursor-pointer hover:border-sky-500 transition relative"
+                          className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-50 border border-slate-200 cursor-pointer hover:border-blue-500 transition relative"
                         >
                           <img
                             src={product.image || '/placeholder.svg'}
@@ -438,7 +510,7 @@ function ProductsContent() {
                       </td>
 
                       {/* Code */}
-                      <td className="py-3 px-4 font-mono font-bold text-sky-400">
+                      <td className="py-3 px-4 font-mono font-bold text-blue-600">
                         {product.code}
                       </td>
 
@@ -447,25 +519,25 @@ function ProductsContent() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             onClick={() => setSelectedProductForModal(product)}
-                            className="font-semibold text-white hover:text-sky-300 cursor-pointer transition line-clamp-1"
+                            className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer transition line-clamp-1"
                           >
                             {product.name}
                           </span>
                           <button
                             onClick={() => toggleFavorite(product.id)}
-                            className="text-slate-500 hover:text-amber-400 transition"
+                            className="text-slate-400 hover:text-amber-500 transition"
                             title="Favoriye Ekle"
                           >
                             <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
                           </button>
                         </div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
+                        <div className="text-[11px] text-slate-500 mt-0.5">
                           {product.category} • PİM: {product.pim} Adet
                         </div>
                       </td>
 
                       {/* Brand */}
-                      <td className="py-3 px-4 font-semibold text-slate-400">
+                      <td className="py-3 px-4 font-semibold text-slate-600">
                         {product.brand}
                       </td>
 
@@ -475,14 +547,23 @@ function ProductsContent() {
                       </td>
 
                       {/* List Price */}
-                      <td className="py-3 px-4 text-right font-mono text-slate-400 line-through">
-                        {basePrice > effectivePrice ? formatCurrency(basePrice) : '—'}
+                      <td className="py-3 px-4 text-right font-mono text-slate-400">
+                        {basePrice > effectivePrice ? (
+                          <span className="line-through">{formatCurrency(basePrice)}</span>
+                        ) : (
+                          formatCurrency(basePrice)
+                        )}
                       </td>
 
                       {/* Dealer Special Net Price */}
                       <td className="py-3 px-4 text-right">
-                        <div className="font-mono font-black text-emerald-400 text-sm">
-                          {formatCurrency(effectivePrice)}
+                        <div className="font-mono font-black text-slate-900 text-sm flex items-center justify-end gap-1.5">
+                          <span>{formatCurrency(effectivePrice)}</span>
+                          {discountPct > 0 && (
+                            <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                              -%{discountPct}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] font-mono text-slate-400">
                           + KDV
@@ -492,11 +573,11 @@ function ProductsContent() {
                       {/* Stepper + Add To Cart Button */}
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-end gap-1.5">
-                          <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
+                          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                             <button
                               type="button"
                               onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
-                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                              className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                             >
                               -
                             </button>
@@ -506,12 +587,12 @@ function ProductsContent() {
                               step={product.pim || 1}
                               value={qty}
                               onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
-                              className="w-8 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
+                              className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                             />
                             <button
                               type="button"
                               onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
-                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                              className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                             >
                               +
                             </button>
@@ -519,7 +600,7 @@ function ProductsContent() {
 
                           <button
                             onClick={() => addToCart(product, qty)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition shadow-md shadow-emerald-900/30 flex items-center justify-center"
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-xs flex items-center justify-center"
                             title="Sepete Ekle"
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
@@ -540,16 +621,17 @@ function ProductsContent() {
           {displayProducts.map((product) => {
             const isFav = isFavorite(product.id);
             const qty = getQty(product);
-            const effectivePrice = product.priceTRY * (1 - (profile.discountRate || 0.20));
-            const basePrice = product.priceTRY;
+            const basePrice = product.basePriceTRY || product.priceTRY;
+            const effectivePrice = product.priceTRY;
+            const discountPct = product.discountPercent || (basePrice > effectivePrice && basePrice > 0 ? Math.round(((basePrice - effectivePrice) / basePrice) * 100) : 0);
 
             return (
               <div
                 key={product.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-slate-700 transition group"
+                className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-blue-400 hover:shadow-md transition group"
               >
                 <div>
-                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 mb-3 cursor-pointer">
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-50 mb-3 cursor-pointer border border-slate-100">
                     <img
                       src={product.image || '/placeholder.svg'}
                       alt={product.name}
@@ -558,41 +640,51 @@ function ProductsContent() {
                       onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
                     />
                     {product.isNew && (
-                      <span className="absolute top-2 left-2 bg-rose-500 text-white font-black text-[10px] px-2 py-0.5 rounded shadow">
+                      <span className="absolute top-2 left-2 bg-blue-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-md shadow-xs">
                         YENİ
+                      </span>
+                    )}
+                    {discountPct > 0 && (
+                      <span className="absolute bottom-2 left-2 bg-emerald-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
+                        -%{discountPct}
                       </span>
                     )}
                     <button
                       onClick={() => toggleFavorite(product.id)}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-950/70 backdrop-blur-sm text-amber-400 hover:bg-slate-900 transition"
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-slate-400 hover:text-amber-500 shadow-xs transition"
                     >
-                      <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
+                      <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
-                    <span className="text-sky-400 font-bold">Kod: {product.code}</span>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 mb-1">
+                    <span className="text-blue-600 font-bold">Kod: {product.code}</span>
                     <span>PİM: {product.pim} Adet</span>
                   </div>
 
                   <h3
                     onClick={() => setSelectedProductForModal(product)}
-                    className="text-xs font-bold text-white line-clamp-2 mb-2 hover:text-sky-300 cursor-pointer transition"
+                    className="text-xs font-bold text-slate-800 line-clamp-2 mb-2 hover:text-blue-600 cursor-pointer transition"
                   >
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-3">
-                    <span>Marka: <strong className="text-slate-200">{product.brand}</strong></span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3">
+                    <span>Marka: <strong className="text-slate-700">{product.brand}</strong></span>
                     <StockBadge stock={product.stock} unit={product.unit} size="sm" />
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 space-y-3">
+                <div className="pt-3 border-t border-slate-100 space-y-3">
                   <div className="flex items-baseline justify-between">
                     <div>
-                      <div className="text-base font-black font-mono text-emerald-400">
-                        {formatCurrency(effectivePrice)}
+                      <div className="text-base font-black font-mono text-slate-900 flex items-center gap-1.5">
+                        <span>{formatCurrency(effectivePrice)}</span>
+                        {discountPct > 0 && (
+                          <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                            -%{discountPct}
+                          </span>
+                        )}
                       </div>
                       {basePrice > effectivePrice && (
                         <div className="text-[10px] text-slate-400 line-through">
@@ -600,17 +692,15 @@ function ProductsContent() {
                         </div>
                       )}
                     </div>
-                    <div className="text-xs font-mono text-slate-400">
-                      + KDV
-                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono">+ KDV</div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
+                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                       <button
                         type="button"
                         onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
-                        className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                        className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                       >
                         -
                       </button>
@@ -620,12 +710,12 @@ function ProductsContent() {
                         step={product.pim || 1}
                         value={qty}
                         onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
-                        className="w-8 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
+                        className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
-                        className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                        className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                       >
                         +
                       </button>
@@ -633,7 +723,7 @@ function ProductsContent() {
 
                     <button
                       onClick={() => addToCart(product, qty)}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-md shadow-emerald-900/30 transition flex items-center justify-center gap-1.5"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Sepete Ekle</span>

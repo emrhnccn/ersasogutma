@@ -12,9 +12,9 @@ export interface StockStatusInfo {
 
 /**
  * Centralized stock status and color rules:
- * - stock >= 10: NORMAL (Green / Active)
- * - stock >= 1 && stock < 10 (1 to 9): WARNING (Orange / Critical)
- * - stock <= 0: OUT_OF_STOCK (Red / Depleted)
+ * - stock > 10: NORMAL (Green / Yeşıl)
+ * - stock <= 10 && stock > 0: WARNING (Orange / Turuncu)
+ * - stock <= 0: OUT_OF_STOCK (Red / Kırmızı)
  */
 export function getStockStatus(stock: number | null | undefined, unit: string = 'Adet'): StockStatusInfo {
   const count = Number(stock) || 0;
@@ -23,34 +23,34 @@ export function getStockStatus(stock: number | null | undefined, unit: string = 
     return {
       status: 'OUT_OF_STOCK',
       label: 'Tükendi',
-      badgeClass: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
-      dotClass: 'bg-rose-500',
-      textClass: 'text-rose-400',
+      badgeClass: 'bg-red-50 text-red-700 border border-red-200',
+      dotClass: 'bg-red-500',
+      textClass: 'text-red-600',
       isAvailable: false,
       stockCount: 0
     };
   }
 
-  // 1 to 9 items
-  if (count < 10) {
+  // 1 to 10 items (Stok <= 10)
+  if (count <= 10) {
     return {
       status: 'WARNING',
-      label: `Son ${count} ${unit}`,
-      badgeClass: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      dotClass: 'bg-amber-400',
-      textClass: 'text-amber-400',
+      label: `Kritik: ${count} ${unit}`,
+      badgeClass: 'bg-amber-50 text-amber-700 border border-amber-200',
+      dotClass: 'bg-amber-500',
+      textClass: 'text-amber-600',
       isAvailable: true,
       stockCount: count
     };
   }
 
-  // 10 and above
+  // Above 10 items (Stok > 10)
   return {
     status: 'NORMAL',
     label: `Stokta: ${count} ${unit}`,
-    badgeClass: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-    dotClass: 'bg-emerald-400',
-    textClass: 'text-emerald-400',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    dotClass: 'bg-emerald-500',
+    textClass: 'text-emerald-600',
     isAvailable: true,
     stockCount: count
   };

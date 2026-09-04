@@ -79,58 +79,58 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="bg-slate-900 text-white sticky top-[33px] z-30 shadow-lg border-b border-slate-800 backdrop-blur-md bg-opacity-95">
+    <header className="bg-white text-slate-800 sticky top-0 z-30 shadow-xs border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
         
         {/* Left: Mobile Toggle & Brand Logo */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none"
+            className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none transition"
             aria-label="Menüyü Aç/Kapat"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <Link href="/bayi" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-sky-400 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition transform">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-xs group-hover:bg-blue-700 transition">
               <Snowflake className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black tracking-tight text-white uppercase">
-                  ERSA <span className="text-sky-400">SOĞUTMA</span>
+                <span className="text-base font-black tracking-tight text-slate-900 uppercase">
+                  ERSA <span className="text-blue-600">SOĞUTMA</span>
                 </span>
-                <span className="text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1.5 py-0.2 rounded">
+                <span className="text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded-md">
                   BAYİ PORTALI
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 block -mt-1 font-medium font-mono">
+              <span className="text-[10px] text-slate-500 block -mt-0.5 font-medium font-mono">
                 bayi.ersasogutma.com.tr
               </span>
             </div>
           </Link>
         </div>
 
-        {/* Center: Global Instant Search (Search by SKU, Name, Barcode) */}
+        {/* Center: Global Instant Search */}
         <div className="hidden md:flex flex-1 max-w-lg relative">
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Ürün adı, parça kodu (SKU) veya marka ara (Örn: R134a, Danfoss, 70101...)"
+              placeholder="Ürün adı, parça kodu (SKU) veya marka ara..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setShowSearchResults(true);
               }}
               onFocus={() => setShowSearchResults(true)}
-              className="w-full bg-slate-950 text-slate-100 placeholder-slate-500 text-xs rounded-xl pl-9 pr-9 py-2 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition"
+              className="w-full bg-slate-50 text-slate-900 placeholder-slate-400 text-xs rounded-xl pl-9 pr-9 py-2 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
             />
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -139,49 +139,49 @@ export function Header({ onToggleSidebar }: HeaderProps) {
 
           {/* Autocomplete Results Dropdown */}
           {showSearchResults && searchFiltered.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
-              <div className="p-2 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50">
+              <div className="p-2.5 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex justify-between bg-slate-50">
                 <span>Eşleşen Ürünler ({searchFiltered.length})</span>
-                <span className="text-sky-400">Hızlı Seçim</span>
+                <span className="text-blue-600 font-semibold">Hızlı Seçim</span>
               </div>
-              <div className="divide-y divide-slate-800/60 max-h-72 overflow-y-auto">
+              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
                 {searchFiltered.map((p) => (
                   <div
                     key={p.id}
                     onClick={() => handleSelectProduct(p.code)}
-                    className="p-2.5 hover:bg-slate-800 cursor-pointer flex items-center justify-between gap-3 transition"
+                    className="p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between gap-3 transition"
                   >
                     <div className="flex items-center gap-3">
                       <img
                         src={p.image}
                         alt={p.name}
-                        className="w-9 h-9 object-cover rounded bg-white p-0.5"
+                        className="w-9 h-9 object-cover rounded-lg border border-slate-200 bg-white p-0.5"
                       />
                       <div>
-                        <div className="text-xs font-bold text-white line-clamp-1">{p.name}</div>
-                        <div className="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
-                          <span className="font-mono text-sky-400">{p.code}</span>
+                        <div className="text-xs font-bold text-slate-800 line-clamp-1">{p.name}</div>
+                        <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-blue-600 font-semibold">{p.code}</span>
                           <span>•</span>
                           <span>{p.brand}</span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs font-bold text-emerald-400 font-mono">
+                      <div className="text-xs font-bold text-emerald-600 font-mono">
                         {formatCurrency(p.priceTRY * (1 - profile.discountRate))}
                       </div>
-                      <div className="text-[9px] text-slate-500 line-through">
+                      <div className="text-[9px] text-slate-400 line-through">
                         {formatCurrency(p.priceTRY)}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="p-2 bg-slate-950 text-center">
+              <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
                 <Link
                   href={`/bayi/urunler?q=${encodeURIComponent(searchQuery)}`}
                   onClick={() => setShowSearchResults(false)}
-                  className="text-xs text-sky-400 hover:text-sky-300 font-bold"
+                  className="text-xs text-blue-600 hover:text-blue-700 font-bold"
                 >
                   Tüm sonuçları katalogda gör →
                 </Link>
@@ -193,21 +193,6 @@ export function Header({ onToggleSidebar }: HeaderProps) {
         {/* Right: Actions, Currency, Notifications & Profile */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           
-          {/* Currency Selector */}
-          <div className="hidden sm:flex bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-[11px] font-bold">
-            {(['TRY', 'USD', 'EUR'] as Currency[]).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCurrency(c)}
-                className={`px-2 py-1 rounded transition ${
-                  currency === c ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {c === 'TRY' ? '₺' : c === 'USD' ? '$' : '€'}
-              </button>
-            ))}
-          </div>
-
           {/* Notifications Dropdown */}
           <div className="relative">
             <button
@@ -215,48 +200,48 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowMessagesDropdown(false);
               }}
-              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 relative transition"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 relative transition"
               title="Sistem Bildirimleri"
             >
               <Bell className="w-4 h-4" />
               {unreadNotificationCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {unreadNotificationCount}
                 </span>
               )}
             </button>
 
             {showNotifDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
-                <div className="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
+                <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                   <div className="flex items-center gap-1.5">
-                    <Bell className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-bold text-white">Bildirimler ({unreadNotificationCount})</span>
+                    <Bell className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-bold text-slate-800">Bildirimler ({unreadNotificationCount})</span>
                   </div>
                   {unreadNotificationCount > 0 && (
                     <button
                       onClick={markAllNotificationsRead}
-                      className="text-[10px] text-sky-400 hover:text-sky-300 font-bold"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 font-bold"
                     >
                       Tümünü Okundu Say
                     </button>
                   )}
                 </div>
 
-                <div className="divide-y divide-slate-800/80 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                   {notifications.map((n) => (
                     <div
                       key={n.id}
                       onClick={() => markNotificationRead(n.id)}
-                      className={`p-3 text-xs space-y-1 transition cursor-pointer hover:bg-slate-800/80 ${
-                        !n.isRead ? 'bg-sky-950/25 border-l-2 border-amber-400' : ''
+                      className={`p-3 text-xs space-y-1 transition cursor-pointer hover:bg-slate-50 ${
+                        !n.isRead ? 'bg-blue-50/50 border-l-2 border-blue-500' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-[11px]">{n.title}</span>
-                        <span className="text-[9px] text-slate-500">{n.date}</span>
+                        <span className="font-bold text-slate-800 text-[11px]">{n.title}</span>
+                        <span className="text-[9px] text-slate-400">{n.date}</span>
                       </div>
-                      <p className="text-[11px] text-slate-300">{n.message}</p>
+                      <p className="text-[11px] text-slate-600">{n.message}</p>
                     </div>
                   ))}
                 </div>
@@ -271,45 +256,45 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 setShowMessagesDropdown(!showMessagesDropdown);
                 setShowNotifDropdown(false);
               }}
-              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 relative transition"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 relative transition"
               title="Mesajlar"
             >
               <Mail className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
             </button>
 
             {showMessagesDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
-                <div className="p-3 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
-                  <span className="text-xs font-bold text-white">Gelen Mesajlar</span>
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
+                <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <span className="text-xs font-bold text-slate-800">Gelen Mesajlar</span>
                   <Link
                     href="/bayi/iletisim/mesajlar"
                     onClick={() => setShowMessagesDropdown(false)}
-                    className="text-[11px] text-sky-400 hover:text-sky-300 font-bold"
+                    className="text-[11px] text-blue-600 hover:text-blue-700 font-bold"
                   >
                     Tümünü Gör
                   </Link>
                 </div>
-                <div className="divide-y divide-slate-800 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                   {messages.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-slate-500">Gelen kutunuz boş.</div>
+                    <div className="p-4 text-center text-xs text-slate-400">Gelen kutunuz boş.</div>
                   ) : (
                     messages.slice(0, 3).map((m) => (
                       <Link
                         key={m.id}
                         href="/bayi/iletisim/mesajlar"
                         onClick={() => setShowMessagesDropdown(false)}
-                        className="p-3 block hover:bg-slate-800/80 transition"
+                        className="p-3 block hover:bg-slate-50 transition"
                       >
-                        <div className="flex justify-between items-start text-xs font-medium text-white mb-0.5">
+                        <div className="flex justify-between items-start text-xs font-medium text-slate-800 mb-0.5">
                           <span className="line-clamp-1">{m.sender}</span>
                           <span className="text-[10px] text-slate-400">{m.date.split(' ')[0]}</span>
                         </div>
-                        <div className="text-[11px] text-slate-300 line-clamp-1">{m.subject}</div>
+                        <div className="text-[11px] text-slate-600 line-clamp-1">{m.subject}</div>
                       </Link>
                     ))
                   )}
@@ -321,12 +306,12 @@ export function Header({ onToggleSidebar }: HeaderProps) {
           {/* Cart Button */}
           <Link
             href="/bayi/siparisler/sepet"
-            className="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-md shadow-sky-500/20 transition"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-xs transition"
           >
             <div className="relative">
               <ShoppingCart className="w-4 h-4" />
               {cartTotals.itemCount > 0 && (
-                <span className="absolute -top-2 -right-2.5 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center border border-slate-900">
+                <span className="absolute -top-2 -right-2.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border border-white">
                   {cartTotals.itemCount}
                 </span>
               )}
@@ -342,16 +327,16 @@ export function Header({ onToggleSidebar }: HeaderProps) {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition"
+              className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition"
             >
-              <div className="w-6 h-6 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400 font-bold text-[10px]">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-[11px]">
                 ES
               </div>
               <div className="hidden xl:block">
-                <div className="text-xs font-bold text-white leading-tight truncate max-w-[120px]">
+                <div className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
                   {profile.companyName}
                 </div>
-                <div className="text-[9px] text-sky-400 font-medium leading-none">
+                <div className="text-[9px] text-slate-500 font-medium leading-none">
                   Bayi Hesabı
                 </div>
               </div>
@@ -359,13 +344,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95">
-                <div className="p-2 border-b border-slate-800 mb-1.5">
-                  <div className="text-xs font-bold text-white">{profile.companyName}</div>
-                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">{profile.dealerCode}</div>
-                  <div className="mt-2 flex items-center justify-between text-[11px] bg-slate-950 p-1.5 rounded border border-slate-800">
-                    <span className="text-slate-400">Cari Bakiye:</span>
-                    <span className="font-mono font-bold text-emerald-400">
+              <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2.5 z-50 animate-in fade-in zoom-in-95">
+                <div className="p-2 border-b border-slate-100 mb-1.5">
+                  <div className="text-xs font-bold text-slate-800">{profile.companyName}</div>
+                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">{profile.dealerCode}</div>
+                  <div className="mt-2 flex items-center justify-between text-[11px] bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                    <span className="text-slate-500">Cari Bakiye:</span>
+                    <span className="font-mono font-bold text-emerald-600">
                       {formatCurrency(profile.currentBalance)} ({profile.balanceType})
                     </span>
                   </div>
@@ -375,31 +360,31 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                   <Link
                     href="/bayi/profil"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition"
                   >
-                    <User className="w-4 h-4 text-sky-400" />
+                    <User className="w-4 h-4 text-blue-600" />
                     <span>Firma Bilgileri & Şifre</span>
                   </Link>
 
                   <Link
                     href="/admin"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-amber-300 hover:bg-amber-950/40 transition"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-amber-700 hover:bg-amber-50 transition"
                   >
-                    <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    <ShieldAlert className="w-4 h-4 text-amber-600" />
                     <span>Yönetici Paneli (Admin)</span>
                   </Link>
 
-                  <div className="border-t border-slate-800 my-1"></div>
+                  <div className="border-t border-slate-100 my-1"></div>
 
                   <button
                     onClick={async () => {
                       setShowUserMenu(false);
                       await logoutAction();
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-rose-400 hover:bg-rose-950/30 transition text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-red-600 hover:bg-red-50 transition text-left"
                   >
-                    <LogOut className="w-4 h-4 text-rose-400" />
+                    <LogOut className="w-4 h-4 text-red-600" />
                     <span>Güvenli Çıkış Yap</span>
                   </button>
                 </div>

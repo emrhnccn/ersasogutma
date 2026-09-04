@@ -45,11 +45,14 @@ import {
   ArrowUpRight,
   Eye,
   SlidersHorizontal,
-  CheckSquare
+  CheckSquare,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { OrderStatus, BankAccount } from '@/types';
 import { ScraperProgress, ScraperLog } from '@/lib/scrapers/types';
 import { StockBadge } from '@/components/common/StockBadge';
+import { ImageDropzone } from '@/components/common/ImageDropzone';
 
 interface DBProduct {
   id: string;
@@ -58,6 +61,7 @@ interface DBProduct {
   barcode?: string;
   salePrice?: number;
   costPrice?: number;
+  discountPercent?: number;
   stockQty: number;
   status: string;
   brand?: { id: string; name: string } | null;
@@ -72,6 +76,8 @@ interface DBCategory {
   slug: string;
   parentId?: string | null;
   parent?: { id: string; name: string } | null;
+  sortOrder?: number;
+  discountPercent?: number;
   _count?: { products: number };
 }
 
@@ -142,13 +148,37 @@ export default function AdminControlPanel() {
   const [newProductSku, setNewProductSku] = useState('');
   const [newProductCost, setNewProductCost] = useState('');
   const [newProductSale, setNewProductSale] = useState('');
+  const [newProductDiscount, setNewProductDiscount] = useState('0');
   const [newProductStock, setNewProductStock] = useState('10');
   const [newProductCategory, setNewProductCategory] = useState('');
   const [newProductImageUrl, setNewProductImageUrl] = useState('');
 
+  // Edit Product Modal State
+  const [editingProduct, setEditingProduct] = useState<DBProduct | null>(null);
+  const [editProdName, setEditProdName] = useState('');
+  const [editProdSku, setEditProdSku] = useState('');
+  const [editProdBarcode, setEditProdBarcode] = useState('');
+  const [editProdCost, setEditProdCost] = useState('');
+  const [editProdSale, setEditProdSale] = useState('');
+  const [editProdDiscount, setEditProdDiscount] = useState('0');
+  const [editProdStock, setEditProdStock] = useState('0');
+  const [editProdCategory, setEditProdCategory] = useState('');
+  const [editProdImageUrl, setEditProdImageUrl] = useState('');
+  const [savingProduct, setSavingProduct] = useState(false);
+
   // New Category State
   const [newCatName, setNewCatName] = useState('');
   const [newCatParent, setNewCatParent] = useState('');
+  const [newCatSortOrder, setNewCatSortOrder] = useState('0');
+  const [newCatDiscount, setNewCatDiscount] = useState('0');
+
+  // Edit Category Modal State
+  const [editingCategory, setEditingCategory] = useState<DBCategory | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [editCatParent, setEditCatParent] = useState('');
+  const [editCatSortOrder, setEditCatSortOrder] = useState('0');
+  const [editCatDiscount, setEditCatDiscount] = useState('0');
+  const [savingCategory, setSavingCategory] = useState(false);
 
   // New Bank Account Form State
   const [newBankName, setNewBankName] = useState('');
@@ -580,6 +610,7 @@ export default function AdminControlPanel() {
           sku: newProductSku,
           costPrice: newProductCost ? parseFloat(newProductCost) : null,
           salePrice: newProductSale ? parseFloat(newProductSale) : null,
+          discountPercent: newProductDiscount ? parseFloat(newProductDiscount) : 0,
           stockQty: parseInt(newProductStock, 10) || 0,
           categoryId: newProductCategory || null,
           imageUrl: newProductImageUrl || undefined
@@ -594,13 +625,64 @@ export default function AdminControlPanel() {
         setNewProductSku('');
         setNewProductCost('');
         setNewProductSale('');
+        setNewProductDiscount('0');
         setNewProductImageUrl('');
-        loadProducts();
+        loadAdminProducts(1, true);
       } else {
         showToast(data.error || 'Ürün eklenemedi.', 'error');
       }
     } catch {
       showToast('Bağlantı hatası.', 'error');
+    }
+  };
+
+  // Open Edit Product Modal
+  const openEditProductModal = (p: DBProduct) => {
+    setEditingProduct(p);
+    setEditProdName(p.name);
+    setEditProdSku(p.sku);
+    setEditProdBarcode(p.barcode || '');
+    setEditProdCost(p.costPrice !== undefined && p.costPrice !== null ? p.costPrice.toString() : '');
+    setEditProdSale(p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '');
+    setEditProdDiscount(p.discountPercent !== undefined && p.discountPercent !== null ? p.discountPercent.toString() : '0');
+    setEditProdStock(p.stockQty.toString());
+    setEditProdCategory(p.category?.id || '');
+    setEditProdImageUrl(p.images && p.images.length > 0 ? p.images[0].url : '');
+  };
+
+  // Handle Save Edit Product
+  const handleSaveEditProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    setSavingProduct(true);
+    try {
+      const res = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editProdName,
+          sku: editProdSku,
+          barcode: editProdBarcode || null,
+          costPrice: editProdCost ? parseFloat(editProdCost) : null,
+          salePrice: editProdSale ? parseFloat(editProdSale) : null,
+          discountPercent: editProdDiscount ? parseFloat(editProdDiscount) : 0,
+          stockQty: parseInt(editProdStock, 10) || 0,
+          categoryId: editProdCategory || null,
+          imageUrl: editProdImageUrl || undefined
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Ürün bilgileri ve görseli başarıyla güncellendi!', 'success');
+        setEditingProduct(null);
+        loadAdminProducts(1, true);
+      } else {
+        showToast(data.error || 'Ürün güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('Bağlantı hatası oluştu.', 'error');
+    } finally {
+      setSavingProduct(false);
     }
   };
 
@@ -649,7 +731,9 @@ export default function AdminControlPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newCatName,
-          parentId: newCatParent || null
+          parentId: newCatParent || null,
+          sortOrder: parseInt(newCatSortOrder, 10) || 0,
+          discountPercent: parseFloat(newCatDiscount) || 0
         })
       });
       const data = await res.json();
@@ -657,10 +741,87 @@ export default function AdminControlPanel() {
         showToast('Kategori oluşturuldu.', 'success');
         setNewCatName('');
         setNewCatParent('');
+        setNewCatSortOrder('0');
+        setNewCatDiscount('0');
         loadCategories();
       }
     } catch {
       showToast('Hata oluştu.', 'error');
+    }
+  };
+
+  // Open Edit Category Modal
+  const openEditCategoryModal = (cat: DBCategory) => {
+    setEditingCategory(cat);
+    setEditCatName(cat.name);
+    setEditCatParent(cat.parentId || '');
+    setEditCatSortOrder((cat.sortOrder ?? 0).toString());
+    setEditCatDiscount((cat.discountPercent ?? 0).toString());
+  };
+
+  // Handle Save Edit Category
+  const handleSaveEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    setSavingCategory(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingCategory.id,
+          name: editCatName,
+          parentId: editCatParent || null,
+          sortOrder: parseInt(editCatSortOrder, 10) || 0,
+          discountPercent: parseFloat(editCatDiscount) || 0
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Kategori başarıyla güncellendi.', 'success');
+        setEditingCategory(null);
+        loadCategories();
+      } else {
+        showToast(data.error || 'Güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('Hata oluştu.', 'error');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  // Handle Move Category Up / Down
+  const handleMoveCategory = async (catId: string, direction: 'up' | 'down') => {
+    const idx = dbCategories.findIndex((c) => c.id === catId);
+    if (idx === -1) return;
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === dbCategories.length - 1) return;
+
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    const reordered = [...dbCategories];
+    const [moved] = reordered.splice(idx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    // Optimistic UI update with calculated sortOrders
+    const payload = reordered.map((c, i) => ({ id: c.id, sortOrder: i + 1 }));
+    setDbCategories(reordered.map((c, i) => ({ ...c, sortOrder: i + 1 })));
+
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reorder: payload })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Kategori sıralaması kaydedildi.');
+      } else {
+        loadCategories();
+      }
+    } catch {
+      showToast('Sıralama güncellenirken hata oluştu.', 'error');
+      loadCategories();
     }
   };
 
@@ -673,6 +834,8 @@ export default function AdminControlPanel() {
       if (data.success) {
         showToast('Kategori silindi.');
         loadCategories();
+      } else {
+        showToast(data.error || 'Silinemedi.', 'error');
       }
     } catch {
       showToast('Hata oluştu.', 'error');
@@ -728,17 +891,17 @@ export default function AdminControlPanel() {
     <div className="space-y-6">
       
       {/* Top Banner & Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 border border-sky-500/30 rounded-2xl p-6 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-sky-400" />
+            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-blue-600" />
               <span>B2B Yönetici Portalı</span>
             </span>
-            <span className="text-emerald-400 text-xs font-mono font-bold">v2.4 Canlı</span>
+            <span className="text-emerald-600 text-xs font-semibold">v2.4 Canlı</span>
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Ersa Soğutma Yönetim Merkezi</h1>
-          <p className="text-slate-400 text-xs max-w-2xl">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ersa Soğutma Yönetim Merkezi</h1>
+          <p className="text-slate-500 text-xs max-w-2xl">
             Tedarikçi sitelerinden otomatik ürün çekin, ürün kataloğunu yönetin, siparişleri sevk edin ve bayi cari hesaplarını kontrol edin.
           </p>
         </div>
@@ -747,25 +910,25 @@ export default function AdminControlPanel() {
           <button
             onClick={() => fetchLiveRates(true)}
             disabled={isFetchingRates}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-700 transition"
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs transition"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-sky-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
             <span>Kurları Yenile</span>
           </button>
 
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-700 transition"
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs transition"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             <span>Ziyaretçi Vitrini</span>
           </Link>
 
           <Link
             href="/bayi"
             target="_blank"
-            className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-sky-900/30 transition"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
           >
             <UserCheck className="w-4 h-4" />
             <span>Bayi Portalı</span>
@@ -774,7 +937,7 @@ export default function AdminControlPanel() {
       </div>
 
       {/* Navigation Tabs Bar */}
-      <div className="flex bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl gap-1 overflow-x-auto">
+      <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl gap-1 overflow-x-auto shadow-xs">
         {[
           { id: 'dashboard', label: 'Genel Bakış', icon: Layers },
           { id: 'scraper', label: 'Tedarikçi Botu & Ürün Çekme', icon: Bot, highlight: true },
@@ -792,15 +955,15 @@ export default function AdminControlPanel() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap ${
                 isActive
-                  ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/40'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : tab.highlight
-                  ? 'text-amber-300 hover:bg-slate-800 hover:text-white'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  ? 'text-amber-600 hover:bg-amber-50'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : tab.highlight ? 'text-amber-400' : 'text-slate-400'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : tab.highlight ? 'text-amber-500' : 'text-slate-400'}`} />
               <span>{tab.label}</span>
               {tab.highlight && !isActive && (
                 <span className="relative flex h-2 w-2 ml-0.5">
@@ -817,50 +980,50 @@ export default function AdminControlPanel() {
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Veritabanındaki Ürün</span>
-                <h3 className="text-2xl font-black text-white mt-1">{dbProducts.length} Adet</h3>
-                <span className="text-[10px] text-emerald-400 font-mono">Aktif B2B Kataloğu</span>
+                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Veritabanındaki Ürün</span>
+                <h3 className="text-2xl font-black text-slate-900 mt-1">{dbProducts.length} Adet</h3>
+                <span className="text-[10px] text-emerald-600 font-medium">Aktif B2B Kataloğu</span>
               </div>
-              <div className="w-12 h-12 bg-sky-950 border border-sky-800 rounded-2xl flex items-center justify-center text-sky-400">
+              <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
                 <Package className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Tanımlı Kategori</span>
-                <h3 className="text-2xl font-black text-white mt-1">{dbCategories.length} Grup</h3>
-                <span className="text-[10px] text-sky-400 font-mono">Hiyerarşik Ağaç</span>
+                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Tanımlı Kategori</span>
+                <h3 className="text-2xl font-black text-slate-900 mt-1">{dbCategories.length} Grup</h3>
+                <span className="text-[10px] text-blue-600 font-medium">Hiyerarşik Ağaç</span>
               </div>
-              <div className="w-12 h-12 bg-purple-950 border border-purple-800 rounded-2xl flex items-center justify-center text-purple-400">
+              <div className="w-12 h-12 bg-purple-50 border border-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
                 <FolderTree className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">TCMB Dolar Kuru</span>
-                <h3 className="text-2xl font-black text-emerald-400 font-mono mt-1">
+                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">TCMB Dolar Kuru</span>
+                <h3 className="text-2xl font-black text-slate-900 font-mono mt-1">
                   {exchangeRates.USD_TRY ? `${exchangeRates.USD_TRY.toFixed(4)} ₺` : '...'}
                 </h3>
-                <span className="text-[10px] text-slate-400 font-mono">EUR: {exchangeRates.EUR_TRY?.toFixed(4)} ₺</span>
+                <span className="text-[10px] text-slate-500 font-mono">EUR: {exchangeRates.EUR_TRY?.toFixed(4)} ₺</span>
               </div>
-              <div className="w-12 h-12 bg-emerald-950 border border-emerald-800 rounded-2xl flex items-center justify-center text-emerald-400">
+              <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Bekleyen Sipariş</span>
-                <h3 className="text-2xl font-black text-amber-400 mt-1">
+                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Bekleyen Sipariş</span>
+                <h3 className="text-2xl font-black text-amber-600 mt-1">
                   {orders.filter((o) => o.status === 'bekliyor').length} Sipariş
                 </h3>
-                <span className="text-[10px] text-slate-400">Toplam {orders.length} Sipariş</span>
+                <span className="text-[10px] text-slate-500">Toplam {orders.length} Sipariş</span>
               </div>
-              <div className="w-12 h-12 bg-amber-950 border border-amber-800 rounded-2xl flex items-center justify-center text-amber-400">
+              <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
                 <ShoppingBag className="w-6 h-6" />
               </div>
             </div>
@@ -1212,6 +1375,7 @@ export default function AdminControlPanel() {
                       <th className="p-3.5">SKU / Barkod</th>
                       <th className="p-3.5">Alış Fiyatı</th>
                       <th className="p-3.5">Satış Fiyatı (TL)</th>
+                      <th className="p-3.5">İskonto (%)</th>
                       <th className="p-3.5">Stok Adedi</th>
                       <th className="p-3.5 text-center">Durum</th>
                       <th className="p-3.5 text-right">İşlemler</th>
@@ -1261,6 +1425,25 @@ export default function AdminControlPanel() {
                             />
                           </td>
                           <td className="p-3.5">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                max="100"
+                                defaultValue={p.discountPercent || 0}
+                                onBlur={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (!isNaN(val) && val !== Number(p.discountPercent)) {
+                                    handleUpdateProductInline(p.id, { discountPercent: val });
+                                  }
+                                }}
+                                className="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
+                              />
+                              <span className="text-slate-500 text-[10px]">%</span>
+                            </div>
+                          </td>
+                          <td className="p-3.5">
                             <div className="flex items-center gap-2">
                               <input
                                 type="number"
@@ -1287,13 +1470,22 @@ export default function AdminControlPanel() {
                             </button>
                           </td>
                           <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
-                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
-                              title="Ürünü Sil"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openEditProductModal(p)}
+                                className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition"
+                                title="Ürünü Düzenle (İsim, Görsel, SKU, İskonto)"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(p.id, p.name)}
+                                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
+                                title="Ürünü Sil"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1357,9 +1549,35 @@ export default function AdminControlPanel() {
                 </select>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                  <input
+                    type="number"
+                    placeholder="1, 2, 3..."
+                    value={newCatSortOrder}
+                    onChange={(e) => setNewCatSortOrder(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    placeholder="Örn: 20"
+                    value={newCatDiscount}
+                    onChange={(e) => setNewCatDiscount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
-                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition"
+                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
               >
                 Kategori Kaydet
               </button>
@@ -1368,10 +1586,15 @@ export default function AdminControlPanel() {
 
           <div className="lg:col-span-8 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FolderTree className="w-4 h-4 text-purple-400" />
-                <span>Kategori Hiyerarşisi ({dbCategories.length})</span>
-              </h3>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <FolderTree className="w-4 h-4 text-purple-400" />
+                  <span>Kategori Yönetimi & Sıralama ({dbCategories.length})</span>
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Ok butonları ile kategorilerin sıralamasını ayarlayabilir, düzenle butonu ile isim ve iskonto güncelleyebilirsiniz.
+                </p>
+              </div>
               <button onClick={loadCategories} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingCategories ? 'animate-spin' : ''}`} />
               </button>
@@ -1385,32 +1608,73 @@ export default function AdminControlPanel() {
               </div>
             ) : (
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {dbCategories.map((c) => (
+                {dbCategories.map((c, idx) => (
                   <div
                     key={c.id}
                     className="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex items-center justify-between text-xs hover:border-slate-700 transition"
                   >
-                    <div>
-                      <div className="font-bold text-white flex items-center gap-1.5">
-                        <span>{c.name}</span>
-                        {c._count?.products !== undefined && (
-                          <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
-                            {c._count.products} Ürün
+                    <div className="flex items-center gap-3">
+                      {/* Move Up / Down Buttons */}
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveCategory(c.id, 'up')}
+                          className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 disabled:hover:text-slate-400 rounded transition"
+                          title="Yukarı Taşı"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === dbCategories.length - 1}
+                          onClick={() => handleMoveCategory(c.id, 'down')}
+                          className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 disabled:hover:text-slate-400 rounded transition"
+                          title="Aşağı Taşı"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-[10px] text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                            #{c.sortOrder ?? idx + 1}
                           </span>
+                          <span>{c.name}</span>
+                          {c.discountPercent !== undefined && Number(c.discountPercent) > 0 && (
+                            <span className="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.2 rounded-full font-bold">
+                              %{c.discountPercent} İskonto
+                            </span>
+                          )}
+                          {c._count?.products !== undefined && (
+                            <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
+                              {c._count.products} Ürün
+                            </span>
+                          )}
+                        </div>
+                        {c.parent && (
+                          <span className="text-[10px] text-slate-500">Üst Kategori: {c.parent.name}</span>
                         )}
                       </div>
-                      {c.parent && (
-                        <span className="text-[10px] text-slate-500">Üst: {c.parent.name}</span>
-                      )}
                     </div>
 
-                    <button
-                      onClick={() => handleDeleteCategory(c.id, c.name)}
-                      className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg transition"
-                      title="Kategoriyi Sil"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEditCategoryModal(c)}
+                        className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition"
+                        title="Kategori İsmi ve İskontoyu Düzenle"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(c.id, c.name)}
+                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
+                        title="Kategoriyi Sil"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2926,7 +3190,7 @@ export default function AdminControlPanel() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
                   <input
@@ -2950,6 +3214,19 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
+                  <label className="block text-slate-400 font-semibold mb-1">İskonto (%):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    placeholder="0"
+                    value={newProductDiscount}
+                    onChange={(e) => setNewProductDiscount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                  />
+                </div>
+                <div>
                   <label className="block text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
                   <input
                     type="number"
@@ -2960,16 +3237,12 @@ export default function AdminControlPanel() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-slate-400 font-semibold mb-1">Ürün Görsel URL'si:</label>
-                <input
-                  type="text"
-                  placeholder="https://..."
-                  value={newProductImageUrl}
-                  onChange={(e) => setNewProductImageUrl(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
-                />
-              </div>
+              {/* Drag and Drop Image Uploader */}
+              <ImageDropzone
+                value={newProductImageUrl}
+                onChange={setNewProductImageUrl}
+                label="Ürün Görseli (Bilgisayardan Sürükleyin veya Dosya Seçin)"
+              />
 
               <div className="pt-3 flex gap-2">
                 <button
@@ -2984,6 +3257,245 @@ export default function AdminControlPanel() {
                   className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition"
                 >
                   Ürünü Oluştur
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT PRODUCT */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Edit className="w-4 h-4 text-sky-400" />
+                <h3 className="font-bold text-white text-base">Ürünü Düzenle</h3>
+              </div>
+              <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditProduct} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Ürün Adı:</label>
+                <input
+                  type="text"
+                  required
+                  value={editProdName}
+                  onChange={(e) => setEditProdName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
+                  <input
+                    type="text"
+                    required
+                    value={editProdSku}
+                    onChange={(e) => setEditProdSku(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none focus:border-sky-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Barkod (Opsiyonel):</label>
+                  <input
+                    type="text"
+                    value={editProdBarcode}
+                    onChange={(e) => setEditProdBarcode(e.target.value)}
+                    placeholder="8690000000000"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-300 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Kategori:</label>
+                <select
+                  value={editProdCategory}
+                  onChange={(e) => setEditProdCategory(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                >
+                  <option value="">-- Kategori Seçin --</option>
+                  {dbCategories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="0.00"
+                    value={editProdCost}
+                    onChange={(e) => setEditProdCost(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="0.00"
+                    value={editProdSale}
+                    onChange={(e) => setEditProdSale(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    placeholder="0"
+                    value={editProdDiscount}
+                    onChange={(e) => setEditProdDiscount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                  <input
+                    type="number"
+                    value={editProdStock}
+                    onChange={(e) => setEditProdStock(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Image Drag and Drop Uploader */}
+              <ImageDropzone
+                value={editProdImageUrl}
+                onChange={setEditProdImageUrl}
+                label="Ürün Görseli (Bilgisayardan Sürükleyin veya Seçin)"
+              />
+
+              <div className="pt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingProduct}
+                  className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+                >
+                  {savingProduct ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Kaydediliyor...</span>
+                    </>
+                  ) : (
+                    <span>Değişiklikleri Kaydet</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT CATEGORY */}
+      {editingCategory && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderTree className="w-4 h-4 text-purple-400" />
+                <h3 className="font-bold text-white text-base">Kategoriyi Düzenle</h3>
+              </div>
+              <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditCategory} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Kategori Adı:</label>
+                <input
+                  type="text"
+                  required
+                  value={editCatName}
+                  onChange={(e) => setEditCatName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Üst Kategori:</label>
+                <select
+                  value={editCatParent}
+                  onChange={(e) => setEditCatParent(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                >
+                  <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
+                  {dbCategories
+                    .filter((c) => c.id !== editingCategory.id)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                  <input
+                    type="number"
+                    value={editCatSortOrder}
+                    onChange={(e) => setEditCatSortOrder(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="100"
+                    value={editCatDiscount}
+                    onChange={(e) => setEditCatDiscount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCategory(null)}
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingCategory}
+                  className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+                >
+                  {savingCategory ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Kaydediliyor...</span>
+                    </>
+                  ) : (
+                    <span>Kategoriyi Güncelle</span>
+                  )}
                 </button>
               </div>
             </form>

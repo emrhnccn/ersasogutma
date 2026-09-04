@@ -2,14 +2,14 @@
 
 @layer base {
   :root {
-    --background: #020617;
-    --foreground: #f8fafc;
+    --background: #F8FAFC;
+    --foreground: #111827;
   }
 }
 
 body {
-  background-color: #020617;
-  color: #f8fafc;
+  background-color: #F8FAFC;
+  color: #111827;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -20,16 +20,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #38bdf8;
+  background: #94A3B8;
 }
 
 /* Animations */

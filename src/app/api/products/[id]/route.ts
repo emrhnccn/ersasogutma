@@ -53,14 +53,18 @@ export async function PUT(
     const {
       name, sku, barcode, description, specsJson,
       status, unit, vatRate, currency,
-      costPrice, salePrice, stockQty, minOrderQty,
-      brandId, categoryId
+      costPrice, salePrice, discountPercent, stockQty, minOrderQty,
+      brandId, categoryId, images, imageUrl
     } = body;
 
     const updateData: Record<string, unknown> = {};
 
     if (name !== undefined) updateData.name = name;
-    if (sku !== undefined) updateData.sku = sku;
+    if (sku !== undefined) {
+      updateData.sku = sku;
+      // Update slug based on SKU
+      updateData.slug = `${sku.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${id.slice(-4)}`;
+    }
     if (barcode !== undefined) updateData.barcode = barcode || null;
     if (description !== undefined) updateData.description = description || null;
     if (specsJson !== undefined) updateData.specsJson = typeof specsJson === 'string' ? specsJson : JSON.stringify(specsJson);
@@ -68,12 +72,39 @@ export async function PUT(
     if (unit !== undefined) updateData.unit = unit;
     if (vatRate !== undefined) updateData.vatRate = Number(vatRate);
     if (currency !== undefined) updateData.currency = currency;
-    if (costPrice !== undefined) updateData.costPrice = costPrice ? Number(costPrice) : null;
-    if (salePrice !== undefined) updateData.salePrice = salePrice ? Number(salePrice) : null;
+    if (costPrice !== undefined) updateData.costPrice = costPrice !== null && costPrice !== '' ? Number(costPrice) : null;
+    if (salePrice !== undefined) updateData.salePrice = salePrice !== null && salePrice !== '' ? Number(salePrice) : null;
+    if (discountPercent !== undefined) updateData.discountPercent = discountPercent !== null && discountPercent !== '' ? Number(discountPercent) : 0;
     if (stockQty !== undefined) updateData.stockQty = Number(stockQty);
     if (minOrderQty !== undefined) updateData.minOrderQty = Number(minOrderQty);
     if (brandId !== undefined) updateData.brandId = brandId || null;
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
+
+    // Handle Image updates
+    const imageList: string[] = [];
+    if (Array.isArray(images) && images.length > 0) {
+      images.forEach((img: any) => {
+        if (typeof img === 'string' && img.trim()) imageList.push(img.trim());
+        else if (img?.url && typeof img.url === 'string') imageList.push(img.url.trim());
+      });
+    } else if (typeof imageUrl === 'string' && imageUrl.trim()) {
+      imageList.push(imageUrl.trim());
+    }
+
+    if (imageList.length > 0) {
+      // Clear old images and insert new
+      await prisma.productImage.deleteMany({ where: { productId: id } });
+      await prisma.productImage.createMany({
+        data: imageList.map((url, idx) => ({
+          productId: id,
+          url,
+          sortOrder: idx
+        }))
+      });
+    } else if (images !== undefined && Array.isArray(images) && images.length === 0) {
+      // Admin deliberately cleared images
+      await prisma.productImage.deleteMany({ where: { productId: id } });
+    }
 
     const product = await prisma.product.update({
       where: { id },
@@ -81,7 +112,7 @@ export async function PUT(
       include: {
         brand: true,
         category: true,
-        images: true
+        images: { orderBy: { sortOrder: 'asc' } }
       }
     });
 

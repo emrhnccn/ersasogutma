@@ -38,6 +38,9 @@ export interface Product {
   specifications: Record<string, string>;
   barcode?: string;
   oemCode?: string;
+  basePriceTRY?: number;
+  discountPercent?: number;
+  discountSource?: string;
 }
 
 export interface CartItem {

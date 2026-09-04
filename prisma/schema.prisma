@@ -123,6 +123,8 @@ model Category {
   slug           String   @unique
   parentId       String?
   vatRate        Decimal?
+  discountPercent Decimal? @default(0)
+  sortOrder      Int      @default(0)
   seoTitle       String?
   seoDescription String?
   createdAt      DateTime @default(now())
@@ -176,6 +178,7 @@ model Product {
   currency        String   @default("TRY")
   costPrice       Decimal?
   salePrice       Decimal?
+  discountPercent Decimal? @default(0)
   stockQty        Decimal  @default(0)
   minOrderQty     Decimal  @default(1)
   brandId         String?

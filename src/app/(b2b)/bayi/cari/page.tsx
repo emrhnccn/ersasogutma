@@ -118,26 +118,24 @@ export default function CariPage() {
     window.print();
   };
 
+  const availableCredit = (liveCariData?.creditLimit ?? profile.creditLimit) - (liveCariData?.currentBalance ?? profile.currentBalance);
+
   return (
     <div className="space-y-6">
       
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Layers className="w-4 h-4" />
-            <span>Mali Hareketler & Hesap Ekstresi</span>
-          </div>
-          <h1 className="text-2xl font-black text-white">Cari Hesap Hareketleri</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Faturalarınız, tahsilat makbuzlarınız, çek ve banka hareketlerinizin güncel dökümü
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Cari Hesap Hareketleri</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Faturalarınız, tahsilat makbuzlarınız, çek ve banka hareketlerinizin güncel ERP dökümü
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap self-start">
           <Link
             href="/bayi/finans/online-odeme"
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg shadow-emerald-900/30 transition"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition"
           >
             <CreditCard className="w-4 h-4" />
             <span>Bakiye Öde (POS)</span>
@@ -145,86 +143,102 @@ export default function CariPage() {
 
           <button
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-700 transition"
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-200 shadow-xs transition"
             title="Excel Olarak İndir"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>Excel Ekstre</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-700 transition"
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-slate-200 shadow-xs transition"
             title="Yazdır / PDF"
           >
-            <Printer className="w-4 h-4 text-sky-400" />
+            <Printer className="w-4 h-4 text-blue-600" />
             <span>PDF / Yazdır</span>
           </button>
         </div>
       </div>
 
-      {/* 4 Financial Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 5 Financial Summary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 mb-1">
-            KREDİ LİMİTİ
+        {/* Card 1: Cari Bakiye */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Cari Bakiye
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-mono">
+          <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+            {formatCurrency(liveCariData?.currentBalance ?? profile.currentBalance)}
+          </div>
+          <div className="text-[11px] font-medium text-slate-500">
+            Durum: <span className={(liveCariData?.currentBalance ?? 0) > 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold'}>
+              {liveCariData?.balanceType === 'A' ? 'Alacaklı (A)' : 'Borçlu (B)'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Kredi Limiti */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Kredi Limiti
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
             {formatCurrency(liveCariData?.creditLimit ?? profile.creditLimit)}
           </div>
-          <div className="mt-3 text-[11px] text-emerald-200 flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Tanımlı açık hesap limiti</span>
+          <div className="text-[11px] text-slate-500 flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Tanımlı açık hesap</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-sky-600 to-blue-700 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-sky-100 mb-1">
-            BORÇ TOPLAMI (ALINAN MALLAR)
+        {/* Card 3: Kullanılabilir Limit */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Kullanılabilir Limit
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(liveCariData?.totalDebit ?? 0)}
+          <div className="text-2xl font-bold font-mono text-emerald-600 tracking-tight">
+            {formatCurrency(Math.max(0, availableCredit))}
           </div>
-          <div className="mt-3 text-[11px] text-sky-200 flex items-center gap-1">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>Faturalar ve borç fişleri</span>
+          <div className="text-[11px] text-slate-500">
+            Sipariş verilebilir limit
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-amber-100 mb-1">
-            ALACAK TOPLAMI (ÖDEMELER)
+        {/* Card 4: Geciken Borç */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Geciken Borç
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-mono">
+          <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+            0,00 TL
+          </div>
+          <div className="text-[11px] text-emerald-600 font-medium">
+            Vadesi geçen borç yok
+          </div>
+        </div>
+
+        {/* Card 5: Son Ödeme / Alacak */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Son Ödeme
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
             {formatCurrency(liveCariData?.totalCredit ?? 0)}
           </div>
-          <div className="mt-3 text-[11px] text-amber-200 flex items-center gap-1">
-            <ArrowDownLeft className="w-3.5 h-3.5" />
-            <span>Havale, Çek & POS ödemeleri</span>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-teal-600 to-emerald-700 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-teal-100 mb-1">
-            GÜNCEL CARİ BAKİYE
-          </div>
-          <div className="text-2xl sm:text-3xl font-black font-mono">
-            {formatCurrency(liveCariData?.currentBalance ?? profile.currentBalance)} ({liveCariData?.balanceType ?? 'B'})
-          </div>
-          <div className="mt-3 text-[11px] text-emerald-200 font-bold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
-            <span>{(liveCariData?.currentBalance ?? 0) > 0 ? 'Ödenecek Borç (B)' : 'Alacaklı Durumdasınız (A)'}</span>
+          <div className="text-[11px] text-slate-500">
+            Toplam tahsilat tutarı
           </div>
         </div>
 
       </div>
 
       {/* Date & Type Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
         
         {/* Preset Date Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <div className="flex gap-2 overflow-x-auto pb-1 text-xs font-semibold">
           {[
             { id: 'all', label: 'Tüm Zamanlar' },
             { id: 'today', label: 'Bugün' },
@@ -237,8 +251,8 @@ export default function CariPage() {
               onClick={() => setDatePreset(tab.id as any)}
               className={`px-3 py-1.5 rounded-lg transition whitespace-nowrap ${
                 datePreset === tab.id
-                  ? 'bg-sky-600 text-white'
-                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200'
               }`}
             >
               {tab.label}
@@ -249,11 +263,11 @@ export default function CariPage() {
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
           
           <div className="sm:col-span-3">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Evrak Cinsi:</label>
+            <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Evrak Cinsi:</label>
             <select
               value={docTypeFilter}
               onChange={(e) => setDocTypeFilter(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none"
             >
               <option value="all">Tüm Evrak Cinsleri</option>
               <option value="Satış Faturası">Satış Faturası</option>
@@ -266,11 +280,11 @@ export default function CariPage() {
           </div>
 
           <div className="sm:col-span-3">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bakiye Yönü:</label>
+            <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Bakiye Yönü:</label>
             <select
               value={balanceFilter}
               onChange={(e) => setBalanceFilter(e.target.value as any)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:bg-white focus:border-blue-600 focus:outline-none"
             >
               <option value="all">Tüm Hareketler</option>
               <option value="debt_only">Sadece Borç (Faturalar)</option>
@@ -279,16 +293,16 @@ export default function CariPage() {
           </div>
 
           <div className="sm:col-span-5">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Evrak No / Açıklama Ara:</label>
+            <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Evrak No / Açıklama Ara:</label>
             <div className="relative">
               <input
                 type="text"
-                placeholder="Evrak no veya açıklama arayın (Örn: SANPOS, ERS...)"
+                placeholder="Evrak no veya açıklama arayın..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-600 focus:outline-none"
               />
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             </div>
           </div>
 
@@ -301,7 +315,7 @@ export default function CariPage() {
                   setDatePreset('all');
                   setSearchQuery('');
                 }}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs transition"
+                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs transition"
                 title="Filtreleri Sıfırla"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -311,63 +325,63 @@ export default function CariPage() {
 
         </div>
 
-        <div className="text-xs text-slate-400 pt-2 border-t border-slate-800 flex justify-between items-center">
+        <div className="text-xs text-slate-500 pt-2 border-t border-slate-100 flex justify-between items-center">
           <span>Toplam <strong>{filteredTransactions.length}</strong> hareket listeleniyor.</span>
-          <span className="text-[10px] text-slate-500 font-mono">B: Borçlu | A: Alacaklı</span>
+          <span className="text-[11px] text-slate-400 font-mono">B: Borçlu | A: Alacaklı</span>
         </div>
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
-                <th className="py-3.5 px-4 w-28">Tarih</th>
-                <th className="py-3.5 px-4 w-36">Evrak Numarası</th>
-                <th className="py-3.5 px-4 w-36">Evrak Cinsi</th>
-                <th className="py-3.5 px-4">Açıklama</th>
-                <th className="py-3.5 px-4 text-right w-32">Borç</th>
-                <th className="py-3.5 px-4 text-right w-32">Alacak</th>
-                <th className="py-3.5 px-4 text-right w-36">Bakiye</th>
-                <th className="py-3.5 px-4 text-right w-24">İşlem</th>
+              <tr className="border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider bg-slate-50">
+                <th className="py-3 px-4 w-28">Tarih</th>
+                <th className="py-3 px-4 w-36">Evrak Numarası</th>
+                <th className="py-3 px-4 w-36">Evrak Cinsi</th>
+                <th className="py-3 px-4">Açıklama</th>
+                <th className="py-3 px-4 text-right w-32">Borç</th>
+                <th className="py-3 px-4 text-right w-32">Alacak</th>
+                <th className="py-3 px-4 text-right w-36">Bakiye</th>
+                <th className="py-3 px-4 text-right w-24">İşlem</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-slate-200">
+            <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                  <td colSpan={8} className="p-12 text-center text-slate-400">
                     Kriterlere uygun cari hareket kaydı bulunamadı.
                   </td>
                 </tr>
               ) : (
                 filteredTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-800/50 transition group">
-                    <td className="py-3.5 px-4 font-mono text-slate-400">{tx.date}</td>
+                  <tr key={tx.id} className="hover:bg-slate-50/70 transition">
+                    <td className="py-3.5 px-4 font-mono text-slate-500 text-xs">{tx.date}</td>
                     
-                    <td className="py-3.5 px-4 font-mono font-bold text-sky-400">
+                    <td className="py-3.5 px-4 font-mono font-bold text-blue-600">
                       {tx.documentNo}
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[11px]">
+                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[11px] font-medium border border-slate-200">
                         {tx.documentType}
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-slate-300">
+                    <td className="py-3.5 px-4 text-slate-600">
                       {tx.description || '-'}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-400">
+                    <td className="py-3.5 px-4 text-right font-mono font-semibold text-red-600">
                       {tx.debt > 0 ? formatCurrency(tx.debt) : '-'}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-400">
+                    <td className="py-3.5 px-4 text-right font-mono font-semibold text-emerald-600">
                       {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right font-mono font-black text-white">
+                    <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900">
                       {formatCurrency(tx.balance)} ({tx.balanceType})
                     </td>
 
@@ -375,13 +389,13 @@ export default function CariPage() {
                       {tx.invoiceDetail ? (
                         <button
                           onClick={() => setSelectedInvoice(tx.invoiceDetail!)}
-                          className="inline-flex items-center gap-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white px-2.5 py-1 rounded-lg font-bold text-xs transition"
+                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2.5 py-1 rounded-lg font-semibold text-xs transition"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>İncele</span>
                         </button>
                       ) : (
-                        <span className="text-slate-600 text-[11px]">-</span>
+                        <span className="text-slate-400 text-[11px]">-</span>
                       )}
                     </td>
                   </tr>

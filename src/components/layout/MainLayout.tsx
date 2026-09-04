@@ -9,29 +9,22 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-white">
-      {/* 1. Top Real-Time Exchange Rate & Ticker Bar */}
-      <CurrencyTicker />
-
-      {/* 2. Main Sticky Header */}
-      <Header
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        isSidebarOpen={sidebarOpen}
+    <div className="min-h-screen flex bg-[#F8FAFC] text-[#111827] selection:bg-blue-600 selection:text-white">
+      {/* 1. Left Vertical Navigation (Full height) */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
-      {/* 3. Main Body Structure (Sidebar + Content) */}
-      <div className="flex-1 flex">
-        {/* Left Vertical Navigation */}
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+      {/* 2. Main Content Column */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+        <CurrencyTicker />
+        <Header
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          isSidebarOpen={sidebarOpen}
         />
-
-        {/* Dynamic Page Content */}
-        <main className="flex-1 w-full lg:pl-72 transition-all duration-300 min-h-[calc(100vh-100px)]">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            {children}
-          </div>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {children}
         </main>
       </div>
     </div>
