@@ -14,13 +14,15 @@ import {
   CheckCircle2,
   AlertTriangle,
   Info,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 import { logoutAction } from '@/lib/actions';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const { exchangeRates } = useStore();
+  const { exchangeRates, theme, toggleTheme } = useStore();
 
   const handleSignOut = async () => {
     await logoutAction();
@@ -87,6 +89,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <span>Bayi Portalı</span>
               <ExternalLink className="w-3 h-3 text-blue-400" />
             </Link>
+
+            {/* Theme Toggle (Light / Dark) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl shadow-xs transition"
+              title={theme === 'dark' ? 'Açık Temaya Geç' : 'Karanlık Temaya Geç'}
+              aria-label="Temayı Değiştir"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-500 animate-in spin-in-180 duration-300" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600 animate-in spin-in-180 duration-300" />
+              )}
+            </button>
 
             {/* Admin User Badge */}
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">

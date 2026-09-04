@@ -127,6 +127,10 @@ interface StoreContextType {
   isAdminView: boolean;
   setIsAdminView: (val: boolean) => void;
 
+  // Theme Mode (Light / Dark)
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+
   // Toasts
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
@@ -210,6 +214,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [accountingNote, setAccountingNote] = useState('');
   const [isAdminView, setIsAdminView] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Initialize theme from localStorage or system preference
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('ersa_theme') as 'light' | 'dark' | null;
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setTheme(savedTheme);
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleTheme = React.useCallback(() => {
+    setTheme((prev) => {
+      const nextTheme = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('ersa_theme', nextTheme);
+      } catch {
+        // ignore
+      }
+      if (nextTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return nextTheme;
+    });
+  }, []);
 
   // Load / Save localStorage if on client & sync with DB
   useEffect(() => {
@@ -847,6 +886,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         unreadCount,
         isAdminView,
         setIsAdminView,
+        theme,
+        toggleTheme,
         toasts,
         showToast
       }}

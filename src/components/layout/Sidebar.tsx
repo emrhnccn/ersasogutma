@@ -29,8 +29,9 @@ import {
   FolderTree,
   Search,
   X,
-  Tag,
-  Snowflake
+  Snowflake,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 
@@ -47,7 +48,7 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
   };
 
   const pathname = usePathname();
-  const { unreadCount, orders, profile, cart, quotes } = useStore();
+  const { unreadCount, orders, profile, cart, quotes, theme, toggleTheme } = useStore();
 
   const [openSales, setOpenSales] = useState(true);
   const [openFinance, setOpenFinance] = useState(true);
@@ -556,7 +557,22 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
               <div className="text-[10px] text-slate-400 font-mono">Bayi • {profile.dealerCode}</div>
             </div>
           </div>
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="Aktif" />
+          
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-amber-400 border border-slate-700/60 transition"
+              title={theme === 'dark' ? 'Açık Temaya Geç' : 'Karanlık Temaya Geç'}
+              aria-label="Temayı Değiştir"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400 animate-in spin-in-180 duration-300" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-slate-400 animate-in spin-in-180 duration-300" />
+              )}
+            </button>
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" title="Sistem Aktif" />
+          </div>
         </div>
       </aside>
     </>
