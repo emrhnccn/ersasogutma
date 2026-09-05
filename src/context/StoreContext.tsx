@@ -227,6 +227,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         } else {
           document.documentElement.classList.remove('dark');
         }
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTheme('dark');
+        document.documentElement.classList.add('dark');
       }
     } catch {
       // ignore

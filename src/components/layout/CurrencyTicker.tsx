@@ -13,7 +13,7 @@ export function CurrencyTicker() {
   };
 
   return (
-    <div className="bg-white text-slate-600 text-xs border-b border-slate-200 py-1.5 px-4 sticky top-0 z-40 shadow-2xs">
+    <div className="bg-white dark:bg-[#0D1424] text-slate-600 dark:text-slate-300 text-xs border-b border-slate-200 dark:border-slate-800 py-1.5 px-4 sticky top-0 z-40 shadow-2xs transition-colors">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         
         {/* Left: Live Currency Ticker */}
@@ -24,30 +24,30 @@ export function CurrencyTicker() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="font-bold text-slate-800">TCMB Canlı Kur</span>
-              <span className="text-[10px] bg-blue-50 text-blue-700 px-1 py-0.2 rounded border border-blue-200 font-mono font-medium">30sn</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">TCMB Canlı Kur</span>
+              <span className="text-[10px] bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1 py-0.2 rounded border border-blue-200 dark:border-blue-800/50 font-mono font-medium">30sn</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200 hover:border-emerald-500 transition">
-            <span className="text-slate-500 font-medium">USD:</span>
-            <span className="font-mono font-bold text-emerald-600">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">USD:</span>
+            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
               {exchangeRates.USD_TRY ? exchangeRates.USD_TRY.toFixed(4) : '...'} TL
             </span>
-            <TrendingUp className="w-3 h-3 text-emerald-600" />
+            <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200 hover:border-blue-500 transition">
-            <span className="text-slate-500 font-medium">EUR:</span>
-            <span className="font-mono font-bold text-blue-600">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-blue-500 transition">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">EUR:</span>
+            <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
               {exchangeRates.EUR_TRY ? exchangeRates.EUR_TRY.toFixed(4) : '...'} TL
             </span>
-            <TrendingUp className="w-3 h-3 text-blue-600" />
+            <TrendingUp className="w-3 h-3 text-blue-600 dark:text-blue-400" />
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200">
-            <span className="text-slate-500 font-medium">GBP:</span>
-            <span className="font-mono font-bold text-amber-600">
+          <div className="hidden lg:flex items-center gap-2 bg-slate-50 dark:bg-slate-900/80 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">GBP:</span>
+            <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
               {exchangeRates.GBP_TRY ? exchangeRates.GBP_TRY.toFixed(4) : '...'} TL
             </span>
           </div>
@@ -56,7 +56,7 @@ export function CurrencyTicker() {
             onClick={handleRefresh}
             disabled={isFetchingRates}
             title={exchangeRates.lastUpdated ? `Son güncelleme: ${exchangeRates.lastUpdated} (Yenile)` : 'Kurları Yenile'}
-            className="flex items-center gap-1 px-1.5 py-0.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
+            className="flex items-center gap-1 px-1.5 py-0.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition disabled:opacity-50"
           >
             <RefreshCw className={`w-3 h-3 ${isFetchingRates ? 'animate-spin text-blue-600' : ''}`} />
             {exchangeRates.lastUpdated && (
@@ -69,14 +69,14 @@ export function CurrencyTicker() {
         <div className="flex items-center gap-4 flex-wrap">
           {/* Active Display Currency */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 hidden sm:inline text-xs font-medium">Görüntüleme:</span>
-            <div className="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200 font-medium">
+            <span className="text-slate-500 dark:text-slate-400 hidden sm:inline text-xs font-medium">Görüntüleme:</span>
+            <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700 font-medium">
               {(['TRY', 'USD', 'EUR'] as Currency[]).map((c) => (
                 <button
                   key={c}
                   onClick={() => setCurrency(c)}
                   className={`px-2 py-0.5 rounded-md transition text-[11px] ${
-                    currency === c ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    currency === c ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {c}

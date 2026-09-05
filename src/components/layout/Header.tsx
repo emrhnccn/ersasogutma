@@ -83,14 +83,14 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white text-slate-800 sticky top-0 z-30 shadow-xs border-b border-slate-200">
+    <header className="bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-100 sticky top-0 z-30 shadow-xs border-b border-slate-200 dark:border-slate-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
         
         {/* Left: Mobile Toggle & Brand Logo */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none transition"
+            className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 focus:outline-none transition"
             aria-label="Menüyü Aç/Kapat"
           >
             <Menu className="w-5 h-5" />
@@ -102,14 +102,14 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-black tracking-tight text-slate-900 uppercase">
+                <span className="text-base font-black tracking-tight text-slate-900 dark:text-white uppercase">
                   ERSA <span className="text-blue-600">SOĞUTMA</span>
                 </span>
-                <span className="text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded-md">
+                <span className="text-[9px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.2 rounded-md">
                   BAYİ PORTALI
                 </span>
               </div>
-              <span className="text-[10px] text-slate-500 block -mt-0.5 font-medium font-mono">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium font-mono">
                 bayi.ersasogutma.com.tr
               </span>
             </div>
@@ -128,13 +128,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 setShowSearchResults(true);
               }}
               onFocus={() => setShowSearchResults(true)}
-              className="w-full bg-slate-50 text-slate-900 placeholder-slate-400 text-xs rounded-xl pl-9 pr-9 py-2 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
+              className="w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs rounded-xl pl-9 pr-9 py-2 border border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -204,7 +204,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowMessagesDropdown(false);
               }}
-              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 relative transition"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 relative transition"
               title="Sistem Bildirimleri"
             >
               <Bell className="w-4 h-4" />
@@ -216,36 +216,36 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </button>
 
             {showNotifDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
-                <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
+                <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/60">
                   <div className="flex items-center gap-1.5">
                     <Bell className="w-4 h-4 text-amber-500" />
-                    <span className="text-xs font-bold text-slate-800">Bildirimler ({unreadNotificationCount})</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Bildirimler ({unreadNotificationCount})</span>
                   </div>
                   {unreadNotificationCount > 0 && (
                     <button
                       onClick={markAllNotificationsRead}
-                      className="text-[10px] text-blue-600 hover:text-blue-700 font-bold"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 dark:text-blue-400 font-bold"
                     >
                       Tümünü Okundu Say
                     </button>
                   )}
                 </div>
 
-                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-64 overflow-y-auto">
                   {notifications.map((n) => (
                     <div
                       key={n.id}
                       onClick={() => markNotificationRead(n.id)}
-                      className={`p-3 text-xs space-y-1 transition cursor-pointer hover:bg-slate-50 ${
-                        !n.isRead ? 'bg-blue-50/50 border-l-2 border-blue-500' : ''
+                      className={`p-3 text-xs space-y-1 transition cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 ${
+                        !n.isRead ? 'bg-blue-50/50 dark:bg-blue-950/30 border-l-2 border-blue-500' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-800 text-[11px]">{n.title}</span>
-                        <span className="text-[9px] text-slate-400">{n.date}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-100 text-[11px]">{n.title}</span>
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500">{n.date}</span>
                       </div>
-                      <p className="text-[11px] text-slate-600">{n.message}</p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300">{n.message}</p>
                     </div>
                   ))}
                 </div>
@@ -260,7 +260,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 setShowMessagesDropdown(!showMessagesDropdown);
                 setShowNotifDropdown(false);
               }}
-              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 relative transition"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 relative transition"
               title="Mesajlar"
             >
               <Mail className="w-4 h-4" />
@@ -272,18 +272,18 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </button>
 
             {showMessagesDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
-                <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                  <span className="text-xs font-bold text-slate-800">Gelen Mesajlar</span>
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95">
+                <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/60">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Gelen Mesajlar</span>
                   <Link
                     href="/bayi/iletisim/mesajlar"
                     onClick={() => setShowMessagesDropdown(false)}
-                    className="text-[11px] text-blue-600 hover:text-blue-700 font-bold"
+                    className="text-[11px] text-blue-600 hover:text-blue-700 dark:text-blue-400 font-bold"
                   >
                     Tümünü Gör
                   </Link>
                 </div>
-                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-64 overflow-y-auto">
                   {messages.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-400">Gelen kutunuz boş.</div>
                   ) : (
@@ -292,13 +292,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                         key={m.id}
                         href="/bayi/iletisim/mesajlar"
                         onClick={() => setShowMessagesDropdown(false)}
-                        className="p-3 block hover:bg-slate-50 transition"
+                        className="p-3 block hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
                       >
-                        <div className="flex justify-between items-start text-xs font-medium text-slate-800 mb-0.5">
+                        <div className="flex justify-between items-start text-xs font-medium text-slate-800 dark:text-slate-200 mb-0.5">
                           <span className="line-clamp-1">{m.sender}</span>
-                          <span className="text-[10px] text-slate-400">{m.date.split(' ')[0]}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">{m.date.split(' ')[0]}</span>
                         </div>
-                        <div className="text-[11px] text-slate-600 line-clamp-1">{m.subject}</div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1">{m.subject}</div>
                       </Link>
                     ))
                   )}
@@ -317,7 +317,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-180 duration-300" />
             ) : (
-              <Moon className="w-4 h-4 text-slate-600 animate-in spin-in-180 duration-300" />
+              <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300 animate-in spin-in-180 duration-300" />
             )}
           </button>
 
@@ -345,16 +345,16 @@ export function Header({ onToggleSidebar }: HeaderProps) {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition"
+              className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-left transition"
             >
-              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-[11px]">
+              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[11px]">
                 ES
               </div>
               <div className="hidden xl:block">
-                <div className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight truncate max-w-[120px]">
                   {profile.companyName}
                 </div>
-                <div className="text-[9px] text-slate-500 font-medium leading-none">
+                <div className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-none">
                   Bayi Hesabı
                 </div>
               </div>
@@ -362,13 +362,13 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2.5 z-50 animate-in fade-in zoom-in-95">
-                <div className="p-2 border-b border-slate-100 mb-1.5">
-                  <div className="text-xs font-bold text-slate-800">{profile.companyName}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">{profile.dealerCode}</div>
-                  <div className="mt-2 flex items-center justify-between text-[11px] bg-slate-50 p-1.5 rounded-lg border border-slate-200">
-                    <span className="text-slate-500">Cari Bakiye:</span>
-                    <span className="font-mono font-bold text-emerald-600">
+              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2.5 z-50 animate-in fade-in zoom-in-95">
+                <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1.5">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{profile.companyName}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{profile.dealerCode}</div>
+                  <div className="mt-2 flex items-center justify-between text-[11px] bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400">Cari Bakiye:</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                       {formatCurrency(profile.currentBalance)} ({profile.balanceType})
                     </span>
                   </div>
@@ -378,31 +378,31 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                   <Link
                     href="/bayi/profil"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                   >
-                    <User className="w-4 h-4 text-blue-600" />
+                    <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span>Firma Bilgileri & Şifre</span>
                   </Link>
 
                   <Link
                     href="/admin"
                     onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-amber-700 hover:bg-amber-50 transition"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition"
                   >
-                    <ShieldAlert className="w-4 h-4 text-amber-600" />
+                    <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span>Yönetici Paneli (Admin)</span>
                   </Link>
 
-                  <div className="border-t border-slate-100 my-1"></div>
+                  <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
 
                   <button
                     onClick={async () => {
                       setShowUserMenu(false);
                       await logoutAction();
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-red-600 hover:bg-red-50 transition text-left"
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition text-left"
                   >
-                    <LogOut className="w-4 h-4 text-red-600" />
+                    <LogOut className="w-4 h-4 text-red-600 dark:text-red-400" />
                     <span>Güvenli Çıkış Yap</span>
                   </button>
                 </div>

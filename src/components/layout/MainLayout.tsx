@@ -9,7 +9,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-[#F8FAFC] text-[#111827] selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen flex bg-slate-50 text-slate-900 dark:bg-[#090D16] dark:text-slate-100 selection:bg-blue-600 selection:text-white transition-colors duration-200">
       {/* 1. Left Vertical Navigation (Full height) */}
       <Sidebar
         isOpen={sidebarOpen}
