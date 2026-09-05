@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const brand = searchParams.get('brand') || searchParams.get('brandId');
     const search = searchParams.get('search') || searchParams.get('q');
     const inStockOnly = searchParams.get('inStockOnly') === 'true' || searchParams.get('stok') === '1';
+    const missingPriceOnly = searchParams.get('missingPriceOnly') === 'true';
     const sort = searchParams.get('sort') || 'newest';
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
@@ -25,6 +26,14 @@ export async function GET(request: NextRequest) {
     // Status filter
     if (status !== 'ALL') {
       where.status = status;
+    }
+
+    // Missing Price Only filter
+    if (missingPriceOnly) {
+      where.OR = [
+        { salePrice: null },
+        { salePrice: { lte: 0 } }
+      ];
     }
 
     // In Stock filter
@@ -136,23 +145,45 @@ export async function GET(request: NextRequest) {
     ]);
 
     const mappedProducts = products.map((p) => {
-      const base = Number(p.salePrice || 0);
+      const isMissingPrice = p.salePrice === null || p.salePrice === undefined || Number(p.salePrice) <= 0;
+      const base = isMissingPrice ? 0 : Number(p.salePrice);
       const productDiscount = p.discountPercent ? Number(p.discountPercent) : 0;
       const categoryDiscount = p.category?.discountPercent ? Number(p.category.discountPercent) : 0;
 
-      // Discount hierarchy: Product discount > Category discount > Dealer discount
-      let effectiveDiscount = 0;
-      let discountSource = 'NONE';
+      if (isMissingPrice) {
+        return {
+          ...p,
+          salePrice: 0,
+          basePrice: 0,
+          discountPercent: 0,
+          productDiscount: 0,
+          categoryDiscount: 0,
+          dealerDiscount: 0,
+          discountSource: 'STANDARD',
+          discountAmount: 0,
+          hasPrice: false,
+          isPricePending: true,
+          priceLabel: 'Fiyat Bekleniyor'
+        };
+      }
 
-      if (productDiscount > 0) {
-        effectiveDiscount = productDiscount;
-        discountSource = 'PRODUCT';
+      // Discount hierarchy: Dealer Discount (Tier 2) > Category Discount (Tier 4) > Product Discount (Tier 5)
+      let effectiveDiscount = 0;
+      let discountSource = 'STANDARD';
+      let priceLabel = 'Standart Fiyat';
+
+      if (dealerDiscount > 0) {
+        effectiveDiscount = dealerDiscount;
+        discountSource = 'DEALER_SPECIAL';
+        priceLabel = `Bayi İskontosu (%${dealerDiscount})`;
       } else if (categoryDiscount > 0) {
         effectiveDiscount = categoryDiscount;
         discountSource = 'CATEGORY';
-      } else if (dealerDiscount > 0) {
-        effectiveDiscount = dealerDiscount;
-        discountSource = 'DEALER';
+        priceLabel = `Kategori İskontosu (%${categoryDiscount})`;
+      } else if (productDiscount > 0) {
+        effectiveDiscount = productDiscount;
+        discountSource = 'STANDARD';
+        priceLabel = `Ürün İndirimi (%${productDiscount})`;
       }
 
       const discountAmount = Number(((base * effectiveDiscount) / 100).toFixed(2));
@@ -167,7 +198,10 @@ export async function GET(request: NextRequest) {
         categoryDiscount,
         dealerDiscount,
         discountSource,
-        discountAmount
+        discountAmount,
+        hasPrice: true,
+        isPricePending: false,
+        priceLabel
       };
     });
 
@@ -182,7 +216,14 @@ export async function GET(request: NextRequest) {
       count: mappedProducts.length,
       totalCount,
       totalPages,
-      hasMore
+      hasMore,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+        hasMore
+      }
     });
   } catch (error) {
     console.error('GET /api/products error:', error);

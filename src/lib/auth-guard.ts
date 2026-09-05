@@ -81,6 +81,8 @@ export async function requireDealer(): Promise<{ user: AuthenticatedUser; compan
       });
       if (membership) {
         companyId = membership.companyId;
+      } else if (user.role === 'ADMIN') {
+        companyId = ''; // Admins operate globally across all companies
       } else {
         return NextResponse.json(
           { success: false, error: 'Bu kullanıcıya ait firma bulunamadı. Lütfen yöneticinize başvurun.' },
@@ -92,13 +94,13 @@ export async function requireDealer(): Promise<{ user: AuthenticatedUser; compan
     return {
       user: {
         id: user.id,
-        username: user.username || user.email || 'bayi',
+        username: user.username || user.email || (user.role === 'ADMIN' ? 'admin' : 'bayi'),
         email: user.email,
         name: user.name,
         role: user.role,
-        companyId,
+        companyId: companyId || null,
       },
-      companyId
+      companyId: companyId || ''
     };
   } catch (error) {
     console.error('requireDealer error:', error);
@@ -109,8 +111,52 @@ export async function requireDealer(): Promise<{ user: AuthenticatedUser; compan
   }
 }
 
+// In-memory debounce cache to prevent spamming identical audit logs within 5 seconds
+const recentAuditCache = new Map<string, number>();
+
 /**
- * Enterprise Audit Logger for sensitive actions
+ * Recursively masks sensitive fields (PII, credentials, cards) in JSON payloads
+ */
+export function maskSensitiveAuditData(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== 'object') return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(maskSensitiveAuditData);
+  }
+
+  const masked: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const lowerKey = key.toLowerCase();
+    if (
+      lowerKey.includes('password') ||
+      lowerKey.includes('sifre') ||
+      lowerKey.includes('token') ||
+      lowerKey.includes('secret') ||
+      lowerKey === 'cvv' ||
+      lowerKey === 'cvc'
+    ) {
+      masked[key] = '***REDACTED***';
+    } else if (lowerKey.includes('cardnumber') || lowerKey.includes('kartno')) {
+      const strVal = String(value || '');
+      masked[key] = strVal.length >= 4 ? `**** **** **** ${strVal.slice(-4)}` : '****';
+    } else if (lowerKey === 'phone' || lowerKey.includes('telefon') || lowerKey === 'phonegsm') {
+      const strVal = String(value || '');
+      masked[key] = strVal.length >= 4 ? `${strVal.slice(0, 3)}****${strVal.slice(-4)}` : '****';
+    } else if (lowerKey === 'taxno' || lowerKey === 'taxnumber' || lowerKey.includes('vergino')) {
+      const strVal = String(value || '');
+      masked[key] = strVal.length >= 4 ? `******${strVal.slice(-4)}` : '******';
+    } else if (typeof value === 'object') {
+      masked[key] = maskSensitiveAuditData(value);
+    } else {
+      masked[key] = value;
+    }
+  }
+  return masked;
+}
+
+/**
+ * Enterprise Audit Logger for sensitive actions with deduplication & PII masking
  */
 export async function logAuditAction(params: {
   actorId?: string | null;
@@ -121,14 +167,34 @@ export async function logAuditAction(params: {
   afterJson?: any;
 }) {
   try {
+    // 1. Deduplication check (skip identical event for same entity within 4 seconds)
+    const dedupKey = `${params.actorId || 'anon'}:${params.action}:${params.entityType}:${params.entityId}`;
+    const now = Date.now();
+    const lastLogged = recentAuditCache.get(dedupKey);
+    if (lastLogged && now - lastLogged < 4000) {
+      return; // Skip duplicate spam log
+    }
+    recentAuditCache.set(dedupKey, now);
+
+    // Keep cache size bounded
+    if (recentAuditCache.size > 200) {
+      for (const [k, timestamp] of recentAuditCache.entries()) {
+        if (now - timestamp > 30000) recentAuditCache.delete(k);
+      }
+    }
+
+    // 2. Sanitize and mask sensitive payloads
+    const sanitizedBefore = params.beforeJson ? maskSensitiveAuditData(params.beforeJson) : null;
+    const sanitizedAfter = params.afterJson ? maskSensitiveAuditData(params.afterJson) : null;
+
     await prisma.auditLog.create({
       data: {
         actorId: params.actorId || null,
         action: params.action,
         entityType: params.entityType,
         entityId: params.entityId,
-        beforeJson: params.beforeJson ? JSON.stringify(params.beforeJson) : null,
-        afterJson: params.afterJson ? JSON.stringify(params.afterJson) : null,
+        beforeJson: sanitizedBefore ? JSON.stringify(sanitizedBefore) : null,
+        afterJson: sanitizedAfter ? JSON.stringify(sanitizedAfter) : null,
       }
     });
   } catch (err) {

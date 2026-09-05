@@ -30,6 +30,7 @@ import {
   Building2,
   Check,
   AlertTriangle,
+  AlertCircle,
   Play,
   Square,
   ChevronRight,
@@ -116,6 +117,8 @@ export default function AdminControlPanel() {
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
   const [productBrandFilter, setProductBrandFilter] = useState('ALL');
+  const [adminMissingPriceFilter, setAdminMissingPriceFilter] = useState(false);
+  const [adminBrandsList, setAdminBrandsList] = useState<any[]>([]);
   const [productSort, setProductSort] = useState('newest');
 
   const adminProductObserverTarget = React.useRef<HTMLDivElement>(null);
@@ -318,6 +321,7 @@ export default function AdminControlPanel() {
       if (productBrandFilter !== 'ALL') params.set('brand', productBrandFilter);
       if (productSearch.trim()) params.set('q', productSearch.trim());
       if (productSort) params.set('sort', productSort);
+      if (adminMissingPriceFilter) params.set('missingPriceOnly', 'true');
 
       const res = await fetch(`/api/products?${params.toString()}`);
       const json = await res.json();
@@ -342,7 +346,20 @@ export default function AdminControlPanel() {
       setLoadingProducts(false);
       setLoadingMoreProducts(false);
     }
-  }, [productCategoryFilter, productBrandFilter, productSearch, productSort]);
+  }, [productCategoryFilter, productBrandFilter, productSearch, productSort, adminMissingPriceFilter]);
+
+  // Fetch Brands for Admin Filtering
+  const loadBrands = useCallback(async () => {
+    try {
+      const res = await fetch('/api/brands');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.data)) {
+        setAdminBrandsList(data.data);
+      }
+    } catch (err) {
+      console.error('Brands load error:', err);
+    }
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -498,8 +515,9 @@ export default function AdminControlPanel() {
     loadDealerApplications();
     loadDealers();
     loadAdminOrders();
+    loadBrands();
     checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, loadAdminOrders, checkScraperStatus]);
+  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, loadAdminOrders, loadBrands, checkScraperStatus]);
 
   // Polling during active scraping
   useEffect(() => {
@@ -565,7 +583,7 @@ export default function AdminControlPanel() {
     }
   };
 
-  // Handle Clean DB (P0 Security & Confirmation Guard)
+  // Handle Clean DB (P0 Security & Double Confirmation Guard)
   const handleCleanDatabase = async () => {
     const confirmation = window.prompt(
       'DİKKAT: Veritabanındaki tüm ürünler, kategoriler ve markalar kalıcı olarak SİLİNECEK.\n\nİşlemi onaylamak için lütfen "ERSA_RESET_CONFIRM_2026" yazın:'
@@ -576,12 +594,23 @@ export default function AdminControlPanel() {
       return;
     }
 
+    const secondConfirm = window.confirm(
+      'İKİNCİ ONAY: Bu işlem geri alınamaz ve tüm ilişkili verileri kalıcı olarak silecektir. Devam etmek istediğinize kesin olarak emin misiniz?'
+    );
+    if (!secondConfirm) {
+      showToast('İkinci onay verilmedi. İşlem iptal edildi.', 'info');
+      return;
+    }
+
     setIsCleaningDb(true);
     try {
       const res = await fetch('/api/admin/clean-db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmPhrase: 'ERSA_RESET_CONFIRM_2026' })
+        body: JSON.stringify({
+          confirmPhrase: 'ERSA_RESET_CONFIRM_2026',
+          acknowledgedRisk: true
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -937,16 +966,16 @@ export default function AdminControlPanel() {
       </div>
 
       {/* Navigation Tabs Bar */}
-      <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl gap-1 overflow-x-auto shadow-xs">
+      <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl gap-1 overflow-x-auto shadow-xs scrollbar-thin">
         {[
           { id: 'dashboard', label: 'Genel Bakış', icon: Layers },
           { id: 'scraper', label: 'Tedarikçi Botu & Ürün Çekme', icon: Bot, highlight: true },
-          { id: 'products', label: `Ürün Kataloğu (${dbProducts.length})`, icon: Package },
+          { id: 'products', label: `Ürün Kataloğu (${adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length})`, icon: Package },
           { id: 'categories', label: `Kategoriler (${dbCategories.length})`, icon: FolderTree },
-          { id: 'orders', label: `Siparişler (${orders.length})`, icon: ShoppingBag },
+          { id: 'orders', label: `Siparişler (${adminOrders.length})`, icon: ShoppingBag, highlight: adminOrders.some(o => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING') },
           { id: 'carts', label: `Canlı Sepetler (${adminCarts.length})`, icon: ShoppingCart, highlight: adminCarts.length > 0 },
           { id: 'dealers', label: 'Bayi Cari & İskonto', icon: UserCheck },
-          { id: 'bank_accounts', label: 'Banka Hesapları & Ayarlar', icon: Building2 },
+          { id: 'bank_accounts', label: `Banka Hesapları (${bankAccounts.length})`, icon: Building2, highlight: bankAccounts.length === 0 },
           { id: 'audit', label: `Güvenlik & Audit Log (${auditLogs.length})`, icon: ShieldCheck }
         ].map((tab) => {
           const Icon = tab.icon;
@@ -955,7 +984,7 @@ export default function AdminControlPanel() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-xs'
                   : tab.highlight
@@ -979,11 +1008,32 @@ export default function AdminControlPanel() {
       {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
+          {/* Operational Alert Banner: Bank Accounts */}
+          {bankAccounts.length === 0 && !loadingBanks && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300 text-xs shadow-lg">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                <div>
+                  <strong className="block text-white font-bold">Operasyonel Uyarı: Sistemde aktif banka hesabı tanımlı değil!</strong>
+                  <span>Bayileriniz havale/EFT seçeneğiyle sipariş veremez. Lütfen şirket IBAN bilgilerinizi ekleyiniz.</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('bank_accounts')}
+                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl transition shrink-0 text-xs shadow-xs"
+              >
+                Hesap Ekle
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
                 <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Veritabanındaki Ürün</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">{dbProducts.length} Adet</h3>
+                <h3 className="text-2xl font-black text-slate-900 mt-1">
+                  {adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length} Adet
+                </h3>
                 <span className="text-[10px] text-emerald-600 font-medium">Aktif B2B Kataloğu</span>
               </div>
               <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
@@ -1019,9 +1069,9 @@ export default function AdminControlPanel() {
               <div>
                 <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Bekleyen Sipariş</span>
                 <h3 className="text-2xl font-black text-amber-600 mt-1">
-                  {orders.filter((o) => o.status === 'bekliyor').length} Sipariş
+                  {adminOrders.filter((o) => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING').length} Sipariş
                 </h3>
-                <span className="text-[10px] text-slate-500">Toplam {orders.length} Sipariş</span>
+                <span className="text-[10px] text-slate-500">Toplam {adminOrders.length} Sipariş</span>
               </div>
               <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
                 <ShoppingBag className="w-6 h-6" />
@@ -1317,6 +1367,30 @@ export default function AdminControlPanel() {
               </select>
 
               <select
+                value={productBrandFilter}
+                onChange={(e) => setProductBrandFilter(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+              >
+                <option value="ALL">Tüm Markalar ({adminBrandsList.length})</option>
+                {adminBrandsList.map((b) => (
+                  <option key={b.id || b.name} value={b.name}>{b.name} ({b.productCount})</option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={() => setAdminMissingPriceFilter(!adminMissingPriceFilter)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition ${
+                  adminMissingPriceFilter
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span>Fiyatı Eksik Ürünler</span>
+              </button>
+
+              <select
                 value={productSort}
                 onChange={(e) => setProductSort(e.target.value)}
                 className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
@@ -1411,18 +1485,29 @@ export default function AdminControlPanel() {
                             {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
                           </td>
                           <td className="p-3.5">
-                            <input
-                              type="number"
-                              step="0.1"
-                              defaultValue={p.salePrice || 0}
-                              onBlur={(e) => {
-                                const val = parseFloat(e.target.value);
-                                if (!isNaN(val) && val !== Number(p.salePrice)) {
-                                  handleUpdateProductInline(p.id, { salePrice: val });
-                                }
-                              }}
-                              className="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-emerald-400 text-xs focus:outline-none focus:border-emerald-500"
-                            />
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                step="0.1"
+                                defaultValue={p.salePrice || 0}
+                                onBlur={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (!isNaN(val) && val !== Number(p.salePrice)) {
+                                    handleUpdateProductInline(p.id, { salePrice: val });
+                                  }
+                                }}
+                                className={`w-24 bg-slate-950 border rounded-lg px-2 py-1 font-mono font-bold text-xs focus:outline-none ${
+                                  !p.salePrice || Number(p.salePrice) <= 0
+                                    ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
+                                    : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                                }`}
+                              />
+                              {(!p.salePrice || Number(p.salePrice) <= 0) && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[9px] border border-amber-500/30 whitespace-nowrap">
+                                  Fiyat Yok
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-3.5">
                             <div className="flex items-center gap-1">
@@ -1638,8 +1723,8 @@ export default function AdminControlPanel() {
 
                       <div>
                         <div className="font-bold text-white flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-[10px] text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
-                            #{c.sortOrder ?? idx + 1}
+                          <span className="font-mono text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                            #{c.sortOrder && c.sortOrder > 0 ? c.sortOrder : idx + 1}
                           </span>
                           <span>{c.name}</span>
                           {c.discountPercent !== undefined && Number(c.discountPercent) > 0 && (

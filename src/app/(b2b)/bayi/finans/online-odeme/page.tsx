@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { formatCurrency } from '@/lib/utils';
@@ -26,8 +26,42 @@ export default function OnlinePaymentPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Form State
-  const [amount, setAmount] = useState<string>('15000');
+  const [amount, setAmount] = useState<string>('0');
   const [agreedTerms, setAgreedTerms] = useState<boolean>(true);
+  const [liveFinance, setLiveFinance] = useState<{
+    cariBakiye: number;
+    bakiyeYonu: 'BORC' | 'ALACAK';
+    balanceType: 'B' | 'A';
+    odenecekTutar: number;
+    krediLimiti: number;
+    kullanilabilirLimit: number;
+    gecikenBorc: number;
+    companyName: string;
+  } | null>(null);
+  const [loadingFinance, setLoadingFinance] = useState(true);
+
+  useEffect(() => {
+    async function loadFinance() {
+      try {
+        setLoadingFinance(true);
+        const res = await fetch('/api/b2b/finance/summary');
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setLiveFinance(json.data);
+          if (json.data.odenecekTutar > 0) {
+            setAmount(json.data.odenecekTutar.toString());
+          } else {
+            setAmount('1000');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load live finance summary:', err);
+      } finally {
+        setLoadingFinance(false);
+      }
+    }
+    loadFinance();
+  }, []);
 
   // Card Form State
   const [cardNumber, setCardNumber] = useState('');
@@ -196,9 +230,27 @@ export default function OnlinePaymentPage() {
                 />
                 <span className="absolute right-4 top-3.5 text-sm font-black text-slate-400">TL</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Güncel Cari Borç / Alacak durumunuz: <strong className="text-slate-300">{formatCurrency(profile.currentBalance)} ({profile.balanceType})</strong>
-              </p>
+              <div className="text-[11px] text-slate-400 mt-2 flex flex-wrap items-center gap-2">
+                <span>Güncel Cari Durumunuz:</span>
+                {liveFinance ? (
+                  <>
+                    <strong className={liveFinance.bakiyeYonu === 'BORC' ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                      {formatCurrency(liveFinance.cariBakiye)} ({liveFinance.bakiyeYonu === 'BORC' ? 'Borçlu - B' : 'Alacaklı - A'})
+                    </strong>
+                    {liveFinance.odenecekTutar > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAmount(liveFinance.odenecekTutar.toString())}
+                        className="text-[10px] bg-sky-600/20 hover:bg-sky-600/40 text-sky-300 border border-sky-500/30 px-2.5 py-1 rounded-lg transition font-semibold"
+                      >
+                        Net Borcu Kapat ({formatCurrency(liveFinance.odenecekTutar)})
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <strong className="text-slate-300">{formatCurrency(profile.currentBalance)} ({profile.balanceType})</strong>
+                )}
+              </div>
             </div>
 
             {/* Terms Agreement Box (Exact requirement on Girdap) */}

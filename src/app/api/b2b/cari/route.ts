@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
+import { getCompanyFinanceSummary } from '@/lib/financeService';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,52 +10,63 @@ export async function GET(request: NextRequest) {
   const guard = await requireDealer();
   if (guard instanceof NextResponse) return guard;
 
-  const { companyId } = guard;
+  const { user } = guard;
+  let companyId = guard.companyId;
+
+  const { searchParams } = new URL(request.url);
+  const requestedCompanyId = searchParams.get('companyId');
+
+  // Allow admins to inspect any company's cari statement
+  if (user.role === 'ADMIN' && requestedCompanyId) {
+    companyId = requestedCompanyId;
+  } else if (user.role === 'ADMIN' && !companyId) {
+    // If admin didn't specify companyId, pick first active dealer company
+    const firstCompany = await prisma.company.findFirst({
+      where: { status: 'ACTIVE' },
+      select: { id: true }
+    });
+    companyId = firstCompany?.id || '';
+  }
+
+  if (!companyId) {
+    return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
+  }
 
   try {
-    const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
     const docType = searchParams.get('docType'); // all, invoice, payment, correction
 
-    const company = await prisma.company.findUnique({
-      where: { id: companyId },
-      include: {
-        customerGroup: true,
-        currentAccount: {
-          include: {
-            transactions: {
-              orderBy: { createdAt: 'desc' },
-              include: {
-                order: {
-                  select: { orderNo: true }
+    const [summary, company] = await Promise.all([
+      getCompanyFinanceSummary(companyId),
+      prisma.company.findUnique({
+        where: { id: companyId },
+        include: {
+          customerGroup: true,
+          currentAccount: {
+            include: {
+              transactions: {
+                orderBy: { createdAt: 'desc' },
+                include: {
+                  order: {
+                    select: { orderNo: true }
+                  }
                 }
               }
             }
           }
         }
-      }
-    });
+      })
+    ]);
 
-    if (!company) {
+    if (!company || !summary) {
       return NextResponse.json({ success: false, error: 'Firma cari bilgisi bulunamadı.' }, { status: 404 });
     }
 
-    const creditLimit = Number(company.currentAccount?.creditLimit || 250000);
     const allTransactions = company.currentAccount?.transactions || [];
-
-    // Latest balance
-    const latestTx = allTransactions[0];
-    const currentBalance = latestTx ? Number(latestTx.balanceAfter) : 0;
-    const availableCredit = Math.max(0, creditLimit - (currentBalance > 0 ? currentBalance : 0));
-
-    let totalDebit = 0;
-    let totalCredit = 0;
 
     const mappedTransactions = allTransactions.map((t) => {
       const amt = Number(t.amount);
       const isDebit = t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT';
-      if (isDebit) totalDebit += amt;
-      else totalCredit += amt;
 
       let docTypeLabel = 'Diğer İşlem';
       if (t.type === 'ORDER_DEBIT') docTypeLabel = 'Satış Faturası';
@@ -101,17 +113,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        companyName: company.legalName,
-        taxNo: company.taxNo || '—',
-        taxOffice: company.taxOffice || '—',
-        tier: company.customerGroup?.name || 'Gold',
-        creditLimit,
-        currentBalance,
-        availableCredit,
-        totalDebit,
-        totalCredit,
-        balance: Math.abs(currentBalance),
-        balanceType: currentBalance >= 0 ? 'B' : 'A', // B = Borçlu, A = Alacaklı
+        companyId: summary.companyId,
+        companyName: summary.companyName,
+        taxNo: summary.taxNo,
+        taxOffice: summary.taxOffice,
+        tier: summary.tierName,
+        // Atomic finance fields as requested
+        cariBakiye: summary.cariBakiye,
+        bakiyeYonu: summary.bakiyeYonu,
+        krediLimiti: summary.creditLimit,
+        kullanilabilirLimit: summary.kullanilabilirLimit,
+        gecikenBorc: summary.gecikenBorc,
+        odenecekTutar: summary.odenecekTutar,
+        // Backwards compatibility mappings for older components
+        creditLimit: summary.creditLimit,
+        currentBalance: summary.rawBalance,
+        availableCredit: summary.kullanilabilirLimit,
+        totalDebit: summary.totalDebit,
+        totalCredit: summary.totalCredit,
+        balance: summary.cariBakiye,
+        balanceType: summary.balanceType,
         transactions: filtered
       }
     });

@@ -16,6 +16,9 @@ import {
   Truck,
   CreditCard,
   Building2,
+  Landmark,
+  Copy,
+  Check,
   Loader2,
   Lock,
   Receipt
@@ -38,13 +41,18 @@ export default function CartPage() {
     showToast
   } = useStore();
 
-  // Payment Method State: 'CARI' | 'SANAL_POS'
-  const [paymentMethod, setPaymentMethod] = useState<'CARI' | 'SANAL_POS'>('CARI');
+  // Payment Method State: 'CARI' | 'SANAL_POS' | 'HAVALE_EFT'
+  const [paymentMethod, setPaymentMethod] = useState<'CARI' | 'SANAL_POS' | 'HAVALE_EFT'>('CARI');
 
   // Live Cari Limit & Balance from DB
   const [liveCreditLimit, setLiveCreditLimit] = useState(150000);
   const [liveCurrentBalance, setLiveCurrentBalance] = useState(0);
   const [loadingCari, setLoadingCari] = useState(true);
+
+  // Bank Accounts State (EFT / Havale)
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [selectedBankId, setSelectedBankId] = useState<string>('');
+  const [copiedIban, setCopiedIban] = useState<string | null>(null);
 
   // Sanal POS Card Form State
   const [cardHolder, setCardHolder] = useState('');
@@ -57,16 +65,16 @@ export default function CartPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successOrder, setSuccessOrder] = useState<any | null>(null);
 
-  // Fetch live cari limit on mount
+  // Fetch live cari limit & active bank accounts on mount
   useEffect(() => {
     async function fetchLiveCari() {
       try {
         setLoadingCari(true);
         const res = await fetch('/api/b2b/cari');
-        const data = await res.json();
-        if (data?.success) {
-          setLiveCreditLimit(data.creditLimit || 150000);
-          setLiveCurrentBalance(data.currentBalance || 0);
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setLiveCreditLimit(Number(json.data.krediLimiti ?? json.data.creditLimit ?? 150000));
+          setLiveCurrentBalance(Number(json.data.cariBakiye ?? json.data.currentBalance ?? 0));
         }
       } catch (err) {
         console.error('Failed to fetch live cari balance:', err);
@@ -74,11 +82,30 @@ export default function CartPage() {
         setLoadingCari(false);
       }
     }
+
+    async function fetchBankAccounts() {
+      try {
+        const res = await fetch('/api/bank-accounts?currency=TRY');
+        const json = await res.json();
+        if (json?.success && Array.isArray(json.data)) {
+          setBankAccounts(json.data);
+          if (json.data.length > 0) {
+            setSelectedBankId(json.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch bank accounts:', err);
+      }
+    }
+
     fetchLiveCari();
+    fetchBankAccounts();
   }, []);
 
   const availableLimit = Math.max(0, liveCreditLimit - liveCurrentBalance);
   const grandTotal = cartTotals.grandTotalTRY;
+  const estimatedPostOrderDebt = liveCurrentBalance + grandTotal;
+  const remainingLimitAfterOrder = Math.max(0, liveCreditLimit - estimatedPostOrderDebt);
   const isCariLimitInsufficient = paymentMethod === 'CARI' && liveCreditLimit > 0 && grandTotal > availableLimit;
 
   // Handle Order Submit via POST /api/b2b/orders
@@ -102,15 +129,15 @@ export default function CartPage() {
     setIsSubmitting(true);
 
     try {
+      const idempotencyKey = `ORD-IDEM-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const payload = {
+        idempotencyKey,
         paymentMethod,
         orderNote,
         accountingNote,
         items: cart.map((i) => ({
           productId: i.product.id,
-          quantity: i.quantity,
-          unitPriceTRY: i.unitPriceTRY,
-          totalTRY: i.totalTRY
+          quantity: i.quantity
         })),
         paymentData: paymentMethod === 'SANAL_POS' ? {
           cardHolder,
@@ -122,7 +149,10 @@ export default function CartPage() {
 
       const res = await fetch('/api/b2b/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-idempotency-key': idempotencyKey
+        },
         body: JSON.stringify(payload)
       });
 
@@ -176,7 +206,11 @@ export default function CartPage() {
           <div className="flex justify-between border-b border-slate-800 pb-2">
             <span className="text-slate-400">Ödeme Yöntemi:</span>
             <span className="text-white font-bold">
-              {successOrder.paymentMethod === 'SANAL_POS' ? 'Kredi Kartı / Sanal POS (Peşin)' : 'Cari Hesap Virman (Açık Hesap)'}
+              {successOrder.paymentMethod === 'SANAL_POS'
+                ? 'Kredi Kartı / Sanal POS (Peşin)'
+                : successOrder.paymentMethod === 'HAVALE_EFT'
+                ? 'Banka Havalesi / EFT (Onay Bekleniyor)'
+                : 'Cari Hesap Virman (Açık Hesap)'}
             </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-2">
@@ -389,7 +423,7 @@ export default function CartPage() {
               <span className="text-[11px] text-slate-400">Lütfen ödeme şeklini belirleyiniz</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* OPTION A: CARI HESAP */}
               <div
                 onClick={() => setPaymentMethod('CARI')}
@@ -420,11 +454,19 @@ export default function CartPage() {
                     <span className="text-slate-200">{formatCurrency(liveCreditLimit)}</span>
                   </div>
                   <div className="flex justify-between text-slate-400">
-                    <span>Mevcut Borç:</span>
+                    <span>Mevcut Cari Borç:</span>
                     <span className="text-rose-400 font-bold">{formatCurrency(liveCurrentBalance)}</span>
                   </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Sipariş Tutarı:</span>
+                    <span className="text-amber-400 font-semibold">{formatCurrency(grandTotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-850">
+                    <span className="text-slate-300">Sipariş Sonrası Borç:</span>
+                    <span className="text-rose-300 font-bold">{formatCurrency(estimatedPostOrderDebt)}</span>
+                  </div>
                   <div className="flex justify-between pt-1 border-t border-slate-800">
-                    <span className="text-slate-300 font-semibold">Kullanılabilir Limit:</span>
+                    <span className="text-slate-300 font-semibold">Kullanılabilir Kalan Limit:</span>
                     <span className={`font-bold ${isCariLimitInsufficient ? 'text-rose-400' : 'text-emerald-400'}`}>
                       {formatCurrency(availableLimit)}
                     </span>
@@ -471,6 +513,54 @@ export default function CartPage() {
                   <p className="text-[10px] text-slate-400">
                     Tüm ticari ve şahsi kredi kartlarıyla anında güvenli ödeme.
                   </p>
+                </div>
+              </div>
+
+              {/* OPTION C: HAVALE / EFT */}
+              <div
+                onClick={() => {
+                  if (bankAccounts.length > 0) setPaymentMethod('HAVALE_EFT');
+                }}
+                className={`p-4 rounded-2xl border-2 transition flex flex-col justify-between space-y-3 ${
+                  bankAccounts.length === 0
+                    ? 'opacity-60 cursor-not-allowed border-slate-800 bg-slate-950'
+                    : paymentMethod === 'HAVALE_EFT'
+                    ? 'border-indigo-500 bg-indigo-950/30 shadow-lg shadow-indigo-950/50 cursor-pointer'
+                    : 'border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${paymentMethod === 'HAVALE_EFT' ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                      <Landmark className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-xs">Havale / EFT</h4>
+                      <span className="text-[10px] text-slate-400">Banka Hesabına Transfer</span>
+                    </div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'HAVALE_EFT' ? 'border-indigo-400 bg-indigo-400' : 'border-slate-600'}`}>
+                    {paymentMethod === 'HAVALE_EFT' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1 text-slate-300">
+                  {bankAccounts.length === 0 ? (
+                    <div className="text-amber-400 font-semibold flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Banka hesabı tanımlı değil (Yakında)</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-indigo-400 font-semibold flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>{bankAccounts.length} Aktif Şirket Hesabı</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        Sipariş sonrası dekont ile muhasebe onayı.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -537,6 +627,71 @@ export default function CartPage() {
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Havale / EFT Bank Accounts Details (Shown when HAVALE_EFT is active) */}
+            {paymentMethod === 'HAVALE_EFT' && (
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold">
+                    <Landmark className="w-4 h-4" />
+                    <span>Şirket Banka Hesaplarımız</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400">Açıklamaya Sipariş Numaranızı yazınız</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {bankAccounts.map((b) => (
+                    <div
+                      key={b.id}
+                      onClick={() => setSelectedBankId(b.id)}
+                      className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-2 cursor-pointer ${
+                        selectedBankId === b.id
+                          ? 'bg-indigo-950/40 border-indigo-500 text-white'
+                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white text-xs">{b.bankName}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400 uppercase font-mono">
+                            {b.currency || 'TRY'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          Hesap Sahibi: <span className="text-slate-200 font-medium">{b.accountHolder}</span>
+                        </div>
+                        <div className="font-mono text-xs text-sky-400 select-all font-semibold">
+                          {b.iban}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(b.iban);
+                          setCopiedIban(b.id);
+                          setTimeout(() => setCopiedIban(null), 2000);
+                        }}
+                        className="self-start sm:self-center px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold flex items-center gap-1.5 transition shrink-0"
+                      >
+                        {copiedIban === b.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400">Kopyalandı!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>IBAN Kopyala</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

@@ -29,6 +29,7 @@ model User {
   payments    Payment[]
   wishlist    Wishlist?
   auditLogs   AuditLog[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Company {
@@ -688,5 +689,20 @@ model StockPriceChangeLog {
 
   @@index([productSku])
   @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
 }
 

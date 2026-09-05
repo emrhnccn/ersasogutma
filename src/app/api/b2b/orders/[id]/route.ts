@@ -124,6 +124,25 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Sipariş bulunamadı.' }, { status: 404 });
     }
 
+    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+      PENDING_APPROVAL: ['APPROVED', 'CANCELLED'],
+      PENDING: ['APPROVED', 'CANCELLED'],
+      APPROVED: ['SHIPPED', 'CANCELLED'],
+      SHIPPED: ['DELIVERED', 'CANCELLED'],
+      DELIVERED: [], // Completed
+      CANCELLED: []  // Final
+    };
+
+    if (status && status !== existingOrder.status) {
+      const allowed = ALLOWED_TRANSITIONS[existingOrder.status] || [];
+      if (!allowed.includes(status)) {
+        return NextResponse.json({
+          success: false,
+          error: `Geçersiz durum geçişi: "${existingOrder.status}" durumundaki sipariş doğrudan "${status}" yapılamaz. İzin verilen geçişler: ${allowed.length > 0 ? allowed.join(', ') : 'Bu durum son durumdur, değiştirilemez.'}`
+        }, { status: 400 });
+      }
+    }
+
     const isCancelling = status === 'CANCELLED' && existingOrder.status !== 'CANCELLED';
 
     const updated = await prisma.$transaction(async (tx) => {

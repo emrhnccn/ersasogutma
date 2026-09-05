@@ -16,8 +16,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
-    // Dealers only see their own company's orders; Admins can see all or filter
-    const whereClause: any = user.role === 'ADMIN' ? {} : { companyId };
+    // Dealers only see their own company's orders; Admins can see all or filter by company
+    const companyIdParam = searchParams.get('companyId');
+    const whereClause: any = user.role === 'ADMIN' 
+      ? (companyIdParam && companyIdParam !== 'ALL' ? { companyId: companyIdParam } : {})
+      : { companyId };
+      
     if (status && status !== 'ALL') {
       whereClause.status = status;
     }
@@ -93,6 +97,10 @@ export async function POST(request: NextRequest) {
 
   const { user, companyId } = guard;
 
+  if (!companyId && user.role !== 'ADMIN') {
+    return NextResponse.json({ success: false, error: 'Sipariş vermek için onaylı bir firma kaydınız bulunmalıdır.' }, { status: 400 });
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const {
@@ -101,13 +109,36 @@ export async function POST(request: NextRequest) {
       accountingNote,
       addressId,
       items: incomingItems,
-      paymentData
+      paymentData,
+      idempotencyKey: bodyIdempotencyKey
     } = body;
+
+    const idempotencyKey = request.headers.get('x-idempotency-key') || bodyIdempotencyKey;
+
+    // Idempotency check: prevent exact duplicate submissions within 30 seconds
+    if (idempotencyKey) {
+      const existing = await prisma.order.findFirst({
+        where: {
+          userId: user.id,
+          createdAt: { gte: new Date(Date.now() - 30000) },
+          notes: { contains: idempotencyKey }
+        }
+      });
+      if (existing) {
+        return NextResponse.json({
+          success: true,
+          data: existing,
+          message: `#${existing.orderNo} nolu siparişiniz zaten işlendi (Idempotent koruma).`
+        }, { status: 200 });
+      }
+    }
 
     // Normalizing payment method
     const normalizedPaymentMethod = 
       paymentMethod === 'SANAL_POS' || paymentMethod === 'CREDIT_CARD' || paymentMethod === 'KREDI_KARTI'
         ? 'SANAL_POS'
+        : paymentMethod === 'HAVALE_EFT' || paymentMethod === 'HAVALE' || paymentMethod === 'EFT'
+        ? 'HAVALE_EFT'
         : 'CARI';
 
     // 1. Fetch user cart from DB or sync from incomingItems
@@ -168,8 +199,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Sepetinizde ürün bulunmuyor.' }, { status: 400 });
     }
 
-    // 2. Stock check
+    // 2. Strict Price & Stock Validation
     for (const item of cart.items) {
+      const basePrice = Number(item.product.salePrice || 0);
+      if (!item.product.salePrice || basePrice <= 0) {
+        return NextResponse.json({
+          success: false,
+          error: `"${item.product.name}" isimli ürünün geçerli bir satış fiyatı bulunmamaktadır (0,00 TL). Fiyatsız veya fiyatı beklenen ürünler siparişe eklenemez.`
+        }, { status: 400 });
+      }
+
       const stock = Number(item.product.stockQty || 0);
       const qty = Number(item.quantity);
       if (stock < qty) {
@@ -214,6 +253,13 @@ export async function POST(request: NextRequest) {
         companyId
       });
 
+      if (priceInfo.finalPriceTRY <= 0) {
+        return NextResponse.json({
+          success: false,
+          error: `"${item.product.name}" için hesaplanan net birim fiyat 0,00 TL olamaz.`
+        }, { status: 400 });
+      }
+
       const lineNetTotal = priceInfo.finalPriceTRY * qty;
       const vatAmt = Number((lineNetTotal * vatRate / 100).toFixed(2));
       const lineGross = Number((lineNetTotal + vatAmt).toFixed(2));
@@ -233,7 +279,7 @@ export async function POST(request: NextRequest) {
         vatRate,
         vatAmount: vatAmt,
         lineGross,
-        appliedRules: priceInfo.ruleAppliedName || (priceInfo.appliedDiscountPercent > 0 ? `Özel İskonto %${priceInfo.appliedDiscountPercent}` : 'Liste Fiyatı')
+        appliedRules: priceInfo.priceSourceLabel || priceInfo.ruleAppliedName || 'Liste Fiyatı'
       });
     }
 
@@ -363,6 +409,22 @@ export async function POST(request: NextRequest) {
             currency: 'TRY',
             status: 'SUCCESS',
             rawPayload: paymentData ? JSON.stringify({ cardHolder: paymentData.cardHolder, last4: paymentData.cardNumber?.slice(-4) }) : null
+          }
+        });
+      } else if (normalizedPaymentMethod === 'HAVALE_EFT') {
+        // Create Payment record (Havale / EFT Havuz Kaydı - Onay bekliyor)
+        await tx.payment.create({
+          data: {
+            provider: 'HAVALE_EFT',
+            providerRef: `EFT-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+            userId: user.id,
+            companyId,
+            orderId: order.id,
+            purpose: 'ORDER_PAYMENT',
+            amount: grandTotal,
+            currency: 'TRY',
+            status: 'PENDING',
+            rawPayload: JSON.stringify({ bankAccount: body.bankAccountId || 'GENEL' })
           }
         });
       }

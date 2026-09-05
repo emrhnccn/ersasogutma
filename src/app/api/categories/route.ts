@@ -16,7 +16,7 @@ function slugify(text: string): string {
 // GET /api/categories — Fetch all categories with product count, ordered by sortOrder
 export async function GET() {
   try {
-    const categories = await prisma.category.findMany({
+    let categories = await prisma.category.findMany({
       include: {
         _count: { select: { products: true } },
         children: {
@@ -29,6 +29,22 @@ export async function GET() {
         { name: 'asc' }
       ]
     });
+
+    // Deterministic sequence initialization if categories have sortOrder === 0
+    const zeroSort = categories.filter(c => !c.parentId && c.sortOrder === 0);
+    if (zeroSort.length > 0) {
+      const topCategories = categories.filter(c => !c.parentId);
+      const updates = topCategories.map((c, idx) =>
+        prisma.category.update({
+          where: { id: c.id },
+          data: { sortOrder: idx + 1 }
+        })
+      );
+      await prisma.$transaction(updates);
+      topCategories.forEach((c, idx) => {
+        c.sortOrder = idx + 1;
+      });
+    }
 
     return NextResponse.json({ success: true, data: categories });
   } catch (error: unknown) {

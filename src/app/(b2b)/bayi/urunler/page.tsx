@@ -60,8 +60,9 @@ function ProductsContent() {
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  // Dynamic Categories from PostgreSQL API
+  // Dynamic Categories and Brands from PostgreSQL API
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [brandsList, setBrandsList] = useState<any[]>([]);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,6 +71,15 @@ function ProductsContent() {
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setCategoriesList(res.data);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/brands')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setBrandsList(res.data);
         }
       })
       .catch(() => {});
@@ -390,15 +400,12 @@ function ProductsContent() {
               onChange={(e) => setSelectedBrand(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600"
             >
-              <option value="all">Tüm Markalar ({BRANDS.length})</option>
-              {BRANDS.map((b) => {
-                const brandName = typeof b === 'string' ? b : b.name;
-                return (
-                  <option key={brandName} value={brandName}>
-                    {brandName}
-                  </option>
-                );
-              })}
+              <option value="all">Tüm Markalar ({brandsList.length})</option>
+              {brandsList.map((b) => (
+                <option key={b.id || b.name} value={b.name}>
+                  {b.name} ({b.productCount})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -548,7 +555,9 @@ function ProductsContent() {
 
                       {/* List Price */}
                       <td className="py-3 px-4 text-right font-mono text-slate-400">
-                        {basePrice > effectivePrice ? (
+                        {basePrice <= 0 ? (
+                          <span className="text-amber-500 font-semibold text-[11px]">Sorunuz</span>
+                        ) : basePrice > effectivePrice ? (
                           <span className="line-through">{formatCurrency(basePrice)}</span>
                         ) : (
                           formatCurrency(basePrice)
@@ -557,55 +566,71 @@ function ProductsContent() {
 
                       {/* Dealer Special Net Price */}
                       <td className="py-3 px-4 text-right">
-                        <div className="font-mono font-black text-slate-900 text-sm flex items-center justify-end gap-1.5">
-                          <span>{formatCurrency(effectivePrice)}</span>
-                          {discountPct > 0 && (
-                            <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
-                              -%{discountPct}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] font-mono text-slate-400">
-                          + KDV
-                        </div>
+                        {effectivePrice <= 0 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold">
+                            Fiyat Bekleniyor
+                          </span>
+                        ) : (
+                          <>
+                            <div className="font-mono font-black text-slate-900 text-sm flex items-center justify-end gap-1.5">
+                              <span>{formatCurrency(effectivePrice)}</span>
+                              {discountPct > 0 && (
+                                <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                                  -%{discountPct}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] font-mono text-slate-400">
+                              + KDV
+                            </div>
+                          </>
+                        )}
                       </td>
 
                       {/* Stepper + Add To Cart Button */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                        {effectivePrice <= 0 ? (
+                          <div className="flex justify-center">
+                            <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 whitespace-nowrap">
+                              İletişime Geçin
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
+                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min={product.pim || 1}
+                                step={product.pim || 1}
+                                value={qty}
+                                onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
+                                className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
+                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                              >
+                                +
+                              </button>
+                            </div>
+
                             <button
-                              type="button"
-                              onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
-                              className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                              onClick={() => addToCart(product, qty)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-xs flex items-center justify-center"
+                              title="Sepete Ekle"
                             >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={product.pim || 1}
-                              step={product.pim || 1}
-                              value={qty}
-                              onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
-                              className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
-                              className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
-                            >
-                              +
+                              <ShoppingCart className="w-3.5 h-3.5" />
                             </button>
                           </div>
-
-                          <button
-                            onClick={() => addToCart(product, qty)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-xs flex items-center justify-center"
-                            title="Sepete Ekle"
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        )}
                       </td>
                     </tr>
                   );
@@ -678,61 +703,102 @@ function ProductsContent() {
                 <div className="pt-3 border-t border-slate-100 space-y-3">
                   <div className="flex items-baseline justify-between">
                     <div>
-                      <div className="text-base font-black font-mono text-slate-900 flex items-center gap-1.5">
-                        <span>{formatCurrency(effectivePrice)}</span>
-                        {discountPct > 0 && (
-                          <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
-                            -%{discountPct}
-                          </span>
-                        )}
-                      </div>
-                      {basePrice > effectivePrice && (
-                        <div className="text-[10px] text-slate-400 line-through">
-                          {formatCurrency(basePrice)}
+                      {effectivePrice <= 0 ? (
+                        <div className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                          Fiyat Bekleniyor
                         </div>
+                      ) : (
+                        <>
+                          <div className="text-base font-black font-mono text-slate-900 flex items-center gap-1.5">
+                            <span>{formatCurrency(effectivePrice)}</span>
+                            {discountPct > 0 && (
+                              <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                                -%{discountPct}
+                              </span>
+                            )}
+                          </div>
+                          {basePrice > effectivePrice && (
+                            <div className="text-[10px] text-slate-400 line-through">
+                              {formatCurrency(basePrice)}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
-                    <div className="text-[10px] text-slate-400 font-mono">+ KDV</div>
+                    {effectivePrice > 0 && <div className="text-[10px] text-slate-400 font-mono">+ KDV</div>}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                  {effectivePrice <= 0 ? (
+                    <button
+                      disabled
+                      className="w-full bg-slate-100 text-slate-400 py-2 px-3 rounded-lg text-xs font-semibold cursor-not-allowed border border-slate-200"
+                    >
+                      Fiyat İçin İletişime Geçin
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
+                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min={product.pim || 1}
+                          step={product.pim || 1}
+                          value={qty}
+                          onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
+                          className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
+                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+
                       <button
-                        type="button"
-                        onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
-                        className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                        onClick={() => addToCart(product, qty)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5"
                       >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        min={product.pim || 1}
-                        step={product.pim || 1}
-                        value={qty}
-                        onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
-                        className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
-                        className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
-                      >
-                        +
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        <span>Sepete Ekle</span>
                       </button>
                     </div>
-
-                    <button
-                      onClick={() => addToCart(product, qty)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Sepete Ekle</span>
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Explicit Pagination Bar & Item Counter */}
+      {displayProducts.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-600 dark:text-slate-300 shadow-xs">
+          <div>
+            Gösterilen: <strong className="text-slate-900 dark:text-white">1 – {displayProducts.length}</strong> / <strong className="text-blue-600 dark:text-sky-400">{totalCount.toLocaleString('tr-TR')}</strong> Ürün
+          </div>
+
+          <div className="flex items-center gap-2">
+            {hasMore ? (
+              <button
+                onClick={() => fetchProducts(page + 1, false)}
+                disabled={loadingMore}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-50"
+              >
+                {loadingMore ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                <span>Daha Fazla Yükle ({Math.min(100, Math.max(0, totalCount - displayProducts.length))} Ürün)</span>
+              </button>
+            ) : (
+              <span className="text-slate-400 font-semibold">Tüm {totalCount.toLocaleString('tr-TR')} ürün listelendi</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -742,11 +808,6 @@ function ProductsContent() {
           <div className="inline-flex items-center gap-2 bg-slate-900 border border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Daha fazla ürün yükleniyor...</span>
-          </div>
-        )}
-        {!hasMore && displayProducts.length > 0 && (
-          <div className="text-xs text-slate-500">
-            Tüm ürünler listelendi ({displayProducts.length} / {totalCount})
           </div>
         )}
       </div>

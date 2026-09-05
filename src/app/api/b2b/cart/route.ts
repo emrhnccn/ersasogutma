@@ -133,6 +133,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Ürün bulunamadı.' }, { status: 404 });
     }
 
+    // Reject products with no valid sale price
+    if (!product.salePrice || Number(product.salePrice) <= 0) {
+      return NextResponse.json({
+        success: false,
+        error: `"${product.name}" isimli ürünün geçerli bir satış fiyatı tanımlanmamıştır (0,00 TL). Fiyatsız veya fiyatı beklenen ürünler sepete eklenemez.`
+      }, { status: 400 });
+    }
+
     let cart = await prisma.cart.findFirst({
       where: { userId: user.id }
     });

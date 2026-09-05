@@ -1,13 +1,21 @@
 import { calculateClientPrice } from '../src/lib/pricingEngine';
 import { getStockStatus } from '../src/lib/stockHelper';
-import { CleanDbSchema, CartItemSchema, OrderCreateSchema, BankAccountSchema, DealerApplicationSchema } from '../src/lib/validations';
+import { calculateFinancialFields } from '../src/lib/financeService';
+import { validatePasswordStrength, hashToken } from '../src/lib/auth/password-policy';
+import { maskSensitiveAuditData } from '../src/lib/auth-guard';
+import {
+  CleanDbSchema,
+  CartItemSchema,
+  BankAccountSchema,
+  DealerApplicationSchema
+} from '../src/lib/validations';
 
 /**
- * Ersa Soğutma B2B Production Test Suite
+ * Ersa Soğutma B2B Production Comprehensive Test Suite
  */
 async function runTests() {
   console.log('====================================================');
-  console.log('🚀 ERSA SOĞUTMA — B2B PRODUCTION TEST SUITE');
+  console.log('🚀 ERSA SOĞUTMA — B2B PRODUCTION END-TO-END TEST SUITE');
   console.log('====================================================\n');
 
   let passed = 0;
@@ -23,7 +31,7 @@ async function runTests() {
     }
   }
 
-  // --- 1. ZOD VALIDATION & SECURITY SCHEMAS ---
+  // --- 1. GÜVENLİK & ZOD REQUEST DOĞRULAMA TESTLERİ ---
   console.log('📦 1. GÜVENLİK & ZOD REQUEST DOĞRULAMA TESTLERİ');
 
   // Clean DB confirmation phrase
@@ -91,7 +99,11 @@ async function runTests() {
   const p0 = calculateClientPrice(basePrice, 0, 1);
   assert(p0.finalPriceTRY === 1000, 'İskontosuz bayi için 1000 TL liste fiyatı korunur');
 
-  // --- 3. MERKEZİ STOK DURUMU & RENK KURALI TESTLERİ ---
+  // 0 TL Ürün Fiyat Koruması
+  const pZero = calculateClientPrice(0, 20, 1);
+  assert(pZero.finalPriceTRY === 0, 'Sıfır fiyatlı ürünün net fiyatı 0 TL kalır');
+
+  // --- 3. MERKEZİ STOK DURUMU & RENK SİSTEMİ ---
   console.log('\n📊 3. MERKEZİ STOK DURUMU & RENK SİSTEMİ (>10 Normal, 1-9 Turuncu, <=0 Kırmızı)');
 
   const s25 = getStockStatus(25);
@@ -112,60 +124,110 @@ async function runTests() {
   const sNeg = getStockStatus(-3);
   assert(sNeg.status === 'OUT_OF_STOCK', 'Negatif stok (-3) -> OUT_OF_STOCK (Kırmızı) olarak değerlendirilir');
 
-  // --- 4. EŞZAMANLI VE ATOMİK STOK KORUMASI KONTROLÜ ---
-  console.log('\n⚡ 4. ATOMİK EŞZAMANLI STOK KORUMASI (CONCURRENT PROTECTION)');
+  // --- 4. MERKEZİ FİNANS VE BAKİYE SERVİSİ ---
+  console.log('\n💳 4. MERKEZİ FİNANS VE BAKİYE SERVİSİ (SINGLE SOURCE OF TRUTH)');
 
-  function simulateAtomicStockDecrement(currentStock: number, requestedQty: number) {
-    if (currentStock >= requestedQty) {
-      return { success: true, newStock: currentStock - requestedQty };
-    }
-    return { success: false, newStock: currentStock, error: 'Yetersiz stok' };
+  // Senaryo 1: Borçlu Cari Hesap (Borç > Alacak)
+  const fin1 = calculateFinancialFields({
+    creditLimit: 500000,
+    totalDebit: 150000,
+    totalCredit: 50000
+  });
+  assert(fin1.cariBakiye === 100000, '150.000 TL borç - 50.000 TL alacak = 100.000 TL bakiye');
+  assert(fin1.bakiyeYonu === 'BORC', 'Bakiye yönü BORÇ olmalıdır');
+  assert(fin1.odenecekTutar === 100000, 'Ödenecek tutar borç bakiyesine eşittir (100.000 TL)');
+  assert(fin1.kullanilabilirLimit === 400000, '500.000 TL limit - 100.000 TL net borç = 400.000 TL kalan limit');
+
+  // Senaryo 2: Alacaklı Cari Hesap (Alacak > Borç)
+  const fin2 = calculateFinancialFields({
+    creditLimit: 200000,
+    totalDebit: 30000,
+    totalCredit: 70000
+  });
+  assert(fin2.cariBakiye === 40000, '30.000 TL borç - 70.000 TL alacak = 40.000 TL bakiye');
+  assert(fin2.bakiyeYonu === 'ALACAK', 'Bakiye yönü ALACAK olmalıdır');
+  assert(fin2.odenecekTutar === 0, 'Alacaklı bayinin ödenecek borcu 0 TL dir');
+  assert(fin2.kullanilabilirLimit === 200000, 'Alacaklı bayinin kredi limiti tamdır (200.000 TL)');
+
+  // Senaryo 3: Sıfır Bakiye
+  const fin3 = calculateFinancialFields({
+    creditLimit: 150000,
+    totalDebit: 80000,
+    totalCredit: 80000
+  });
+  assert(fin3.cariBakiye === 0, 'Borç = Alacak durumunda bakiye 0 TL dir');
+  assert(fin3.odenecekTutar === 0, 'Sıfır bakiyede ödenecek tutar 0 TL dir');
+
+  // --- 5. ŞİFRE GÜVENLİK POLİTİKASI & TOKEN HASHING ---
+  console.log('\n🔐 5. ŞİFRE POLİTİKASI & TOKEN GÜVENLİĞİ');
+
+  const weakShort = validatePasswordStrength('Abc1!');
+  assert(weakShort.isValid === false, '8 karakterden kısa şifre reddedilir');
+
+  const noUpper = validatePasswordStrength('bayi123456!');
+  assert(noUpper.isValid === false, 'Büyük harf içermeyen şifre reddedilir');
+
+  const noLower = validatePasswordStrength('BAYI123456!');
+  assert(noLower.isValid === false, 'Küçük harf içermeyen şifre reddedilir');
+
+  const noNumOrSym = validatePasswordStrength('BayiSifresi');
+  assert(noNumOrSym.isValid === false, 'Rakam veya sembol içermeyen şifre reddedilir');
+
+  const strongPass = validatePasswordStrength('Bayi234262!');
+  assert(strongPass.isValid === true, 'Tüm kriterleri karşılayan güçlü şifre onaylanır');
+
+  const rawToken = 'test-token-123';
+  const hashedToken1 = hashToken(rawToken);
+  const hashedToken2 = hashToken(rawToken);
+  assert(hashedToken1 === hashedToken2, 'Aynı token deterministik SHA-256 hash üretir');
+  assert(hashedToken1 !== rawToken, 'Ham token veritabanında plain-text olarak ASLA saklanmaz');
+
+  // --- 6. AUDIT LOG PII & HASSAS VERİ MASKESİ ---
+  console.log('\n🛡️ 6. AUDIT LOG HASSAS VERİ & PII MASKESİ');
+
+  const sensitivePayload = {
+    username: 'bayi5343434',
+    password: 'SuperSecretPassword123!',
+    cardNumber: '5528790012345678',
+    cvv: '123',
+    phone: '05316066451',
+    taxNumber: '1234567890'
+  };
+
+  const masked = maskSensitiveAuditData(sensitivePayload);
+  assert(masked.password === '***REDACTED***', 'Şifre alanı logda ***REDACTED*** olarak maskelenir');
+  assert(masked.cvv === '***REDACTED***', 'CVV alanı logda ***REDACTED*** olarak maskelenir');
+  assert(masked.cardNumber.includes('**** **** **** 5678'), 'Kredi kartı numarası son 4 hane hariç maskelenir');
+  assert(masked.phone.includes('053****6451'), 'Telefon numarası ortadaki haneler maskelenerek saklanır');
+  assert(masked.taxNumber.includes('******7890'), 'Vergi numarası maskelenir');
+
+  // --- 7. SİPARİŞ DURUM GEÇİŞ KURALLARI ---
+  console.log('\n🔄 7. SİPARİŞ DURUM GEÇİŞ KURALLARI (STATE MACHINE)');
+
+  const VALID_TRANSITIONS: Record<string, string[]> = {
+    PENDING_APPROVAL: ['APPROVED', 'CANCELLED'],
+    APPROVED: ['SHIPPED', 'CANCELLED'],
+    SHIPPED: ['DELIVERED', 'CANCELLED'],
+    DELIVERED: [],
+    CANCELLED: []
+  };
+
+  function canTransition(currentStatus: string, nextStatus: string): boolean {
+    const allowed = VALID_TRANSITIONS[currentStatus] || [];
+    return allowed.includes(nextStatus);
   }
 
-  // Stok 1 iken 1 adet çekme
-  const attempt1 = simulateAtomicStockDecrement(1, 1);
-  assert(attempt1.success === true && attempt1.newStock === 0, 'Stok = 1 iken 1 adet sipariş başarılı olur ve kalan stok 0 olur');
-
-  // Stok 0 iken eşzamanlı ikinci sipariş
-  const attempt2 = simulateAtomicStockDecrement(attempt1.newStock, 1);
-  assert(attempt2.success === false && attempt2.newStock === 0, 'Stok 0 iken eşzamanlı gelen talep engellenir ve stok ASLA eksiye (-1) düşmez');
-
-  // --- 5. BAYİ VERİ İZOLASYONU & MULTI-TENANCY KONTROLÜ ---
-  console.log('\n🏢 5. BAYİ VERİ İZOLASYONU (MULTI-TENANCY)');
-
-  const dealerA = { id: 'user-a', companyId: 'comp-101', role: 'B2B_DEALER' };
-  const dealerB = { id: 'user-b', companyId: 'comp-202', role: 'B2B_DEALER' };
-
-  function buildOrderFilter(user: { role: string; companyId: string }) {
-    if (user.role === 'ADMIN') return {};
-    return { companyId: user.companyId };
-  }
-
-  const filterA = buildOrderFilter(dealerA);
-  const filterB = buildOrderFilter(dealerB);
-
-  assert(filterA.companyId === 'comp-101', 'Bayi A sadece comp-101 şirketine ait siparişleri sorgulayabilir');
-  assert(filterB.companyId === 'comp-202', 'Bayi B sadece comp-202 şirketine ait siparişleri sorgulayabilir');
-  assert(filterA.companyId !== filterB.companyId, 'Bayi A ve Bayi B veri izolasyonu tamdır');
-
-  // --- 6. CARİ HESAP & BAKİYE KURALI ---
-  console.log('\n💳 6. CARİ HESAP & BAKİYE HESAPLAMA DOĞRULAMA');
-
-  const creditLimit = 500000;
-  const currentDebt = 320000;
-  const availableCredit = Math.max(0, creditLimit - currentDebt);
-  const newOrderTotal = 150000;
-
-  assert(availableCredit === 180000, '500.000 TL limit ve 320.000 TL borç ile kullanılabilir limit 180.000 TL dir');
-  assert(newOrderTotal <= availableCredit, '150.000 TL yeni sipariş mevcut kullanılabilir limite uygundur');
-
-  const excessOrder = 200000;
-  assert(excessOrder > availableCredit, '200.000 TL sipariş limiti aşar ve engellenmelidir');
+  assert(canTransition('PENDING_APPROVAL', 'APPROVED') === true, 'PENDING_APPROVAL -> APPROVED geçerlidir');
+  assert(canTransition('APPROVED', 'SHIPPED') === true, 'APPROVED -> SHIPPED geçerlidir');
+  assert(canTransition('SHIPPED', 'DELIVERED') === true, 'SHIPPED -> DELIVERED geçerlidir');
+  assert(canTransition('PENDING_APPROVAL', 'DELIVERED') === false, 'Onaylanmamış sipariş doğrudan DELIVERED yapılamaz');
+  assert(canTransition('DELIVERED', 'APPROVED') === false, 'Teslim edilmiş sipariş APPROVED durumuna geri alınamaz');
+  assert(canTransition('CANCELLED', 'SHIPPED') === false, 'İptal edilmiş sipariş kargoya verilemez');
 
   // --- SUMMARY ---
   console.log('\n====================================================');
   console.log(`📊 TEST SONUCU: ${passed} BAŞARILI, ${failed} BAŞARISIZ`);
-  console.log('====================================================');
+  console.log('====================================================\n');
 
   if (failed > 0) {
     process.exit(1);

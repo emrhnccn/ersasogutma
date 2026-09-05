@@ -5,11 +5,19 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/bank-accounts - Publicly visible for dealers & public customers
-export async function GET() {
+// GET /api/bank-accounts - Publicly visible for dealers & public customers with optional currency filter
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const currency = searchParams.get('currency');
+
+    const where: Record<string, any> = { isActive: true };
+    if (currency && currency !== 'ALL') {
+      where.currency = currency.toUpperCase();
+    }
+
     const accounts = await prisma.bankAccount.findMany({
-      where: { isActive: true },
+      where,
       orderBy: { createdAt: 'desc' }
     });
 

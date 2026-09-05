@@ -31,8 +31,8 @@ export function getStockStatus(stock: number | null | undefined, unit: string = 
     };
   }
 
-  // 1 to 10 items (Stok <= 10)
-  if (count <= 10) {
+  // 1 to 9 items (Kritik Stok < 10)
+  if (count < 10) {
     return {
       status: 'WARNING',
       label: `Kritik: ${count} ${unit}`,

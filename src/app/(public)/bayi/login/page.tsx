@@ -77,7 +77,7 @@ export default function BayiLoginPage() {
               </div>
 
               <div className="text-sm">
-                <Link href="#" className="font-medium text-sky-600 hover:text-sky-500">
+                <Link href="/bayi/sifremi-unuttum" className="font-medium text-sky-600 hover:text-sky-500">
                   Şifremi Unuttum
                 </Link>
               </div>

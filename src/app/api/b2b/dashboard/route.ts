@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
+import { getCompanyFinanceSummary } from '@/lib/financeService';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,48 +10,57 @@ export async function GET(request: NextRequest) {
   const guard = await requireDealer();
   if (guard instanceof NextResponse) return guard;
 
-  const { user, companyId } = guard;
+  const { user } = guard;
+  let companyId = guard.companyId;
+
+  const { searchParams } = new URL(request.url);
+  const requestedCompanyId = searchParams.get('companyId');
+
+  if (user.role === 'ADMIN' && requestedCompanyId) {
+    companyId = requestedCompanyId;
+  } else if (user.role === 'ADMIN' && !companyId) {
+    const firstCompany = await prisma.company.findFirst({
+      where: { status: 'ACTIVE' },
+      select: { id: true }
+    });
+    companyId = firstCompany?.id || '';
+  }
+
+  if (!companyId) {
+    return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
+  }
 
   try {
-    const company = await prisma.company.findUnique({
-      where: { id: companyId },
-      include: {
-        currentAccount: {
-          include: {
-            transactions: {
-              orderBy: { createdAt: 'desc' }
+    const [summary, company] = await Promise.all([
+      getCompanyFinanceSummary(companyId),
+      prisma.company.findUnique({
+        where: { id: companyId },
+        include: {
+          orders: {
+            orderBy: { createdAt: 'desc' },
+            include: {
+              items: {
+                include: {
+                  product: {
+                    include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } }
+                  }
+                }
+              },
+              shipments: true
             }
           }
-        },
-        orders: {
-          orderBy: { createdAt: 'desc' },
-          include: {
-            items: {
-              include: {
-                product: {
-                  include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } }
-                }
-              }
-            },
-            shipments: true
-          }
         }
-      }
-    });
+      })
+    ]);
 
-    if (!company) {
+    if (!company || !summary) {
       return NextResponse.json({ success: false, error: 'Bayi firma bilgisi bulunamadı.' }, { status: 404 });
     }
 
-    // 1. Finance & Cari Metrics
-    const transactions = company.currentAccount?.transactions || [];
-    const latestTx = transactions[0];
-    const currentBalance = latestTx ? Number(latestTx.balanceAfter) : 0;
-    const creditLimit = Number(company.currentAccount?.creditLimit || 0);
-    const usedCredit = currentBalance > 0 ? currentBalance : 0;
-    const availableCredit = Math.max(0, creditLimit - usedCredit);
-    const creditUsagePercent = creditLimit > 0 ? Math.min(100, Math.round((usedCredit / creditLimit) * 100)) : 0;
-    const balanceType = currentBalance >= 0 ? 'B' : 'A'; // 'B': Borçlu, 'A': Alacaklı
+    // 1. Finance & Cari Metrics from authoritative finance service
+    const creditUsagePercent = summary.creditLimit > 0
+      ? Math.min(100, Math.round(((summary.rawBalance > 0 ? summary.rawBalance : 0) / summary.creditLimit) * 100))
+      : 0;
 
     // 2. Invoiced Sum (Delivered or Approved Orders)
     const invoicedOrders = company.orders.filter(
@@ -102,14 +112,22 @@ export async function GET(request: NextRequest) {
           customDiscountPercent: Number(company.customDiscountPercent || 0)
         },
         finance: {
-          currentBalance,
-          creditLimit,
-          availableCredit,
+          // Atomic fields
+          cariBakiye: summary.cariBakiye,
+          bakiyeYonu: summary.bakiyeYonu,
+          krediLimiti: summary.creditLimit,
+          kullanilabilirLimit: summary.kullanilabilirLimit,
+          gecikenBorc: summary.gecikenBorc,
+          odenecekTutar: summary.odenecekTutar,
+          // Legacy mappings
+          currentBalance: summary.rawBalance,
+          creditLimit: summary.creditLimit,
+          availableCredit: summary.kullanilabilirLimit,
           creditUsagePercent,
-          balanceType,
+          balanceType: summary.balanceType,
           totalInvoiced,
-          averageMaturityDays: null, // null means "Vade bilgisi bulunmuyor"
-          upcomingPaymentDate: null // null means "Yaklaşan ödeme bulunmuyor"
+          averageMaturityDays: null,
+          upcomingPaymentDate: null
         },
         orders: {
           totalCount: allOrders.length,

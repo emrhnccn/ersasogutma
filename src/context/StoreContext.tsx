@@ -310,6 +310,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
     loadDbCart();
+
+    // Fetch live company finance summary
+    async function loadDbFinance() {
+      try {
+        const res = await fetch('/api/b2b/finance/summary');
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          const s = json.data;
+          setProfile((prev) => ({
+            ...prev,
+            companyName: s.companyName || prev.companyName,
+            taxNumber: s.taxNo || prev.taxNumber,
+            taxOffice: s.taxOffice || prev.taxOffice,
+            tier: (s.tierName || prev.tier) as any,
+            creditLimit: s.creditLimit,
+            currentBalance: s.rawBalance,
+            balanceType: s.balanceType,
+          }));
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadDbFinance();
   }, []);
 
   useEffect(() => {
