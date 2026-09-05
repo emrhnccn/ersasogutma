@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx tests/b2b-suite.test.ts",
+    "test": "npx tsx tests/b2b-suite.test.ts && npx tsx tests/production-e2e.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

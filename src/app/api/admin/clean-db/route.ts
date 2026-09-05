@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 3. Strict Production Environment Guard
-  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DANGEROUS_DB_CLEAN !== 'true') {
+  // 3. Strict Production Hard Lock: completely disabled in production builds. Only permitted in local/test environments.
+  if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       {
         success: false,
-        error: 'Üretim (Production) ortamında veritabanını temizleme işlemi kesin olarak yasaklanmıştır. Veri kaybını önlemek için bu özellik kilitlenmiştir.'
+        error: 'Bu uç nokta üretim (production) ortamında kesin olarak kilitlenmiştir. Yalnızca yerel geliştirme veya test ortamında çalıştırılabilir.'
       },
       { status: 403 }
     );

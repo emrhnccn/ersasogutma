@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer, logAuditAction } from '@/lib/auth-guard';
+import { requireDealer, requireDealerOrAdmin, logAuditAction } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { calculateServerPrice } from '@/lib/pricingEngine';
 
@@ -7,19 +7,21 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/b2b/orders - Get dealer company's orders or admin all orders
 export async function GET(request: NextRequest) {
-  const guard = await requireDealer();
-  if (guard instanceof NextResponse) return guard;
-
-  const { user, companyId } = guard;
-
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-
-    // Dealers only see their own company's orders; Admins can see all or filter by company
     const companyIdParam = searchParams.get('companyId');
-    const whereClause: any = user.role === 'ADMIN' 
-      ? (companyIdParam && companyIdParam !== 'ALL' ? { companyId: companyIdParam } : {})
+
+    const guard = await requireDealerOrAdmin({
+      targetCompanyId: companyIdParam || undefined
+    });
+    if (guard instanceof NextResponse) return guard;
+
+    const { user, companyId, isAdmin } = guard;
+
+    // Dealers only see their own company's orders; Admins can see all or filter by verified company
+    const whereClause: any = isAdmin
+      ? (companyId && companyId !== 'ALL' ? { companyId } : {})
       : { companyId };
       
     if (status && status !== 'ALL') {
@@ -113,22 +115,19 @@ export async function POST(request: NextRequest) {
       idempotencyKey: bodyIdempotencyKey
     } = body;
 
-    const idempotencyKey = request.headers.get('x-idempotency-key') || bodyIdempotencyKey;
+    const idempotencyKey = request.headers.get('x-idempotency-key') || bodyIdempotencyKey || null;
 
-    // Idempotency check: prevent exact duplicate submissions within 30 seconds
+    // Persistent DB Idempotency Check: look up unique idempotencyKey in DB
     if (idempotencyKey) {
-      const existing = await prisma.order.findFirst({
-        where: {
-          userId: user.id,
-          createdAt: { gte: new Date(Date.now() - 30000) },
-          notes: { contains: idempotencyKey }
-        }
+      const existing = await prisma.order.findUnique({
+        where: { idempotencyKey },
+        include: { items: true }
       });
       if (existing) {
         return NextResponse.json({
           success: true,
           data: existing,
-          message: `#${existing.orderNo} nolu siparişiniz zaten işlendi (Idempotent koruma).`
+          message: `#${existing.orderNo} nolu siparişiniz zaten işlendi (DB Idempotent koruma).`
         }, { status: 200 });
       }
     }
@@ -316,10 +315,11 @@ export async function POST(request: NextRequest) {
 
     // 6. ATOMIC TRANSACTION: Create Order + Stock Deduction + Payment / Ledger Entry + Cart Cleanup
     const newOrder = await prisma.$transaction(async (tx) => {
-      // A. Create Order
+      // A. Create Order with unique idempotencyKey
       const order = await tx.order.create({
         data: {
           orderNo,
+          idempotencyKey: idempotencyKey || undefined,
           userId: user.id,
           companyId,
           buyerType: 'B2B',
@@ -437,12 +437,13 @@ export async function POST(request: NextRequest) {
       return order;
     });
 
-    // Write audit log
+    // Write audit log with persistent deduplication
     await logAuditAction({
       actorId: user.id,
       action: 'ORDER_CREATE',
       entityType: 'Order',
       entityId: newOrder.id,
+      dedupKey: idempotencyKey ? `order:${idempotencyKey}` : undefined,
       afterJson: {
         orderNo,
         grandTotal,
@@ -457,7 +458,23 @@ export async function POST(request: NextRequest) {
       message: `#${orderNo} nolu siparişiniz başarıyla oluşturuldu.`
     }, { status: 201 });
 
-  } catch (error: unknown) {
+  } catch (error: any) {
+    // Catch unique constraint violation on idempotencyKey (concurrent submission)
+    const idempotencyKey = request.headers.get('x-idempotency-key');
+    if (error?.code === 'P2002' && idempotencyKey) {
+      const existing = await prisma.order.findUnique({
+        where: { idempotencyKey },
+        include: { items: true }
+      });
+      if (existing) {
+        return NextResponse.json({
+          success: true,
+          data: existing,
+          message: `#${existing.orderNo} nolu siparişiniz zaten işlendi (DB Idempotent koruma).`
+        }, { status: 200 });
+      }
+    }
+
     console.error('POST /api/b2b/orders error:', error);
     const message = error instanceof Error ? error.message : 'Sipariş oluşturulurken sunucu hatası oluştu.';
     return NextResponse.json({ success: false, error: message }, { status: 500 });

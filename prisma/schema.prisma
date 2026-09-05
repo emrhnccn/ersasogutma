@@ -18,9 +18,11 @@ model User {
   phone         String?
   role          String    @default("B2C_CUSTOMER")
   status        String    @default("PENDING")
-  emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  emailVerified     DateTime?
+  tokenVersion      Int       @default(0)
+  passwordChangedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   memberships CompanyMember[]
   addresses   Address[]
@@ -390,6 +392,7 @@ model Address {
 model Order {
   id              String   @id @default(cuid())
   orderNo         String   @unique
+  idempotencyKey  String?  @unique
   userId          String?
   companyId       String?
   buyerType       String
@@ -563,12 +566,15 @@ model AuditLog {
   entityId   String
   beforeJson String?
   afterJson  String?
+  dedupKey   String?  @unique
+  requestId  String?
   createdAt  DateTime @default(now())
 
   actor User? @relation(fields: [actorId], references: [id])
 
   @@index([entityType, entityId])
   @@index([createdAt])
+  @@index([requestId])
 }
 
 model BankAccount {
@@ -705,4 +711,16 @@ model PasswordResetToken {
   @@index([userId])
   @@index([tokenHash])
 }
+
+model RateLimitRecord {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(1)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
 

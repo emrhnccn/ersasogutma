@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer } from '@/lib/auth-guard';
+import { requireDealerOrAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { getCompanyFinanceSummary } from '@/lib/financeService';
 
@@ -7,34 +7,34 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/b2b/dashboard — Live database dashboard metrics for the authenticated dealer
 export async function GET(request: NextRequest) {
-  const guard = await requireDealer();
-  if (guard instanceof NextResponse) return guard;
-
-  const { user } = guard;
-  let companyId = guard.companyId;
-
   const { searchParams } = new URL(request.url);
   const requestedCompanyId = searchParams.get('companyId');
 
-  if (user.role === 'ADMIN' && requestedCompanyId) {
-    companyId = requestedCompanyId;
-  } else if (user.role === 'ADMIN' && !companyId) {
+  const guard = await requireDealerOrAdmin({
+    targetCompanyId: requestedCompanyId || undefined
+  });
+  if (guard instanceof NextResponse) return guard;
+
+  const { user, companyId, isAdmin } = guard;
+  let targetCompanyId = companyId;
+
+  if (isAdmin && !targetCompanyId) {
     const firstCompany = await prisma.company.findFirst({
       where: { status: 'ACTIVE' },
       select: { id: true }
     });
-    companyId = firstCompany?.id || '';
+    targetCompanyId = firstCompany?.id || null;
   }
 
-  if (!companyId) {
+  if (!targetCompanyId) {
     return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
   }
 
   try {
     const [summary, company] = await Promise.all([
-      getCompanyFinanceSummary(companyId),
+      getCompanyFinanceSummary(targetCompanyId),
       prisma.company.findUnique({
-        where: { id: companyId },
+        where: { id: targetCompanyId },
         include: {
           orders: {
             orderBy: { createdAt: 'desc' },
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
             }
           }
         }
-      })
+      }) as any
     ]);
 
     if (!company || !summary) {
@@ -63,25 +63,25 @@ export async function GET(request: NextRequest) {
       : 0;
 
     // 2. Invoiced Sum (Delivered or Approved Orders)
-    const invoicedOrders = company.orders.filter(
-      (o) => o.status === 'DELIVERED' || o.status === 'APPROVED' || o.status === 'COMPLETED'
+    const allOrders: any[] = company.orders || [];
+    const invoicedOrders = allOrders.filter(
+      (o: any) => o.status === 'DELIVERED' || o.status === 'APPROVED' || o.status === 'COMPLETED'
     );
-    const totalInvoiced = invoicedOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const totalInvoiced = invoicedOrders.reduce((sum: number, o: any) => sum + Number(o.grandTotal), 0);
 
     // 3. Order Counts by Status
-    const allOrders = company.orders;
     const pendingOrders = allOrders.filter(
-      (o) => o.status === 'PENDING' || o.status === 'PENDING_APPROVAL' || o.status === 'bekliyor'
+      (o: any) => o.status === 'PENDING' || o.status === 'PENDING_APPROVAL' || o.status === 'bekliyor'
     );
     const inTransitOrders = allOrders.filter(
-      (o) => o.status === 'SHIPPED' || o.status === 'PREPARING' || o.status === 'sevkiyatta' || o.status === 'parcali'
+      (o: any) => o.status === 'SHIPPED' || o.status === 'PREPARING' || o.status === 'sevkiyatta' || o.status === 'parcali'
     );
     const deliveredOrders = allOrders.filter(
-      (o) => o.status === 'DELIVERED' || o.status === 'COMPLETED' || o.status === 'tamamlandi'
+      (o: any) => o.status === 'DELIVERED' || o.status === 'COMPLETED' || o.status === 'tamamlandi'
     );
 
     // 4. Recent Orders (Top 5)
-    const recentOrders = allOrders.slice(0, 5).map((o) => ({
+    const recentOrders = allOrders.slice(0, 5).map((o: any) => ({
       id: o.id,
       orderNumber: o.orderNo,
       date: new Date(o.createdAt).toLocaleDateString('tr-TR'),
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       status: o.status,
       paymentMethod: o.paymentMethod || 'CARI',
       itemCount: o.items.length,
-      items: o.items.map((i) => ({
+      items: o.items.map((i: any) => ({
         id: i.id,
         name: i.name,
         quantity: Number(i.quantity),

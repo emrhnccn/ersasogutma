@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer } from '@/lib/auth-guard';
+import { requireDealerOrAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { getCompanyFinanceSummary } from '@/lib/financeService';
 
@@ -7,31 +7,31 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/b2b/finance/summary — Central single source of truth for dealer financial summary
 export async function GET(request: NextRequest) {
-  const guard = await requireDealer();
-  if (guard instanceof NextResponse) return guard;
-
-  const { user } = guard;
-  let companyId = guard.companyId;
-
-  const { searchParams } = new URL(request.url);
-  const requestedCompanyId = searchParams.get('companyId');
-
-  if (user.role === 'ADMIN' && requestedCompanyId) {
-    companyId = requestedCompanyId;
-  } else if (user.role === 'ADMIN' && !companyId) {
-    const firstCompany = await prisma.company.findFirst({
-      where: { status: 'ACTIVE' },
-      select: { id: true }
-    });
-    companyId = firstCompany?.id || '';
-  }
-
-  if (!companyId) {
-    return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
-  }
-
   try {
-    const summary = await getCompanyFinanceSummary(companyId);
+    const { searchParams } = new URL(request.url);
+    const requestedCompanyId = searchParams.get('companyId');
+
+    const guard = await requireDealerOrAdmin({
+      targetCompanyId: requestedCompanyId || undefined
+    });
+    if (guard instanceof NextResponse) return guard;
+
+    const { user, companyId, isAdmin } = guard;
+
+    let targetCompanyId = companyId;
+    if (isAdmin && !targetCompanyId) {
+      const firstCompany = await prisma.company.findFirst({
+        where: { status: 'ACTIVE' },
+        select: { id: true }
+      });
+      targetCompanyId = firstCompany?.id || null;
+    }
+
+    if (!targetCompanyId) {
+      return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
+    }
+
+    const summary = await getCompanyFinanceSummary(targetCompanyId);
     if (!summary) {
       return NextResponse.json({ success: false, error: 'Finans özeti bulunamadı.' }, { status: 404 });
     }

@@ -21,54 +21,54 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') || '100', 10)));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const conditions: any[] = [];
 
     // Status filter
     if (status !== 'ALL') {
-      where.status = status;
+      conditions.push({ status });
     }
 
     // Missing Price Only filter
     if (missingPriceOnly) {
-      where.OR = [
-        { salePrice: null },
-        { salePrice: { lte: 0 } }
-      ];
+      conditions.push({
+        OR: [
+          { salePrice: null },
+          { salePrice: { lte: 0 } }
+        ]
+      });
     }
 
     // In Stock filter
     if (inStockOnly) {
-      where.stockQty = { gt: 0 };
+      conditions.push({ stockQty: { gt: 0 } });
     }
 
     // Category filter (by ID, Slug, or Name)
     if (category && category !== 'all') {
-      where.OR = where.OR || [];
-      where.category = {
+      conditions.push({
         OR: [
-          { id: category },
-          { slug: category },
-          { name: { equals: category, mode: 'insensitive' } }
+          { categoryId: category },
+          { category: { is: { slug: category } } },
+          { category: { is: { name: { equals: category, mode: 'insensitive' } } } }
         ]
-      };
+      });
     }
 
     // Brand filter (by ID, Slug, or Name)
     if (brand && brand !== 'all') {
-      where.brand = {
+      conditions.push({
         OR: [
-          { id: brand },
-          { slug: brand },
-          { name: { equals: brand, mode: 'insensitive' } }
+          { brandId: brand },
+          { brand: { is: { slug: brand } } },
+          { brand: { is: { name: { equals: brand, mode: 'insensitive' } } } }
         ]
-      };
+      });
     }
 
     // Search query across name, sku, barcode
     if (search && search.trim() !== '') {
       const q = search.trim();
-      where.AND = where.AND || [];
-      where.AND.push({
+      conditions.push({
         OR: [
           { name: { contains: q, mode: 'insensitive' } },
           { sku: { contains: q, mode: 'insensitive' } },
@@ -76,6 +76,8 @@ export async function GET(request: NextRequest) {
         ]
       });
     }
+
+    const where: any = conditions.length > 0 ? { AND: conditions } : {};
 
     // Order By
     let orderBy: any = { createdAt: 'desc' };

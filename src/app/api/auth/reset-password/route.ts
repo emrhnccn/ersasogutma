@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     const body = await request.json().catch(() => ({}));
     const { token, newPassword } = body;
 
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password strength
+    // 1. Validate password strength against policy
     const validation = validatePasswordStrength(newPassword);
     if (!validation.isValid) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const hashed = hashToken(token.trim());
 
-    // Find valid token
+    // 2. Find valid token
     const resetRecord = await prisma.passwordResetToken.findUnique({
       where: { tokenHash: hashed },
       include: { user: true }
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 3. Single-use check
     if (resetRecord.usedAt) {
       return NextResponse.json(
         { success: false, error: 'Bu şifre sıfırlama bağlantısı daha önce kullanılmış.' },
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 4. Expiration check
     if (new Date() > resetRecord.expiresAt) {
       return NextResponse.json(
         { success: false, error: 'Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen tekrar talepte bulunun.' },
@@ -57,37 +59,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash new password securely
+    // 5. Hash new password securely with bcrypt
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    const now = new Date();
 
-    // Update user password and mark token as used
+    // 6. Invalidate all active sessions via tokenVersion increment + delete token in atomic transaction
     await prisma.$transaction([
       prisma.user.update({
         where: { id: resetRecord.userId },
         data: {
           passwordHash: newPasswordHash,
-          updatedAt: new Date()
+          tokenVersion: { increment: 1 },
+          passwordChangedAt: now,
+          updatedAt: now
         }
       }),
-      prisma.passwordResetToken.update({
-        where: { id: resetRecord.id },
-        data: { usedAt: new Date() }
-      }),
-      // Delete any other tokens for this user
+      // Mark current token as used and delete all tokens for this user
       prisma.passwordResetToken.deleteMany({
-        where: {
-          userId: resetRecord.userId,
-          id: { not: resetRecord.id }
-        }
+        where: { userId: resetRecord.userId }
       })
     ]);
 
-    // Record audit log
+    // 7. Record audit log
     await logAuditAction({
       actorId: resetRecord.userId,
       action: 'PASSWORD_RESET_COMPLETED',
       entityType: 'User',
       entityId: resetRecord.userId,
+      dedupKey: `pwd_reset_complete:${resetRecord.userId}:${now.getTime()}`,
       afterJson: {
         method: 'TOKEN_RESET',
         ipAddress: ip,
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Şifreniz başarıyla güncellendi. Yeni şifreniz ile güvenle giriş yapabilirsiniz.'
+      message: 'Şifreniz başarıyla güncellendi. Eski oturumlar sonlandırıldı, yeni şifrenizle giriş yapabilirsiniz.'
     });
   } catch (error: unknown) {
     console.error('POST /api/auth/reset-password error:', error);

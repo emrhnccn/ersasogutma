@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer, requireAdmin, logAuditAction } from '@/lib/auth-guard';
+import { requireDealerOrAdmin, requireAdmin, logAuditAction } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -9,25 +9,20 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const guard = await requireDealer();
+  const guard = await requireDealerOrAdmin();
   if (guard instanceof NextResponse) return guard;
 
-  const { user, companyId } = guard;
+  const { user, companyId, isAdmin } = guard;
   const { id } = await params;
 
   try {
-    const whereClause: any = {
-      OR: [
-        { id },
-        { orderNo: id }
-      ]
-    };
-    if (user.role !== 'ADMIN') {
-      whereClause.companyId = companyId;
-    }
-
     const order = await prisma.order.findFirst({
-      where: whereClause,
+      where: {
+        OR: [
+          { id },
+          { orderNo: id }
+        ]
+      },
       include: {
         items: {
           include: {
@@ -48,6 +43,14 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json({ success: false, error: 'Sipariş bulunamadı.' }, { status: 404 });
+    }
+
+    // Tenant Isolation / IDOR Guard: non-admin can only access orders belonging to their company
+    if (!isAdmin && order.companyId !== companyId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Yetkisiz erişim (IDOR engellendi): Bu sipariş firmanıza ait değildir.'
+      }, { status: 403 });
     }
 
     const mapped = {

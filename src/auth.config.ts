@@ -50,6 +50,7 @@ export const authConfig = {
         token.id = user.id as string;
         token.username = (user as any).username;
         token.companyId = (user as any).companyId;
+        token.tokenVersion = (user as any).tokenVersion;
       }
       return token;
     },
@@ -59,6 +60,7 @@ export const authConfig = {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
         (session.user as any).companyId = token.companyId as string | undefined;
+        (session.user as any).tokenVersion = token.tokenVersion as number | undefined;
       }
       return session;
     }

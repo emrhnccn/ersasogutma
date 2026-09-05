@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer } from '@/lib/auth-guard';
+import { requireDealerOrAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { getCompanyFinanceSummary } from '@/lib/financeService';
 
@@ -7,28 +7,27 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/b2b/cari - Get dealer company's ledger statement and transactions
 export async function GET(request: NextRequest) {
-  const guard = await requireDealer();
-  if (guard instanceof NextResponse) return guard;
-
-  const { user } = guard;
-  let companyId = guard.companyId;
-
   const { searchParams } = new URL(request.url);
   const requestedCompanyId = searchParams.get('companyId');
 
-  // Allow admins to inspect any company's cari statement
-  if (user.role === 'ADMIN' && requestedCompanyId) {
-    companyId = requestedCompanyId;
-  } else if (user.role === 'ADMIN' && !companyId) {
-    // If admin didn't specify companyId, pick first active dealer company
+  const guard = await requireDealerOrAdmin({
+    targetCompanyId: requestedCompanyId || undefined
+  });
+  if (guard instanceof NextResponse) return guard;
+
+  const { user, companyId, isAdmin } = guard;
+  let targetCompanyId = companyId;
+
+  // If admin didn't specify companyId, pick first active dealer company
+  if (isAdmin && !targetCompanyId) {
     const firstCompany = await prisma.company.findFirst({
       where: { status: 'ACTIVE' },
       select: { id: true }
     });
-    companyId = firstCompany?.id || '';
+    targetCompanyId = firstCompany?.id || null;
   }
 
-  if (!companyId) {
+  if (!targetCompanyId) {
     return NextResponse.json({ success: false, error: 'Firma ID bulunamadı.' }, { status: 400 });
   }
 
@@ -37,9 +36,9 @@ export async function GET(request: NextRequest) {
     const docType = searchParams.get('docType'); // all, invoice, payment, correction
 
     const [summary, company] = await Promise.all([
-      getCompanyFinanceSummary(companyId),
+      getCompanyFinanceSummary(targetCompanyId),
       prisma.company.findUnique({
-        where: { id: companyId },
+        where: { id: targetCompanyId },
         include: {
           customerGroup: true,
           currentAccount: {
@@ -55,16 +54,16 @@ export async function GET(request: NextRequest) {
             }
           }
         }
-      })
+      }) as any
     ]);
 
     if (!company || !summary) {
       return NextResponse.json({ success: false, error: 'Firma cari bilgisi bulunamadı.' }, { status: 404 });
     }
 
-    const allTransactions = company.currentAccount?.transactions || [];
+    const allTransactions: any[] = company.currentAccount?.transactions || [];
 
-    const mappedTransactions = allTransactions.map((t) => {
+    const mappedTransactions = allTransactions.map((t: any) => {
       const amt = Number(t.amount);
       const isDebit = t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT';
 
@@ -99,11 +98,11 @@ export async function GET(request: NextRequest) {
     // Apply optional query filters
     let filtered = mappedTransactions;
     if (docType && docType !== 'all') {
-      filtered = filtered.filter((t) => t.documentType.toLowerCase().includes(docType.toLowerCase()));
+      filtered = filtered.filter((t: any) => t.documentType.toLowerCase().includes(docType.toLowerCase()));
     }
     if (search && search.trim() !== '') {
       const q = search.toLowerCase().trim();
-      filtered = filtered.filter((t) =>
+      filtered = filtered.filter((t: any) =>
         t.documentNo.toLowerCase().includes(q) ||
         t.documentType.toLowerCase().includes(q) ||
         t.description.toLowerCase().includes(q)
