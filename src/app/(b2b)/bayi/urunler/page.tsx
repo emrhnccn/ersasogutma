@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { CATEGORIES, BRANDS } from '@/data/categories';
 import { Product } from '@/types';
@@ -38,13 +38,15 @@ import {
 } from 'lucide-react';
 
 function ProductsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get('q') || '';
   const favoriteOnlyParam = searchParams.get('favori') === '1';
+  const categoryParam = searchParams.get('category') || 'all';
 
   const { addToCart, toggleFavorite, isFavorite, convertPrice, profile } = useStore();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>(queryParam);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
@@ -105,6 +107,34 @@ function ProductsContent() {
   useEffect(() => {
     if (favoriteOnlyParam) setOnlyFavorites(true);
   }, [favoriteOnlyParam]);
+
+  // Sync category state when URL searchParams change (from link navigation or back/forward)
+  useEffect(() => {
+    const cat = searchParams.get('category') || 'all';
+    setSelectedCategory(cat);
+  }, [searchParams]);
+
+  // Instant sync when category is chosen from sidebar flyout menu
+  useEffect(() => {
+    const handleCategorySelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{ category: string }>;
+      if (customEvent.detail?.category) {
+        setSelectedCategory(customEvent.detail.category);
+      }
+    };
+    window.addEventListener('ersa:category_select', handleCategorySelect);
+    return () => window.removeEventListener('ersa:category_select', handleCategorySelect);
+  }, []);
+
+  // Auto-scroll selected category pill into view in the horizontal carousel
+  useEffect(() => {
+    if (selectedCategory && categoryScrollRef.current) {
+      const activeBtn = categoryScrollRef.current.querySelector('[data-selected="true"]');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+  }, [selectedCategory, categoriesList]);
 
   const handleQtyChange = (productId: string, val: number, pim: number) => {
     const validVal = Math.max(pim || 1, val);
@@ -222,6 +252,7 @@ function ProductsContent() {
     setSearchQuery('');
     setOnlyInStock(false);
     setOnlyFavorites(false);
+    router.push('/bayi/urunler');
   };
 
   // Helper icon map
@@ -305,9 +336,15 @@ function ProductsContent() {
             ref={categoryScrollRef}
             className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 flex-1 scroll-smooth"
           >
+            {/* All Categories Button */}
             <button
-              onClick={() => setSelectedCategory('all')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 ${
+              type="button"
+              data-selected={selectedCategory === 'all' ? 'true' : 'false'}
+              onClick={() => {
+                setSelectedCategory('all');
+                router.push('/bayi/urunler');
+              }}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
                 selectedCategory === 'all'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
@@ -325,8 +362,18 @@ function ProductsContent() {
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setSelectedCategory(isSelected ? 'all' : cat.name)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 group/item ${
+                  type="button"
+                  data-selected={isSelected ? 'true' : 'false'}
+                  onClick={() => {
+                    const next = isSelected ? 'all' : cat.name;
+                    setSelectedCategory(next);
+                    if (next === 'all') {
+                      router.push('/bayi/urunler');
+                    } else {
+                      router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 group/item cursor-pointer ${
                     isSelected
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
@@ -381,8 +428,16 @@ function ProductsContent() {
           <div className="sm:col-span-3">
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600"
+              onChange={(e) => {
+                const next = e.target.value;
+                setSelectedCategory(next);
+                if (next === 'all') {
+                  router.push('/bayi/urunler');
+                } else {
+                  router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
+                }
+              }}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600 cursor-pointer"
             >
               <option value="all">Tüm Kategoriler ({categoriesList.length})</option>
               {categoriesList.map((cat) => (

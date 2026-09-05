@@ -152,6 +152,9 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 onClick={() => {
                   setIsCategoryFlyoutOpen(false);
                   handleClose();
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: 'all' } }));
+                  }
                 }}
                 className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition"
               >
@@ -174,6 +177,9 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                     onClick={() => {
                       setIsCategoryFlyoutOpen(false);
                       handleClose();
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: cat.name } }));
+                      }
                     }}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 transition group border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
                   >
