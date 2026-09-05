@@ -151,7 +151,7 @@ export default function MaturityCalculatorPage() {
             <Calculator className="w-4 h-4" />
             <span>Finans & Muhasebe Araçları</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Ortalama Vade & Valör Hesaplama</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Ortalama Vade & Valör Hesaplama</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Müşteri veya bayi çeklerinizin vadelerini, tutarlarını ve ortalama valör gününü anında hesaplayın
           </p>
@@ -159,7 +159,7 @@ export default function MaturityCalculatorPage() {
 
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 shadow-md transition self-start"
+          className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 shadow-md transition self-start"
         >
           <Printer className="w-4 h-4 text-sky-400" />
           <span>Valör Bordrosunu Yazdır</span>
@@ -173,9 +173,9 @@ export default function MaturityCalculatorPage() {
         <div className="lg:col-span-5 space-y-6">
           
           {/* Base Setup: Vade Başlangıç Tarihi */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4 text-sky-400" />
                 <span>Vade Başlangıç Tarihi</span>
               </span>
@@ -185,13 +185,13 @@ export default function MaturityCalculatorPage() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
             />
           </div>
 
           {/* Form 1: Yeni Tekil Çek Tanımla (Matching Girdap) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
               <span className="w-2 h-2 rounded-full bg-sky-400"></span>
               <span>Yeni Çek Tanımla (Tekil Çek)</span>
             </h3>
@@ -204,7 +204,7 @@ export default function MaturityCalculatorPage() {
                   required
                   value={singleDate}
                   onChange={(e) => setSingleDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -217,7 +217,7 @@ export default function MaturityCalculatorPage() {
                   placeholder="Örn: 25000"
                   value={singleAmount}
                   onChange={(e) => setSingleAmount(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -228,7 +228,7 @@ export default function MaturityCalculatorPage() {
                   placeholder="Örn: Garanti BBVA"
                   value={singleBank}
                   onChange={(e) => setSingleBank(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -243,8 +243,8 @@ export default function MaturityCalculatorPage() {
           </div>
 
           {/* Form 2: Sıralı Çek Tanımla (Matching Girdap sequential matrix) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
               <span>Sıralı Çek Tanımla (Çoklu Ay Seçimi)</span>
             </h3>
@@ -259,7 +259,7 @@ export default function MaturityCalculatorPage() {
                     max="31"
                     value={seqDay}
                     onChange={(e) => setSeqDay(parseInt(e.target.value) || 20)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
@@ -270,7 +270,7 @@ export default function MaturityCalculatorPage() {
                     placeholder="Örn: 15000"
                     value={seqAmount}
                     onChange={(e) => setSeqAmount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function MaturityCalculatorPage() {
                 <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
                   Vade Ayları Seçiniz ({selectedMonths.length} Ay Seçildi):
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-950 rounded-xl border border-slate-800">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
                   {availableMonths.map((m) => {
                     const isSelected = selectedMonths.includes(m.val);
                     return (
@@ -291,7 +291,7 @@ export default function MaturityCalculatorPage() {
                         className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition text-center truncate ${
                           isSelected
                             ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                            : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800'
                         }`}
                       >
                         {m.label}
@@ -324,28 +324,28 @@ export default function MaturityCalculatorPage() {
           {/* Summary Dashboard Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-center shadow-lg">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-xl p-3.5 text-center shadow-lg">
               <div className="text-[10px] uppercase font-bold text-slate-400">Toplam Tutar</div>
               <div className="text-base sm:text-lg font-black font-mono text-emerald-400 mt-0.5 truncate">
                 {formatCurrency(result.totalAmount)}
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-center shadow-lg">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-xl p-3.5 text-center shadow-lg">
               <div className="text-[10px] uppercase font-bold text-slate-400">Çek Adedi</div>
               <div className="text-base sm:text-lg font-black font-mono text-white mt-0.5">
                 {result.chequeCount} Adet
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-center shadow-lg">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-xl p-3.5 text-center shadow-lg">
               <div className="text-[10px] uppercase font-bold text-slate-400">Ortalama Valör</div>
               <div className="text-base sm:text-lg font-black font-mono text-sky-400 mt-0.5">
                 {result.averageValueDays} Gün
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-center shadow-lg">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-xl p-3.5 text-center shadow-lg">
               <div className="text-[10px] uppercase font-bold text-slate-400">Ortalama Vade</div>
               <div className="text-base sm:text-lg font-black font-mono text-amber-400 mt-0.5">
                 {result.averageMaturityDate}
@@ -355,8 +355,8 @@ export default function MaturityCalculatorPage() {
           </div>
 
           {/* Cheques Calculation Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
               <div className="font-bold text-xs text-white flex items-center gap-2">
                 <span>Eklenen Çekler & Valör Listesi</span>
                 <span className="text-[11px] text-slate-500 font-mono">({cheques.length} Kalem)</span>
@@ -380,8 +380,8 @@ export default function MaturityCalculatorPage() {
             ) : (
               <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-slate-950 z-10">
-                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                  <thead className="sticky top-0 bg-slate-50 dark:bg-[#0B1120] z-10">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
                       <th className="py-3 px-4 w-10 text-center">#</th>
                       <th className="py-3 px-4">Vade Tarihi</th>
                       <th className="py-3 px-4">Banka Bilgisi</th>
@@ -390,9 +390,9 @@ export default function MaturityCalculatorPage() {
                       <th className="py-3 px-4 text-center w-12">Sil</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-200">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-200">
                     {cheques.map((chk, idx) => (
-                      <tr key={chk.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={chk.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="py-3 px-4 text-center text-slate-500">{idx + 1}</td>
                         <td className="py-3 px-4 font-mono font-bold text-sky-400">
                           {formatDate(chk.maturityDate)}
@@ -425,7 +425,7 @@ export default function MaturityCalculatorPage() {
             )}
 
             {/* Formula Explanation Footer */}
-            <div className="p-4 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
+            <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
               <Info className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
               <span>
                 <strong>Valör Hesaplama Mantığı:</strong> ∑(Çek Tutarı × Valör Günü) / ∑(Toplam Tutar) formülü ile ağırlıklı ortalama gün hesaplanır ve referans başlangıç tarihine eklenir.

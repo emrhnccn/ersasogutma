@@ -453,15 +453,15 @@ function ProductsContent() {
 
       {/* Main Content Area */}
       {loading ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-16 text-center text-slate-400">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-16 text-center text-slate-400">
           <Loader2 className="w-8 h-8 animate-spin text-sky-400 mx-auto mb-3" />
-          <div className="text-sm font-semibold text-white">Ürün kataloğu veritabanından çekiliyor...</div>
+          <div className="text-sm font-semibold text-slate-900 dark:text-white">Ürün kataloğu veritabanından çekiliyor...</div>
           <p className="text-xs text-slate-500 mt-1">İlk 100 ürün yükleniyor</p>
         </div>
       ) : displayProducts.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center text-slate-400">
           <XCircle className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-          <div className="text-sm font-bold text-white">Aradığınız kriterlere uygun ürün bulunamadı.</div>
+          <div className="text-sm font-bold text-slate-900 dark:text-white">Aradığınız kriterlere uygun ürün bulunamadı.</div>
           <p className="text-xs text-slate-500 mt-1">Filtreleri sıfırlayarak tekrar deneyebilirsiniz.</p>
           <button
             onClick={resetFilters}
@@ -805,7 +805,7 @@ function ProductsContent() {
       {/* Infinite Scroll Trigger Sentinel & Loading Indicator */}
       <div ref={observerTarget} className="py-6 text-center">
         {loadingMore && (
-          <div className="inline-flex items-center gap-2 bg-slate-900 border border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg">
+          <div className="inline-flex items-center gap-2 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Daha fazla ürün yükleniyor...</span>
           </div>
@@ -826,7 +826,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center text-slate-400">
           <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <div>Ürün kataloğu yükleniyor...</div>
         </div>

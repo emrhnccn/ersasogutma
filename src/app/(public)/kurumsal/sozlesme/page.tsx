@@ -17,7 +17,7 @@ export default function ServiceTermsPage() {
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
         
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider text-sky-400">

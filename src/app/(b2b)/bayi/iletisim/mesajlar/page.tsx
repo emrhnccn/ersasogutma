@@ -69,7 +69,7 @@ export default function MessagesPage() {
             <Mail className="w-4 h-4" />
             <span>Ersa Soğutma Müşteri Temsilcisi Hattı</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Mesajlar & Destek</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Mesajlar & Destek</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Finans, satış ve lojistik temsilcilerinizle doğrudan mesajlaşın
           </p>
@@ -92,7 +92,7 @@ export default function MessagesPage() {
         
         {/* Navigation Tabs (Left 3 cols) */}
         <div className="md:col-span-3 space-y-2">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl space-y-1 text-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-3 shadow-xl space-y-1 text-xs">
             <button
               onClick={() => {
                 setActiveTab('inbox');
@@ -106,7 +106,7 @@ export default function MessagesPage() {
                 <Inbox className="w-4 h-4" />
                 <span>Gelen Kutusu</span>
               </div>
-              <span className="font-mono text-[10px] bg-slate-950/60 px-1.5 py-0.5 rounded">
+              <span className="font-mono text-[10px] bg-slate-50 dark:bg-slate-950/60 px-1.5 py-0.5 rounded">
                 {inboxMessages.length}
               </span>
             </button>
@@ -124,7 +124,7 @@ export default function MessagesPage() {
                 <Send className="w-4 h-4" />
                 <span>Giden Kutusu</span>
               </div>
-              <span className="font-mono text-[10px] bg-slate-950/60 px-1.5 py-0.5 rounded">
+              <span className="font-mono text-[10px] bg-slate-50 dark:bg-slate-950/60 px-1.5 py-0.5 rounded">
                 {sentMessages.length}
               </span>
             </button>
@@ -144,14 +144,14 @@ export default function MessagesPage() {
           </div>
 
           {/* Quick Rep Directory */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl text-xs space-y-2.5 hidden md:block">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl text-xs space-y-2.5 hidden md:block">
             <div className="font-bold text-slate-300 text-[11px] uppercase tracking-wider">
               Temsilci Rehberi
             </div>
             <div className="space-y-2">
               {STAFF_RECIPIENTS.map((s) => (
-                <div key={s.id} className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                  <div className="font-bold text-white text-[11px]">{s.name}</div>
+                <div key={s.id} className="p-2 rounded-lg bg-slate-50 dark:bg-[#0B1120]/60 border border-slate-200 dark:border-slate-200 dark:border-slate-800/80">
+                  <div className="font-bold text-slate-900 dark:text-white text-[11px]">{s.name}</div>
                   <div className="text-[10px] text-slate-400">{s.role}</div>
                 </div>
               ))}
@@ -164,8 +164,8 @@ export default function MessagesPage() {
           
           {/* TAB 1: New Message Form */}
           {activeTab === 'new' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5 animate-in fade-in">
-              <h2 className="text-base font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5 animate-in fade-in">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-400" />
                 <span>Ersa Yetkilisine Mesaj Gönder</span>
               </h2>
@@ -178,7 +178,7 @@ export default function MessagesPage() {
                   <select
                     value={recipient}
                     onChange={(e) => setRecipient(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
                   >
                     {STAFF_RECIPIENTS.map((s) => (
                       <option key={s.id} value={s.name}>
@@ -198,7 +198,7 @@ export default function MessagesPage() {
                     placeholder="Mesaj konusu (Örn: Ek Iskonto Talebi, Sevkiyat Durumu...)"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -212,7 +212,7 @@ export default function MessagesPage() {
                     placeholder="Mesajınızı buraya yazınız..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none leading-relaxed"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none leading-relaxed"
                   />
                 </div>
 
@@ -233,8 +233,8 @@ export default function MessagesPage() {
           {activeTab !== 'new' && (
             selectedMessage ? (
               /* Single Message Viewer */
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5 animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5 animate-in fade-in">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                   <div>
                     <button
                       onClick={() => setSelectedMessage(null)}
@@ -253,7 +253,7 @@ export default function MessagesPage() {
                   </div>
                 </div>
 
-                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 text-xs text-slate-200 leading-relaxed min-h-[160px] whitespace-pre-line">
+                <div className="bg-slate-50 dark:bg-slate-950 p-5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 leading-relaxed min-h-[160px] whitespace-pre-line">
                   {selectedMessage.content}
                 </div>
 
@@ -274,11 +274,11 @@ export default function MessagesPage() {
               </div>
             ) : (
               /* Message List Table */
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/60">
                         <th className="py-3.5 px-4 w-32">Mesaj Kodu</th>
                         <th className="py-3.5 px-4 w-44">{activeTab === 'inbox' ? 'Gönderen' : 'Alıcı'}</th>
                         <th className="py-3.5 px-4">Konu</th>
@@ -286,13 +286,13 @@ export default function MessagesPage() {
                         <th className="py-3.5 px-4 text-right w-20">İşlem</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-200">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-200">
                       {(activeTab === 'inbox' ? inboxMessages : sentMessages).map((msg) => (
                         <tr
                           key={msg.id}
                           onClick={() => handleOpenMessage(msg)}
                           className={`hover:bg-slate-800/60 transition cursor-pointer ${
-                            !msg.isRead && activeTab === 'inbox' ? 'bg-sky-950/30 font-bold text-white' : ''
+                            !msg.isRead && activeTab === 'inbox' ? 'bg-sky-950/30 font-bold text-slate-900 dark:text-white' : ''
                           }`}
                         >
                           <td className="py-3 px-4 font-mono font-bold text-sky-400">

@@ -186,24 +186,24 @@ export default function CartPage() {
   // SUCCESS SCREEN
   if (successOrder) {
     return (
-      <div className="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95">
+      <div className="max-w-2xl mx-auto bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95">
         <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-950">
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-white">Siparişiniz Başarıyla Alındı!</h2>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Siparişiniz Başarıyla Alındı!</h2>
           <p className="text-xs text-slate-400 max-w-md mx-auto">
             Sipariş kaydınız oluşturulmuş ve sevkiyat planlamasına dahil edilmiştir.
           </p>
         </div>
 
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 text-xs text-left space-y-3 font-mono">
-          <div className="flex justify-between border-b border-slate-800 pb-2">
+        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-xs text-left space-y-3 font-mono">
+          <div className="flex justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
             <span className="text-slate-400">Sipariş Numarası:</span>
             <span className="text-sky-400 font-bold text-sm">#{successOrder.orderNo}</span>
           </div>
-          <div className="flex justify-between border-b border-slate-800 pb-2">
+          <div className="flex justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
             <span className="text-slate-400">Ödeme Yöntemi:</span>
             <span className="text-white font-bold">
               {successOrder.paymentMethod === 'SANAL_POS'
@@ -213,7 +213,7 @@ export default function CartPage() {
                 : 'Cari Hesap Virman (Açık Hesap)'}
             </span>
           </div>
-          <div className="flex justify-between border-b border-slate-800 pb-2">
+          <div className="flex justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
             <span className="text-slate-400">Toplam Tutar:</span>
             <span className="text-emerald-400 font-bold text-sm">
               {formatCurrency(Number(successOrder.grandTotal))}
@@ -239,7 +239,7 @@ export default function CartPage() {
           </button>
           <Link
             href="/bayi/urunler"
-            className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-3.5 rounded-xl transition flex items-center justify-center gap-2"
+            className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-3.5 rounded-xl transition flex items-center justify-center gap-2"
           >
             <span>Alışverişe Devam Et</span>
           </Link>
@@ -251,11 +251,11 @@ export default function CartPage() {
   // EMPTY CART
   if (cart.length === 0) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center shadow-xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center shadow-xl">
         <div className="w-16 h-16 rounded-2xl bg-slate-800 text-sky-400 flex items-center justify-center mx-auto mb-4">
           <ShoppingCart className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Sepetiniz Boş</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Sepetiniz Boş</h2>
         <p className="text-slate-400 text-xs max-w-md mx-auto mb-6">
           Sepetinizde henüz ürün bulunmuyor. Ersa Soğutma ürün kataloğundan ürün ekleyebilirsiniz.
         </p>
@@ -283,7 +283,7 @@ export default function CartPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Sepetim & Sipariş Tamamla</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Sepetim & Sipariş Tamamla</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Sepetinizdeki ürünleri kontrol edip ödeme yönteminizi seçerek siparişinizi onaylayabilirsiniz.
           </p>
@@ -315,11 +315,11 @@ export default function CartPage() {
         <div className="lg:col-span-8 space-y-6">
           
           {/* 1. Cart Items Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/60">
                     <th className="py-3.5 px-4 w-16 text-center">Görsel</th>
                     <th className="py-3.5 px-4 w-28">Ürün Kodu</th>
                     <th className="py-3.5 px-4">Ürün Adı</th>
@@ -329,7 +329,7 @@ export default function CartPage() {
                     <th className="py-3.5 px-4 w-12 text-center">Sil</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 text-slate-200">
                   {cart.map((item) => {
                     const minStep = item.product.pim || 1;
                     return (
@@ -339,7 +339,7 @@ export default function CartPage() {
                             src={item.product.image || '/placeholder.svg'}
                             alt={item.product.name}
                             loading="lazy"
-                            className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
+                            className="w-12 h-12 object-cover rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 mx-auto"
                             onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                           />
                         </td>
@@ -349,7 +349,7 @@ export default function CartPage() {
                         </td>
 
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-white line-clamp-1">{item.product.name}</div>
+                          <div className="font-semibold text-slate-900 dark:text-white line-clamp-1">{item.product.name}</div>
                           <div className="text-[11px] text-slate-400 mt-0.5">
                             Marka: {item.product.brand} • PİM: {item.product.pim} Adet
                           </div>
@@ -366,7 +366,7 @@ export default function CartPage() {
 
                         {/* Stepper */}
                         <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5">
+                          <div className="inline-flex items-center bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
                             <button
                               type="button"
                               onClick={() => updateCartQuantity(item.product.id, Math.max(minStep, item.quantity - minStep))}
@@ -380,7 +380,7 @@ export default function CartPage() {
                               step={minStep}
                               value={item.quantity}
                               onChange={(e) => updateCartQuantity(item.product.id, Math.max(minStep, parseInt(e.target.value) || minStep))}
-                              className="w-10 bg-transparent text-center font-mono font-bold text-white text-xs focus:outline-none"
+                              className="w-10 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
                             />
                             <button
                               type="button"
@@ -414,9 +414,9 @@ export default function CartPage() {
           </div>
 
           {/* 2. PAYMENT METHOD SELECTION */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-sky-400" />
                 <span>Ödeme Yöntemi Seçimi</span>
               </h3>
@@ -430,7 +430,7 @@ export default function CartPage() {
                 className={`p-4 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-3 ${
                   paymentMethod === 'CARI'
                     ? 'border-sky-500 bg-sky-950/30 shadow-lg shadow-sky-950/50'
-                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1120] hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -439,16 +439,16 @@ export default function CartPage() {
                       <Building2 className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-xs">Cari Hesaptan Öde</h4>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Cari Hesaptan Öde</h4>
                       <span className="text-[10px] text-slate-400">Açık Hesap / Vadeli Cari Borç</span>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'CARI' ? 'border-sky-400 bg-sky-400' : 'border-slate-600'}`}>
-                    {paymentMethod === 'CARI' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                    {paymentMethod === 'CARI' && <div className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white" />}
                   </div>
                 </div>
 
-                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1.5 font-mono">
+                <div className="bg-slate-50 dark:bg-[#0B1120]/80 p-3 rounded-xl border border-slate-200 dark:border-slate-200 dark:border-slate-800/80 text-[11px] space-y-1.5 font-mono">
                   <div className="flex justify-between text-slate-400">
                     <span>Tanımlı Limit:</span>
                     <span className="text-slate-200">{formatCurrency(liveCreditLimit)}</span>
@@ -465,7 +465,7 @@ export default function CartPage() {
                     <span className="text-slate-300">Sipariş Sonrası Borç:</span>
                     <span className="text-rose-300 font-bold">{formatCurrency(estimatedPostOrderDebt)}</span>
                   </div>
-                  <div className="flex justify-between pt-1 border-t border-slate-800">
+                  <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-800">
                     <span className="text-slate-300 font-semibold">Kullanılabilir Kalan Limit:</span>
                     <span className={`font-bold ${isCariLimitInsufficient ? 'text-rose-400' : 'text-emerald-400'}`}>
                       {formatCurrency(availableLimit)}
@@ -487,7 +487,7 @@ export default function CartPage() {
                 className={`p-4 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-3 ${
                   paymentMethod === 'SANAL_POS'
                     ? 'border-emerald-500 bg-emerald-950/30 shadow-lg shadow-emerald-950/50'
-                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1120] hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -496,16 +496,16 @@ export default function CartPage() {
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-xs">Kredi Kartı / Sanal POS</h4>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Kredi Kartı / Sanal POS</h4>
                       <span className="text-[10px] text-slate-400">3D Secure ile Peşin Tahsilat</span>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'SANAL_POS' ? 'border-emerald-400 bg-emerald-400' : 'border-slate-600'}`}>
-                    {paymentMethod === 'SANAL_POS' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                    {paymentMethod === 'SANAL_POS' && <div className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white" />}
                   </div>
                 </div>
 
-                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1 text-slate-300">
+                <div className="bg-slate-50 dark:bg-[#0B1120]/80 p-3 rounded-xl border border-slate-200 dark:border-slate-200 dark:border-slate-800/80 text-[11px] space-y-1 text-slate-300">
                   <p className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>Cari Borç Yansıtılmaz (Peşin Ödeme)</span>
@@ -523,10 +523,10 @@ export default function CartPage() {
                 }}
                 className={`p-4 rounded-2xl border-2 transition flex flex-col justify-between space-y-3 ${
                   bankAccounts.length === 0
-                    ? 'opacity-60 cursor-not-allowed border-slate-800 bg-slate-950'
+                    ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-[#0B1120]'
                     : paymentMethod === 'HAVALE_EFT'
                     ? 'border-indigo-500 bg-indigo-950/30 shadow-lg shadow-indigo-950/50 cursor-pointer'
-                    : 'border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1120] hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -535,16 +535,16 @@ export default function CartPage() {
                       <Landmark className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-xs">Havale / EFT</h4>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Havale / EFT</h4>
                       <span className="text-[10px] text-slate-400">Banka Hesabına Transfer</span>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'HAVALE_EFT' ? 'border-indigo-400 bg-indigo-400' : 'border-slate-600'}`}>
-                    {paymentMethod === 'HAVALE_EFT' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                    {paymentMethod === 'HAVALE_EFT' && <div className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white" />}
                   </div>
                 </div>
 
-                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-[11px] space-y-1 text-slate-300">
+                <div className="bg-slate-50 dark:bg-[#0B1120]/80 p-3 rounded-xl border border-slate-200 dark:border-slate-200 dark:border-slate-800/80 text-[11px] space-y-1 text-slate-300">
                   {bankAccounts.length === 0 ? (
                     <div className="text-amber-400 font-semibold flex items-center gap-1.5">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -567,8 +567,8 @@ export default function CartPage() {
 
             {/* Sanal POS Card Form (Shown when SANAL_POS is active) */}
             {paymentMethod === 'SANAL_POS' && (
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
-                <div className="flex items-center gap-2 text-slate-300 font-bold border-b border-slate-800 pb-2">
+              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
+                <div className="flex items-center gap-2 text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 pb-2">
                   <Lock className="w-4 h-4 text-emerald-400" />
                   <span>Güvenli Kart Bilgileri (256-Bit SSL)</span>
                 </div>
@@ -581,7 +581,7 @@ export default function CartPage() {
                       placeholder="AD SOYAD VEYA FİRMA UNVANI"
                       value={cardHolder}
                       onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -596,7 +596,7 @@ export default function CartPage() {
                         const v = e.target.value.replace(/\D/g, '').slice(0, 16);
                         setCardNumber(v.replace(/(\d{4})/g, '$1 ').trim());
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -612,7 +612,7 @@ export default function CartPage() {
                         if (v.length >= 2) v = `${v.slice(0, 2)}/${v.slice(2)}`;
                         setCardExpiry(v);
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -624,7 +624,7 @@ export default function CartPage() {
                       placeholder="***"
                       value={cardCvv}
                       onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -633,8 +633,8 @@ export default function CartPage() {
 
             {/* Havale / EFT Bank Accounts Details (Shown when HAVALE_EFT is active) */}
             {paymentMethod === 'HAVALE_EFT' && (
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 animate-in fade-in-50 text-xs">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                   <div className="flex items-center gap-2 text-indigo-400 font-bold">
                     <Landmark className="w-4 h-4" />
                     <span>Şirket Banka Hesaplarımız</span>
@@ -650,12 +650,12 @@ export default function CartPage() {
                       className={`p-3 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-2 cursor-pointer ${
                         selectedBankId === b.id
                           ? 'bg-indigo-950/40 border-indigo-500 text-white'
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                          : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-white text-xs">{b.bankName}</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">{b.bankName}</span>
                           <span className="text-[10px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400 uppercase font-mono">
                             {b.currency || 'TRY'}
                           </span>
@@ -698,8 +698,8 @@ export default function CartPage() {
           </div>
 
           {/* 3. Notes Section */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <FileText className="w-4 h-4 text-sky-400" />
               <span>Sipariş & Muhasebe Notları</span>
             </h3>
@@ -714,7 +714,7 @@ export default function CartPage() {
                   placeholder="Örn: Hafta içi saat 17:00'den önce depoya teslim edilsin, paletli ambalaj yapılsın..."
                   value={orderNote}
                   onChange={(e) => setOrderNote(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
                 />
               </div>
 
@@ -727,7 +727,7 @@ export default function CartPage() {
                   placeholder="Örn: Cari hesap faturası muhasebe mailimize iletilsin..."
                   value={accountingNote}
                   onChange={(e) => setAccountingNote(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
                 />
               </div>
             </div>
@@ -737,15 +737,15 @@ export default function CartPage() {
 
         {/* Right Column: Order Summary */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl sticky top-24 space-y-5">
-            <h3 className="text-base font-black text-white border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-2xl sticky top-24 space-y-5">
+            <h3 className="text-base font-black text-white border-b border-slate-200 dark:border-slate-800 pb-3">
               Sipariş Özeti
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between text-slate-300">
                 <span>Toplam Kalem:</span>
-                <span className="font-mono font-semibold text-white">{cart.length} Kalem ({cartTotals.itemCount} Adet)</span>
+                <span className="font-mono font-semibold text-slate-900 dark:text-white">{cart.length} Kalem ({cartTotals.itemCount} Adet)</span>
               </div>
 
               <div className="flex justify-between text-slate-300">
@@ -758,9 +758,9 @@ export default function CartPage() {
                 <span className="font-mono font-bold">-{formatCurrency(cartTotals.discountTRY)}</span>
               </div>
 
-              <div className="flex justify-between text-slate-300 pt-2 border-t border-slate-800">
+              <div className="flex justify-between text-slate-300 pt-2 border-t border-slate-200 dark:border-slate-800">
                 <span>Ara Toplam (KDV Hariç):</span>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {formatCurrency(cartTotals.grandTotalTRY - cartTotals.vatTRY)}
                 </span>
               </div>
@@ -771,7 +771,7 @@ export default function CartPage() {
               </div>
 
               <div className="pt-3 border-t border-slate-700 flex justify-between items-baseline">
-                <span className="text-sm font-bold text-white">Genel Toplam:</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">Genel Toplam:</span>
                 <div className="text-right">
                   <div className="text-xl font-black font-mono text-emerald-400">
                     {formatCurrency(grandTotal)}
@@ -782,7 +782,7 @@ export default function CartPage() {
             </div>
 
             {/* Delivery Info */}
-            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5">
+            <div className="bg-slate-50 dark:bg-[#0B1120] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] space-y-1.5">
               <div className="font-bold text-slate-200 flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-sky-400" />
                 <span>Teslimat Adresi:</span>

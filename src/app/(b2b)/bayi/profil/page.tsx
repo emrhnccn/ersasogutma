@@ -43,14 +43,14 @@ export default function ProfilePage() {
           <User className="w-4 h-4" />
           <span>Bayi Yetkili & Kurumsal Hesap Bilgileri</span>
         </div>
-        <h1 className="text-2xl font-black text-white">Profilini ve Firma Bilgilerini Düzenle</h1>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Profilini ve Firma Bilgilerini Düzenle</h1>
         <p className="text-xs text-slate-400 mt-0.5">
           Fatura, sevkiyat ve iletişim bilgilerinizi güncel tutunuz
         </p>
       </div>
 
       {/* Profile Overview Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-sky-600/30">
             ET
@@ -63,7 +63,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Read-Only Tier Badge */}
-        <div className="bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 text-left sm:text-right space-y-1">
+        <div className="bg-slate-50 dark:bg-slate-950 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 text-left sm:text-right space-y-1">
           <div className="text-[10px] uppercase font-bold text-slate-400">Tanımlı İskonto Kademesi</div>
           <div className="flex items-center gap-2 sm:justify-end">
             <span className={`px-3 py-1 rounded-lg text-xs font-black tracking-wide ${
@@ -83,12 +83,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Main Edit Form */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6 text-xs">
           
           {/* Section 1: Contact Person & Phones */}
           <div>
-            <h3 className="text-sm font-bold text-white mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center gap-2">
               <User className="w-4 h-4 text-sky-400" />
               <span>Yetkili İletişim Bilgileri</span>
             </h3>
@@ -101,7 +101,7 @@ export default function ProfilePage() {
                   required
                   value={contactPerson}
                   onChange={(e) => setContactPerson(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -112,7 +112,7 @@ export default function ProfilePage() {
                   required
                   value={phoneGsm}
                   onChange={(e) => setPhoneGsm(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -122,7 +122,7 @@ export default function ProfilePage() {
                   type="text"
                   value={phoneLandline}
                   onChange={(e) => setPhoneLandline(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function ProfilePage() {
 
           {/* Section 2: Invoice & Corporate Data */}
           <div>
-            <h3 className="text-sm font-bold text-white mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center gap-2">
               <Building className="w-4 h-4 text-emerald-400" />
               <span>Firma & Fatura Bilgileri</span>
             </h3>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                   required
                   value={taxOffice}
                   onChange={(e) => setTaxOffice(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                   required
                   value={taxNumber}
                   onChange={(e) => setTaxNumber(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                   required
                   value={eArchiveEmail}
                   onChange={(e) => setEArchiveEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -198,13 +198,13 @@ export default function ProfilePage() {
                   required
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
                 />
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex justify-end">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
             <button
               type="submit"
               className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-2"

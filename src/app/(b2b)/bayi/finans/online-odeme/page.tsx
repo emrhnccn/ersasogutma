@@ -172,14 +172,14 @@ export default function OnlinePaymentPage() {
           <Lock className="w-4 h-4 text-emerald-400" />
           <span>256-Bit SSL Şifreli Güvenli B2B Sanal POS</span>
         </div>
-        <h1 className="text-2xl font-black text-white">Online Kredi Kartı ile Ödeme</h1>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Online Kredi Kartı ile Ödeme</h1>
         <p className="text-xs text-slate-400 mt-0.5">
           Cari hesap bakiyenizi tüm banka kartlarıyla tek çekim veya taksitli olarak güvenle ödeyin
         </p>
       </div>
 
       {/* Wizard Steps Stepper */}
-      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="flex items-center justify-between bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl">
         <div className={`flex items-center gap-2 text-xs font-bold ${step >= 1 ? 'text-sky-400' : 'text-slate-500'}`}>
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black ${step >= 1 ? 'bg-sky-600 text-white' : 'bg-slate-800'}`}>
             1
@@ -208,8 +208,8 @@ export default function OnlinePaymentPage() {
 
       {/* STEP 1: Amount & Terms Form (Matching Girdap Step 1) */}
       {step === 1 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-          <h2 className="text-base font-bold text-white border-b border-slate-800 pb-3">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-6">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3">
             Ödeme Tutarı ve Bilgileri
           </h2>
 
@@ -226,7 +226,7 @@ export default function OnlinePaymentPage() {
                   required
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-lg font-mono font-black text-emerald-400 focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-4 pr-12 py-3 text-lg font-mono font-black text-emerald-400 focus:outline-none focus:border-sky-500"
                 />
                 <span className="absolute right-4 top-3.5 text-sm font-black text-slate-400">TL</span>
               </div>
@@ -254,7 +254,7 @@ export default function OnlinePaymentPage() {
             </div>
 
             {/* Terms Agreement Box (Exact requirement on Girdap) */}
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+            <div className="bg-slate-50 dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 border border-slate-800 space-y-3">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -289,9 +289,9 @@ export default function OnlinePaymentPage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* Left: Card Input Form */}
-            <div className="md:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h2 className="text-sm font-bold text-white">Kredi Kartı Bilgileri</h2>
+            <div className="md:col-span-6 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">Kredi Kartı Bilgileri</h2>
                 <span className="text-xs font-mono font-bold text-emerald-400">
                   Tutar: {formatCurrency(numericAmount)}
                 </span>
@@ -327,7 +327,7 @@ export default function OnlinePaymentPage() {
                     placeholder="0000 0000 0000 0000"
                     value={cardNumber}
                     onChange={(e) => handleCardNumberChange(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -339,7 +339,7 @@ export default function OnlinePaymentPage() {
                     placeholder="Ad Soyad"
                     value={cardHolder}
                     onChange={(e) => setCardHolder(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white uppercase focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white uppercase focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -352,7 +352,7 @@ export default function OnlinePaymentPage() {
                       placeholder="MM/YY"
                       value={expiryDate}
                       onChange={(e) => handleExpiryChange(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
                     />
                   </div>
                   <div>
@@ -364,7 +364,7 @@ export default function OnlinePaymentPage() {
                       placeholder="•••"
                       value={cvc}
                       onChange={(e) => setCvc(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
                     />
                   </div>
                 </div>
@@ -372,8 +372,8 @@ export default function OnlinePaymentPage() {
             </div>
 
             {/* Right: Bank Brand Selector & Installment Options */}
-            <div className="md:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white border-b border-slate-800 pb-2">
+            <div className="md:col-span-6 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
                 Kart Programı & Taksit Seçenekleri
               </h2>
 
@@ -392,7 +392,7 @@ export default function OnlinePaymentPage() {
                       className={`p-2 rounded-xl border text-center transition ${
                         isSelected
                           ? 'bg-sky-600/30 border-sky-500 text-white font-bold'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                          : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       <div className="text-base mb-0.5">{b.logo}</div>
@@ -404,11 +404,11 @@ export default function OnlinePaymentPage() {
 
               {/* Installment Rates Table */}
               <div className="border border-slate-800 rounded-xl overflow-hidden mt-3">
-                <div className="bg-slate-950 px-3 py-2 text-xs font-bold text-slate-300 flex justify-between">
+                <div className="bg-slate-100 dark:bg-slate-950 px-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-300 flex justify-between border-b border-slate-200 dark:border-slate-800">
                   <span>{currentBank.name} Taksit Tablosu</span>
                   <span className="text-emerald-400 font-mono">Net Tutar</span>
                 </div>
-                <div className="divide-y divide-slate-800 text-xs">
+                <div className="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                   {currentBank.installments.map((inst) => {
                     const isSelected = selectedInstallment === inst.installment;
                     return (
@@ -482,15 +482,15 @@ export default function OnlinePaymentPage() {
 
       {/* STEP 3: 3D Secure Simulation Modal */}
       {step === 3 && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-center space-y-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-center space-y-4">
             
             <div className="w-14 h-14 rounded-2xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center mx-auto">
               <Smartphone className="w-8 h-8" />
             </div>
 
             <div>
-              <h3 className="text-lg font-black text-white">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">
                 3D Secure Doğrulama Şifresi
               </h3>
               <p className="text-xs text-slate-400 mt-1">
@@ -498,10 +498,10 @@ export default function OnlinePaymentPage() {
               </p>
             </div>
 
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-left space-y-1">
+            <div className="bg-slate-50 dark:bg-[#0B1120] p-3 rounded-xl border border-slate-200 dark:border-slate-800 border border-slate-800 text-xs text-left space-y-1">
               <div className="flex justify-between text-slate-400">
                 <span>İşyeri:</span>
-                <span className="font-bold text-white">ERSA SOĞUTMA ISITMA LTD. ŞTİ.</span>
+                <span className="font-bold text-slate-900 dark:text-white">ERSA SOĞUTMA ISITMA LTD. ŞTİ.</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Ödeme Tutarı:</span>
@@ -525,7 +525,7 @@ export default function OnlinePaymentPage() {
                   required
                   value={smsCode}
                   onChange={(e) => setSmsCode(e.target.value)}
-                  className="w-40 mx-auto text-center font-mono font-black text-xl tracking-widest bg-slate-950 border border-sky-500 text-white rounded-xl py-2 focus:outline-none"
+                  className="w-40 mx-auto text-center font-mono font-black text-xl tracking-widest bg-slate-50 dark:bg-slate-950 border border-sky-500 text-slate-900 dark:text-white rounded-xl py-2 focus:outline-none"
                 />
                 <span className="block text-[10px] text-slate-500 mt-1">Test onay kodu: 123456</span>
               </div>

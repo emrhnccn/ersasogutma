@@ -25,7 +25,7 @@ export default function ContactPage() {
           <Building2 className="w-4 h-4" />
           <span>Ersa Soğutma & Ticaret Genel Merkez & Dağıtım Deposu</span>
         </div>
-        <h1 className="text-2xl font-black text-white">İletişim & Bölge Sorumluları</h1>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white">İletişim & Bölge Sorumluları</h1>
         <p className="text-xs text-slate-400 mt-0.5">
           Merkez ofisimiz, mağazamız ve bölge satış temsilcilerimizle doğrudan iletişim kurun
         </p>
@@ -37,12 +37,12 @@ export default function ContactPage() {
         <div className="md:col-span-7 space-y-4">
           
           {/* Card 1: Address & Location */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-start gap-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-sky-600/20 text-sky-400 border border-sky-500/30 flex items-center justify-center flex-shrink-0">
               <MapPin className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm">Mağaza & Depo Adresimiz</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Mağaza & Depo Adresimiz</h3>
               <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                 Nenehatun Mah. Battal Gazi Cd. No:139/A<br />
                 41700 Darıca / KOCAELİ
@@ -54,15 +54,15 @@ export default function ContactPage() {
           </div>
 
           {/* Card 2: Phone & WhatsApp */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-start gap-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
               <Phone className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-white text-sm">Telefon & WhatsApp Fiyat / Sipariş Hattı</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Telefon & WhatsApp Fiyat / Sipariş Hattı</h3>
               <div className="text-xs text-slate-300">
                 <span>Santral & Sipariş: </span>
-                <a href="tel:05525843073" className="font-mono font-bold text-white hover:text-sky-400">
+                <a href="tel:05525843073" className="font-mono font-bold text-slate-900 dark:text-white hover:text-sky-400">
                   0552 584 30 73
                 </a>
               </div>
@@ -76,12 +76,12 @@ export default function ContactPage() {
           </div>
 
           {/* Card 3: Email */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-start gap-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
               <Mail className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-white text-sm">E-Posta Adresleri</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">E-Posta Adresleri</h3>
               <div className="text-xs text-slate-300">
                 <span>Genel Bilgi & Sipariş: </span>
                 <a href="mailto:info@ersaticaret.com" className="font-mono text-sky-400 hover:underline">
@@ -98,12 +98,12 @@ export default function ContactPage() {
           </div>
 
           {/* Card 4: Working Hours */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-start gap-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm">Çalışma Saatleri</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Çalışma Saatleri</h3>
               <p className="text-xs text-slate-300 mt-1">
                 <strong>Pazartesi - Cumartesi:</strong> 08:30 - 19:00<br />
                 <strong>Pazar:</strong> 13:00 - 17:00 (Nöbetçi Mağaza & Acil Parça)
@@ -115,9 +115,9 @@ export default function ContactPage() {
 
         {/* Right Column: Key Reps & Quick Message Callout (5 cols) */}
         <div className="md:col-span-5 space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <User className="w-4 h-4 text-sky-400" />
                 Bölge Sorumluları & Temsilciler
               </h3>
@@ -128,7 +128,7 @@ export default function ContactPage() {
 
             <div className="space-y-3 text-xs">
               {/* Sadık Akgümüş */}
-              <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
+              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="font-black text-white text-sm">Sadık AKGÜMÜŞ</div>
                   <span className="text-[10px] font-bold px-2 py-0.5 bg-sky-500/10 text-sky-400 rounded-md">Yönetim & Satış</span>
@@ -136,7 +136,7 @@ export default function ContactPage() {
                 <div className="flex items-center justify-between pt-1">
                   <a
                     href="tel:05525843073"
-                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-white hover:text-sky-400"
+                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-900 dark:text-white hover:text-sky-400"
                   >
                     <Phone className="w-3.5 h-3.5 text-sky-400" />
                     0552 584 30 73
@@ -153,7 +153,7 @@ export default function ContactPage() {
               </div>
 
               {/* Erhan Akgümüş */}
-              <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
+              <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 transition-colors space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="font-black text-white text-sm">Erhan AKGÜMÜŞ</div>
                   <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md">Bölge Temsilcisi</span>
@@ -161,7 +161,7 @@ export default function ContactPage() {
                 <div className="flex items-center justify-between pt-1">
                   <a
                     href="tel:05316066451"
-                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-white hover:text-emerald-400"
+                    className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-900 dark:text-white hover:text-emerald-400"
                   >
                     <Phone className="w-3.5 h-3.5 text-emerald-400" />
                     0531 606 64 51

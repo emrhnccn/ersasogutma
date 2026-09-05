@@ -36,7 +36,7 @@ export default function RemindersPage() {
             <Bell className="w-4 h-4" />
             <span>Kişisel Bayi Araçları</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Hatırlatmalar</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Hatırlatmalar</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Yaklaşan çek vadeleriniz, müşteri montaj randevularınız ve periyodik takipler
           </p>
@@ -52,7 +52,7 @@ export default function RemindersPage() {
       </div>
 
       {/* Reminders List */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
         {reminders.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
             Kayıtlı bir hatırlatmanız bulunmamaktadır.
@@ -64,8 +64,8 @@ export default function RemindersPage() {
                 key={r.id}
                 className={`p-4 rounded-xl border flex items-start justify-between gap-4 transition ${
                   r.isCompleted
-                    ? 'bg-slate-950/40 border-slate-800 text-slate-500'
-                    : 'bg-slate-950 border-slate-700 text-slate-200 shadow-md'
+                    ? 'bg-slate-50 dark:bg-slate-950/40 border-slate-800 text-slate-500'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 shadow-xs'
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -104,9 +104,9 @@ export default function RemindersPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
-            <h3 className="text-base font-bold text-white">Yeni Hatırlatma Ekle</h3>
+        <div className="fixed inset-0 bg-black/60 dark:bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Yeni Hatırlatma Ekle</h3>
             <form onSubmit={handleAdd} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-300 font-semibold mb-1">Başlık:</label>
@@ -116,7 +116,7 @@ export default function RemindersPage() {
                   placeholder="Örn: Gültekin Şarküteri Montaj Kontrolü"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -127,7 +127,7 @@ export default function RemindersPage() {
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -138,7 +138,7 @@ export default function RemindersPage() {
                   placeholder="Açıklama..."
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
                 />
               </div>
 
@@ -152,7 +152,7 @@ export default function RemindersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-bold text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-950/40"
+                  className="px-4 py-2 rounded-xl font-bold text-slate-900 dark:text-white bg-cyan-600 hover:bg-cyan-500 shadow-md shadow-cyan-950/40"
                 >
                   Kaydet
                 </button>

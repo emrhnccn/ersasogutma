@@ -36,7 +36,7 @@ export default function InTransitOrdersPage() {
             <Truck className="w-4 h-4" />
             <span>Sevkiyat & Lojistik Takibi</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Yoldaki / Parçalı Siparişler</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Yoldaki / Parçalı Siparişler</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Depodan çıkışı yapılmış, kargoda veya sevk aracında olan ürünleriniz
           </p>
@@ -44,7 +44,7 @@ export default function InTransitOrdersPage() {
       </div>
 
       {/* Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl">
         <div className="relative max-w-md">
           <input
             type="text"
@@ -58,7 +58,7 @@ export default function InTransitOrdersPage() {
       </div>
 
       {/* Items Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
         {shippedItems.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
             Şu an yolda olan sevkiyat bulunmamaktadır.
@@ -67,7 +67,7 @@ export default function InTransitOrdersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/60">
                   <th className="py-3.5 px-4">Sipariş Tarihi</th>
                   <th className="py-3.5 px-4">Sipariş No</th>
                   <th className="py-3.5 px-4 w-14 text-center">Görsel</th>
@@ -80,7 +80,7 @@ export default function InTransitOrdersPage() {
                   <th className="py-3.5 px-4 text-right">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80 text-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 text-slate-200">
                 {shippedItems.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/50 transition">
                     <td className="py-3.5 px-4 font-mono text-slate-400">{item.orderDate}</td>
@@ -93,11 +93,11 @@ export default function InTransitOrdersPage() {
                       <img
                         src={item.productImage}
                         alt={item.productName}
-                        className="w-10 h-10 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
+                        className="w-10 h-10 object-cover rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 mx-auto"
                       />
                     </td>
                     <td className="py-3.5 px-4 font-mono text-slate-300">{item.productCode}</td>
-                    <td className="py-3.5 px-4 font-semibold text-white">{item.productName}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">{item.productName}</td>
                     <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-200">
                       <span className="text-emerald-400">{item.shippedQuantity}</span> / {item.quantity} Adet
                     </td>

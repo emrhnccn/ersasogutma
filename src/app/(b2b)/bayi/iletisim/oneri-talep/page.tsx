@@ -29,19 +29,19 @@ export default function FeedbackPage() {
           <MessageSquarePlus className="w-4 h-4" />
           <span>Geri Bildirim & Müşteri Deneyimi</span>
         </div>
-        <h1 className="text-2xl font-black text-white">Öneri / İstek / Şikayet Bildirimi</h1>
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Öneri / İstek / Şikayet Bildirimi</h1>
         <p className="text-xs text-slate-400 mt-0.5">
           Ersa Soğutma ürün ve hizmet kalitesini artırmak için görüşlerinizi yönetimimizle doğrudan paylaşın
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
         {isSent ? (
           <div className="text-center py-10 space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-black text-white">Bildiriminiz Başarıyla Alındı</h3>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">Bildiriminiz Başarıyla Alındı</h3>
             <p className="text-xs text-slate-400 max-w-md mx-auto">
               Talebiniz Ersa Soğutma Genel Müdürlüğü ve Kalite Birimine iletilmiştir. İlgili yetkili en kısa sürede sizinle iletişime geçecektir.
             </p>
@@ -51,7 +51,7 @@ export default function FeedbackPage() {
                 setMessage('');
                 setSubject('');
               }}
-              className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition"
+              className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 text-xs font-bold px-5 py-2.5 rounded-xl transition"
             >
               Yeni Bildirim Gönder
             </button>
@@ -65,7 +65,7 @@ export default function FeedbackPage() {
               <select
                 value={feedbackType}
                 onChange={(e) => setFeedbackType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
               >
                 <option value="Öneride Bulunmak İstiyorum">Öneride Bulunmak İstiyorum (Yeni Ürün / Geliştirme)</option>
                 <option value="İstekte Bulunmak İstiyorum">İstekte Bulunmak İstiyorum (Katalog / Özel Fiyat Talebi)</option>
@@ -83,7 +83,7 @@ export default function FeedbackPage() {
                 placeholder="Örn: Yeni Soğuk Oda Gaz Stokları Hakkında"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
               />
             </div>
 
@@ -97,7 +97,7 @@ export default function FeedbackPage() {
                 placeholder="Lütfen detayları belirtiniz..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
               />
             </div>
 

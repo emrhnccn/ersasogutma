@@ -46,7 +46,7 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-20 text-center shadow-xl flex items-center justify-center gap-3 text-slate-400 text-xs">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-20 text-center shadow-xl flex items-center justify-center gap-3 text-slate-400 text-xs">
         <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
         <span>Sipariş detayları yükleniyor...</span>
       </div>
@@ -55,8 +55,8 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center shadow-xl">
-        <h2 className="text-xl font-bold text-white mb-2">Sipariş Bulunamadı</h2>
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center shadow-xl">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Sipariş Bulunamadı</h2>
         <p className="text-slate-400 text-xs mb-6">
           Aradığınız #{orderId} numaralı sipariş mevcut değil veya silinmiş olabilir.
         </p>

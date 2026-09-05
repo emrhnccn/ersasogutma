@@ -54,14 +54,14 @@ export default function BankAccountsPage() {
             <Building2 className="w-4 h-4" />
             <span>Firma Finans & Havale Bilgileri</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Banka Hesap Bilgileri</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Banka Hesap Bilgileri</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Havale ve EFT ödemeleriniz için Ersa Soğutma resmi banka hesapları
           </p>
         </div>
 
         {/* Currency Filter Tabs */}
-        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-bold self-start">
+        <div className="flex bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-1 rounded-xl text-xs font-bold self-start">
           <button
             onClick={() => setCurrencyFilter('all')}
             className={`px-3 py-1.5 rounded-lg transition ${currencyFilter === 'all' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}`}
@@ -104,9 +104,9 @@ export default function BankAccountsPage() {
           <span>Banka hesapları yükleniyor...</span>
         </div>
       ) : filteredBanks.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400 space-y-3">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center text-slate-400 space-y-3">
           <Building2 className="w-12 h-12 text-slate-600 mx-auto" />
-          <h3 className="text-base font-bold text-white">Kayıtlı Banka Hesabı Bulunamadı</h3>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Kayıtlı Banka Hesabı Bulunamadı</h3>
           <p className="text-xs text-slate-400 max-w-md mx-auto">
             Yönetici panelinden havale ve EFT için resmi banka hesapları eklendiğinde burada listelenecektir.
           </p>
@@ -116,14 +116,14 @@ export default function BankAccountsPage() {
           {filteredBanks.map((bank) => (
             <div
               key={bank.id}
-              className="bg-slate-900 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-4"
+              className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-amber-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-4"
             >
               <div>
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{bank.bankLogo || '🏛️'}</span>
                     <div>
-                      <h3 className="font-bold text-white text-sm leading-tight">{bank.bankName}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-sm leading-tight">{bank.bankName}</h3>
                       <span className="text-[10px] text-slate-400">{bank.branchName || ''} {bank.branchCode ? `(${bank.branchCode})` : ''}</span>
                     </div>
                   </div>
@@ -135,7 +135,7 @@ export default function BankAccountsPage() {
                 <div className="space-y-1.5 text-xs text-slate-300">
                   <div>
                     <span className="text-slate-500 text-[10px] uppercase font-bold block">Hesap Sahibi</span>
-                    <span className="font-bold text-white line-clamp-1">{bank.accountHolder}</span>
+                    <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{bank.accountHolder}</span>
                   </div>
                   <div className="flex justify-between pt-1">
                     <div>
@@ -153,11 +153,11 @@ export default function BankAccountsPage() {
               </div>
 
               {/* IBAN Box with Copy Button */}
-              <div className="pt-2 border-t border-slate-800">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                   IBAN Numarası:
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2">
                   <span className="font-mono font-bold text-xs text-sky-300 truncate select-all">
                     {bank.iban}
                   </span>

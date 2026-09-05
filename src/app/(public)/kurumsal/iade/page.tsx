@@ -17,7 +17,7 @@ export default function ReturnPolicyPage() {
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
         
         <div className="p-4 bg-amber-950/30 rounded-xl border border-amber-800/40 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />

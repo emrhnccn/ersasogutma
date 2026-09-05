@@ -181,7 +181,7 @@ export default function BulkOrderPage() {
             <FileSpreadsheet className="w-4 h-4" />
             <span>Ersa Soğutma Hızlı Toplu Sipariş Matrisi</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
             Toplu Liste & Excel'den Tek Tıkla Sipariş
           </h1>
           <p className="text-slate-300 text-xs mt-1 max-w-2xl">
@@ -209,7 +209,7 @@ export default function BulkOrderPage() {
       </div>
 
       {/* Brand Tabs & Instant Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-3xl scrollbar-thin">
             <button
@@ -252,10 +252,10 @@ export default function BulkOrderPage() {
       </div>
 
       {/* Quick Matrix Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/40">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950/40">
           <div>
-            <span className="text-xs font-bold text-white">Hızlı Sipariş Giriş Tablosu</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-white">Hızlı Sipariş Giriş Tablosu</span>
             <span className="text-slate-500 text-xs ml-2">({filteredProducts.length} Ürün Listeleniyor)</span>
           </div>
 
@@ -275,8 +275,8 @@ export default function BulkOrderPage() {
 
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="sticky top-0 bg-slate-950 z-10">
-              <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+            <thead className="sticky top-0 bg-slate-50 dark:bg-[#0B1120] z-10">
+              <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
                 <th className="py-3 px-4 w-14 text-center">Görsel</th>
                 <th className="py-3 px-4 w-28">Ürün Kodu</th>
                 <th className="py-3 px-4">Ürün Adı</th>
@@ -284,13 +284,13 @@ export default function BulkOrderPage() {
                 <th className="py-3 px-4 w-16 text-center">PİM</th>
                 <th className="py-3 px-4 w-28">Birim Fiyat</th>
                 <th className="py-3 px-4 w-20 text-center">Stok</th>
-                <th className="py-3 px-4 w-32 text-center bg-slate-900 border-l border-r border-slate-800">
+                <th className="py-3 px-4 w-32 text-center bg-slate-100 dark:bg-slate-900 border-l border-r border-slate-200 dark:border-slate-800">
                   Sipariş Adedi
                 </th>
                 <th className="py-3 px-4 w-28 text-right">Tutar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-200">
               {filteredProducts.map((p) => {
                 const qty = bulkQuantities[p.id] || 0;
                 const discountedPrice = p.priceTRY * (1 - (profile.discountRate || 0.20));
@@ -307,14 +307,14 @@ export default function BulkOrderPage() {
                       <img
                         src={p.image}
                         alt={p.name}
-                        className="w-10 h-10 object-cover rounded bg-slate-950 border border-slate-800 mx-auto"
+                        className="w-10 h-10 object-cover rounded bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 mx-auto"
                       />
                     </td>
                     <td className="py-2 px-4 font-mono font-bold text-sky-400">
                       {p.code}
                     </td>
                     <td className="py-2 px-4">
-                      <div className="font-semibold text-white line-clamp-1">{p.name}</div>
+                      <div className="font-semibold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
                       <div className="text-[11px] text-slate-400 font-mono">OEM: {p.oemCode || '-'}</div>
                     </td>
                     <td className="py-2 px-4 text-slate-300">{p.brand}</td>
@@ -327,12 +327,12 @@ export default function BulkOrderPage() {
                     </td>
 
                     {/* Fast Direct Number Input */}
-                    <td className="py-2 px-4 text-center bg-slate-950/60 border-l border-r border-slate-800">
+                    <td className="py-2 px-4 text-center bg-slate-50 dark:bg-slate-950/60 border-l border-r border-slate-800">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => handleQtyChange(p.id, Math.max(0, qty - (p.pim || 1)))}
-                          className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center"
+                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center"
                         >
                           -
                         </button>
@@ -343,14 +343,14 @@ export default function BulkOrderPage() {
                           value={qty === 0 ? '' : qty}
                           placeholder="0"
                           onChange={(e) => handleQtyChange(p.id, parseInt(e.target.value) || 0)}
-                          className={`w-14 bg-slate-900 border rounded py-1 text-center font-mono font-bold text-xs focus:outline-none transition ${
+                          className={`w-14 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded py-1 text-center font-mono font-bold text-xs text-slate-900 dark:text-white focus:outline-none transition ${
                             qty > 0 ? 'border-emerald-500 text-emerald-400 ring-1 ring-emerald-500' : 'border-slate-700 text-white'
                           }`}
                         />
                         <button
                           type="button"
                           onClick={() => handleQtyChange(p.id, qty + (p.pim || 1))}
-                          className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center"
+                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center"
                         >
                           +
                         </button>
@@ -372,7 +372,7 @@ export default function BulkOrderPage() {
       <div className="fixed bottom-4 right-4 sm:right-8 z-30 flex items-center gap-3">
         <Link
           href="/bayi/siparisler/sepet"
-          className="bg-slate-900/95 hover:bg-slate-800 text-white border border-sky-500/40 p-3.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3 transition transform hover:-translate-y-1"
+          className="bg-white/95 dark:bg-slate-900/95 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-sky-500/40 p-3.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3 transition transform hover:-translate-y-1"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 flex items-center justify-center relative">
             <ShoppingCart className="w-5 h-5 text-white" />
@@ -394,13 +394,13 @@ export default function BulkOrderPage() {
 
       {/* Excel / Paste Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 dark:bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-2xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-base font-bold text-white">Excel veya Metin ile Toplu Sipariş Yükleme</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Excel veya Metin ile Toplu Sipariş Yükleme</h3>
               </div>
               <button
                 onClick={() => setShowImportModal(false)}
@@ -413,9 +413,9 @@ export default function BulkOrderPage() {
             <div className="space-y-4 overflow-y-auto flex-1 pr-1">
               
               {/* Option 1: File Upload */}
-              <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-5 text-center bg-slate-950/50 transition">
+              <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-xl p-5 text-center bg-slate-50 dark:bg-slate-950/50 transition">
                 <Upload className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                <div className="text-xs font-bold text-white mb-1">
+                <div className="text-xs font-bold text-slate-900 dark:text-white mb-1">
                   Excel (.xlsx, .xls) veya CSV Dosyası Yükleyin
                 </div>
                 <p className="text-[11px] text-slate-400 mb-3">
@@ -445,7 +445,7 @@ export default function BulkOrderPage() {
                   placeholder={`701010001, 5\n704010001, 3\n703010001, 2`}
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 font-mono text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 font-mono text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
                 />
                 <button
                   type="button"
@@ -460,15 +460,15 @@ export default function BulkOrderPage() {
               {/* Preview Table of Parsed Rows */}
               {parsedRows.length > 0 && (
                 <div className="border border-slate-800 rounded-xl overflow-hidden mt-3">
-                  <div className="bg-slate-950 px-3 py-2 text-xs font-bold text-slate-300 flex justify-between">
+                  <div className="bg-slate-100 dark:bg-slate-950 px-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-300 flex justify-between border-b border-slate-200 dark:border-slate-800">
                     <span>Çözümlenen Kalemler ({parsedRows.length})</span>
                     <span className="text-emerald-400 font-mono">
                       {parsedRows.filter((r) => r.status === 'found').length} Eşleşti
                     </span>
                   </div>
-                  <div className="max-h-44 overflow-y-auto divide-y divide-slate-800 text-xs">
+                  <div className="max-h-44 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                     {parsedRows.map((row, i) => (
-                      <div key={i} className="p-2.5 flex items-center justify-between bg-slate-900/60">
+                      <div key={i} className="p-2.5 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/50">
                         <div className="flex items-center gap-2">
                           {row.status === 'found' ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
@@ -484,7 +484,7 @@ export default function BulkOrderPage() {
                             )}
                           </div>
                         </div>
-                        <div className="font-mono font-bold text-white">{row.qty} Adet</div>
+                        <div className="font-mono font-bold text-slate-900 dark:text-white">{row.qty} Adet</div>
                       </div>
                     ))}
                   </div>
@@ -494,7 +494,7 @@ export default function BulkOrderPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800 mt-4">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
               <button
                 type="button"
                 onClick={() => {

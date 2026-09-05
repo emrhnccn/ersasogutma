@@ -64,7 +64,7 @@ export default function QuotesPage() {
             <FileText className="w-4 h-4" />
             <span>B2B Fiyat Teklif & Proforma Yönetimi</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Tekliflerim & Proformalar</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Tekliflerim & Proformalar</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Müşterileriniz ve projeleriniz için hazırladığınız teklifleri yönetin ve tek tıkla siparişe dönüştürün.
           </p>
@@ -83,8 +83,8 @@ export default function QuotesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left: Quotes List (5 cols) */}
-        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-2">
+        <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-5 shadow-xl space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">
             Kayıtlı Teklifler ({quotes.length})
           </h3>
 
@@ -100,7 +100,7 @@ export default function QuotesPage() {
                 <div
                   key={q.id}
                   onClick={() => setSelectedQuote(q)}
-                  className={`bg-slate-950 border p-4 rounded-xl cursor-pointer transition text-xs space-y-2 ${
+                  className={`bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-xl cursor-pointer transition text-xs space-y-2 ${
                     selectedQuote?.id === q.id ? 'border-purple-500 bg-purple-950/20 shadow-md' : 'border-slate-800 hover:border-slate-700'
                   }`}
                 >
@@ -129,12 +129,12 @@ export default function QuotesPage() {
         </div>
 
         {/* Right: Selected Quote Detail & Print Preview (7 cols) */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-6">
           {selectedQuote ? (
             <div className="space-y-6">
               
               {/* Header Bar */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                   <div className="text-[10px] text-purple-400 font-bold uppercase">Proforma Teklif Belgesi</div>
                   <h2 className="text-lg font-black font-mono text-white">#{selectedQuote.quoteNumber}</h2>
@@ -143,7 +143,7 @@ export default function QuotesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrint}
-                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+                    className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl transition"
                     title="Yazdır / PDF Olarak Kaydet"
                   >
                     <Printer className="w-4 h-4" />
@@ -160,7 +160,7 @@ export default function QuotesPage() {
               </div>
 
               {/* Parties */}
-              <div className="grid grid-cols-2 gap-4 text-xs bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 border border-slate-800">
                 <div>
                   <span className="text-[10px] text-slate-500 uppercase font-bold block">Teklifi Veren</span>
                   <strong className="text-white block mt-0.5">ERSA SOĞUTMA ISITMA SAN. TİC. LTD. ŞTİ.</strong>
@@ -176,7 +176,7 @@ export default function QuotesPage() {
               {/* Items Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left text-slate-300">
-                  <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="p-3">Stok Kodu & Ürün</th>
                       <th className="p-3 text-center">Miktar</th>
@@ -184,16 +184,16 @@ export default function QuotesPage() {
                       <th className="p-3 text-right">Toplam (TL)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
                     {selectedQuote.items.map((i, idx) => (
-                      <tr key={idx} className="hover:bg-slate-800/40">
+                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                         <td className="p-3">
-                          <div className="font-bold text-white line-clamp-1">{i.productName}</div>
+                          <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{i.productName}</div>
                           <span className="font-mono text-sky-400 text-[10px]">{i.productCode}</span>
                         </td>
                         <td className="p-3 text-center font-mono font-bold">{i.quantity}</td>
                         <td className="p-3 font-mono text-slate-400">{formatCurrency(i.unitPriceTRY)}</td>
-                        <td className="p-3 text-right font-mono font-bold text-white">{formatCurrency(i.totalTRY)}</td>
+                        <td className="p-3 text-right font-mono font-bold text-slate-900 dark:text-white">{formatCurrency(i.totalTRY)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -201,7 +201,7 @@ export default function QuotesPage() {
               </div>
 
               {/* Totals */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-end">
+              <div className="bg-slate-50 dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 border border-slate-800 flex justify-end">
                 <div className="w-64 space-y-1.5 text-xs">
                   <div className="flex justify-between text-slate-400">
                     <span>Ara Toplam:</span>
@@ -215,7 +215,7 @@ export default function QuotesPage() {
                     <span>KDV (%20):</span>
                     <span className="font-mono text-slate-300">{formatCurrency(selectedQuote.vatTRY)}</span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-800 font-bold">
+                  <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-800 font-bold">
                     <span className="text-white">Genel Toplam:</span>
                     <span className="font-mono text-base text-emerald-400 font-black">{formatCurrency(selectedQuote.totalTRY)}</span>
                   </div>
@@ -235,8 +235,8 @@ export default function QuotesPage() {
       {/* Modal: New Quote from Cart */}
       {showNewModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-white">Sepetten Proforma Teklif Oluştur</h3>
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Sepetten Proforma Teklif Oluştur</h3>
             <p className="text-xs text-slate-400">
               Sepetinizde bulunan <strong className="text-sky-300">{cart.length} kalem</strong> ürün için resmi geçerlilik tarihli teklif belgesi hazırlanacaktır.
             </p>
@@ -247,7 +247,7 @@ export default function QuotesPage() {
                 <select
                   value={validDays}
                   onChange={(e) => setValidDays(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none"
                 >
                   <option value="7">7 Gün Geçerli</option>
                   <option value="15">15 Gün Geçerli (Önerilen)</option>
@@ -263,7 +263,7 @@ export default function QuotesPage() {
                   placeholder="Örn: Gültekin Şarküteri Soğuk Oda Montaj Projesi Teklifidir..."
                   value={quoteNotes}
                   onChange={(e) => setQuoteNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white focus:outline-none"
                 />
               </div>
 
@@ -271,7 +271,7 @@ export default function QuotesPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold py-2.5 rounded-xl transition"
                 >
                   İptal
                 </button>

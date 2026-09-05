@@ -111,7 +111,7 @@ export function ImageDropzone({
             placeholder="https://... veya /uploads/..."
             value={value}
             onChange={(e) => triggerChange(e.target.value)}
-            className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+            className="flex-1 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
           />
           {value && (
             <button
@@ -125,8 +125,8 @@ export function ImageDropzone({
           )}
         </div>
       ) : value ? (
-        <div className="relative group bg-slate-950 border border-slate-700 rounded-xl p-2 flex items-center gap-3">
-          <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="relative group bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex items-center gap-3">
+          <div className="w-16 h-16 rounded-lg bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-center overflow-hidden flex-shrink-0">
             <img
               src={value}
               alt="Önizleme"
@@ -170,7 +170,7 @@ export function ImageDropzone({
           className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
             isDragging
               ? 'border-sky-500 bg-sky-500/10'
-              : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/60'
+              : 'border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/60'
           }`}
         >
           {isUploading ? (
@@ -180,7 +180,7 @@ export function ImageDropzone({
             </div>
           ) : (
             <>
-              <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 group-hover:text-sky-400 transition">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-center text-slate-400 group-hover:text-sky-400 transition">
                 <UploadCloud className="w-5 h-5 text-sky-400" />
               </div>
               <div>

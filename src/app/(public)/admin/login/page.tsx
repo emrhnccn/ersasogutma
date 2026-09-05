@@ -12,9 +12,9 @@ export default function AdminLoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="bg-slate-950 p-8 text-center border-b border-slate-800">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090D16] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800">
           <div className="mx-auto w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
             <Shield className="w-8 h-8" />
           </div>

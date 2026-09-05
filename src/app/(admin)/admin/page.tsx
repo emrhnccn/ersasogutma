@@ -1097,7 +1097,7 @@ export default function AdminControlPanel() {
               </button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-3">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-3">
               <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
                 <Package className="w-5 h-5" />
                 <span>Ürün ve Stok Yönetimi</span>
@@ -1107,7 +1107,7 @@ export default function AdminControlPanel() {
               </p>
               <button
                 onClick={() => setActiveTab('products')}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
+                className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
               >
                 <span>Kataloğa Git ({dbProducts.length} Ürün)</span>
                 <ChevronRight className="w-4 h-4" />
@@ -1139,11 +1139,11 @@ export default function AdminControlPanel() {
       {activeTab === 'scraper' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5">
+              <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
                 <Bot className="w-5 h-5 text-amber-400" />
                 <div>
-                  <h2 className="text-sm font-bold text-white">Tedarikçi Botu & Ürün Çekme</h2>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white">Tedarikçi Botu & Ürün Çekme</h2>
                   <span className="text-[11px] text-slate-400">Modüler tedarikçi entegrasyonu</span>
                 </div>
               </div>
@@ -1158,7 +1158,7 @@ export default function AdminControlPanel() {
                       placeholder="https://www.ersaticaret.com"
                       value={scrapeTargetUrl}
                       onChange={(e) => setScrapeTargetUrl(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono font-bold focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono font-bold focus:outline-none focus:border-amber-500"
                     />
                     <div className="flex gap-2">
                       <button
@@ -1170,7 +1170,7 @@ export default function AdminControlPanel() {
                         className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
                           scrapeTargetUrl.includes('ersaticaret')
                             ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                            : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
                         }`}
                       >
                         ersaticaret.com (2.375 Ürün)
@@ -1184,7 +1184,7 @@ export default function AdminControlPanel() {
                         className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
                           scrapeTargetUrl.includes('girdap')
                             ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                            : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
                         }`}
                       >
                         girdap.com.tr
@@ -1200,7 +1200,7 @@ export default function AdminControlPanel() {
                       type="text"
                       value={scrapeUsername}
                       onChange={(e) => setScrapeUsername(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
                     />
                   </div>
                   <div>
@@ -1209,7 +1209,7 @@ export default function AdminControlPanel() {
                       type="password"
                       value={scrapePassword}
                       onChange={(e) => setScrapePassword(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
                     />
                   </div>
                 </div>
@@ -1221,14 +1221,14 @@ export default function AdminControlPanel() {
                     value={scrapeMaxLimit}
                     onChange={(e) => setScrapeMaxLimit(e.target.value)}
                     placeholder="Boş Bırakılırsa Tüm 2.375 Ürün Çekilir"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500 block mt-1">
                     * Tüm ürünleri almak için bu alanı boş bırakabilirsiniz.
                   </span>
                 </div>
 
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
+                <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
                   <div className="flex items-center gap-1.5 text-amber-400 font-bold">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Otomatik İşlem Kuralları:</span>
@@ -1263,12 +1263,12 @@ export default function AdminControlPanel() {
               </form>
             </div>
 
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${isScrapingActive ? 'bg-emerald-400 animate-ping' : 'bg-slate-600'}`} />
-                    <h3 className="text-sm font-bold text-white">Canlı Bot Durumu & İlerleme</h3>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Canlı Bot Durumu & İlerleme</h3>
                   </div>
                   <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${
                     scraperProgress?.status === 'running' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
@@ -1286,7 +1286,7 @@ export default function AdminControlPanel() {
                     <span className="text-slate-300 font-medium">{scraperProgress?.currentStep || 'Beklemede'}</span>
                     <span className="font-mono font-bold text-amber-400">%{scraperProgress?.percent || 0}</span>
                   </div>
-                  <div className="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-slate-800 overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-3 p-0.5 border border-slate-200 dark:border-slate-800 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full rounded-full transition-all duration-300"
                       style={{ width: `${scraperProgress?.percent || 0}%` }}
@@ -1295,15 +1295,15 @@ export default function AdminControlPanel() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl text-center">
+                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
                     <span className="text-[10px] text-slate-500 uppercase font-bold block">Taranan Kategori</span>
-                    <span className="text-base font-black text-white font-mono">{scraperProgress?.processedCategories || 0} / {scraperProgress?.totalCategories || 0}</span>
+                    <span className="text-base font-black text-slate-900 dark:text-white font-mono">{scraperProgress?.processedCategories || 0} / {scraperProgress?.totalCategories || 0}</span>
                   </div>
-                  <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl text-center">
+                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
                     <span className="text-[10px] text-slate-500 uppercase font-bold block">Aktarılan Ürün</span>
                     <span className="text-base font-black text-emerald-400 font-mono">{scraperProgress?.importedProducts || 0}</span>
                   </div>
-                  <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl text-center">
+                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
                     <span className="text-[10px] text-slate-500 uppercase font-bold block">Hatalı/Atlanan</span>
                     <span className="text-base font-black text-slate-400 font-mono">{scraperProgress?.failedProducts || 0}</span>
                   </div>
@@ -1315,7 +1315,7 @@ export default function AdminControlPanel() {
                   <span>Terminal / Canlı Log Akışı:</span>
                   <span className="font-mono">{scraperProgress?.logs?.length || 0} satır</span>
                 </div>
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 h-52 overflow-y-auto font-mono text-[11px] space-y-1.5 text-slate-300">
+                <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 h-52 overflow-y-auto font-mono text-[11px] space-y-1.5 text-slate-300">
                   {(!scraperProgress?.logs || scraperProgress.logs.length === 0) ? (
                     <div className="text-slate-600 italic">Henüz bir log kaydı yok. Botu başlattığınızda canlı işlem logları burada akacaktır.</div>
                   ) : (
@@ -1342,7 +1342,7 @@ export default function AdminControlPanel() {
       {/* TAB 3: PRODUCTS (Paginated Database Infinite Scroll) */}
       {activeTab === 'products' && (
         <div className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-4 rounded-2xl shadow-lg">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               <div className="relative flex-1 min-w-[200px] max-w-sm">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -1351,14 +1351,14 @@ export default function AdminControlPanel() {
                   placeholder="Ürün adı, SKU veya barkod ile ara..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <select
                 value={productCategoryFilter}
                 onChange={(e) => setProductCategoryFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
               >
                 <option value="ALL">Tüm Kategoriler</option>
                 {dbCategories.map((c) => (
@@ -1369,7 +1369,7 @@ export default function AdminControlPanel() {
               <select
                 value={productBrandFilter}
                 onChange={(e) => setProductBrandFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
               >
                 <option value="ALL">Tüm Markalar ({adminBrandsList.length})</option>
                 {adminBrandsList.map((b) => (
@@ -1383,7 +1383,7 @@ export default function AdminControlPanel() {
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition ${
                   adminMissingPriceFilter
                     ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
@@ -1393,7 +1393,7 @@ export default function AdminControlPanel() {
               <select
                 value={productSort}
                 onChange={(e) => setProductSort(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
               >
                 <option value="newest">En Yeniler</option>
                 <option value="price_asc">Fiyat: Düşükten Yükseğe</option>
@@ -1402,7 +1402,7 @@ export default function AdminControlPanel() {
                 <option value="stock_desc">Stok: Çoktan Aza</option>
               </select>
 
-              <span className="text-[11px] font-mono text-slate-400 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 Toplam: <strong className="text-sky-400">{adminTotalProducts.toLocaleString('tr-TR')}</strong> Ürün
               </span>
             </div>
@@ -1410,7 +1410,7 @@ export default function AdminControlPanel() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => loadAdminProducts(1, true)}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition"
                 title="Yenile"
               >
                 <RefreshCw className={`w-4 h-4 ${loadingProducts ? 'animate-spin text-sky-400' : ''}`} />
@@ -1425,7 +1425,7 @@ export default function AdminControlPanel() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-xl overflow-hidden">
             {loadingProducts && dbProducts.length === 0 ? (
               <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
@@ -1434,7 +1434,7 @@ export default function AdminControlPanel() {
             ) : dbProducts.length === 0 ? (
               <div className="p-12 text-center text-slate-400 space-y-3">
                 <Package className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-base font-bold text-white">Ürün Bulunamadı</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Ürün Bulunamadı</h3>
                 <p className="text-xs text-slate-400">
                   {productSearch ? 'Arama kriterlerinize uygun ürün yok.' : 'Henüz ürün eklenmemiş. Tedarikçi botu ile ürünleri içeri aktarabilirsiniz.'}
                 </p>
@@ -1442,7 +1442,7 @@ export default function AdminControlPanel() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left text-slate-300">
-                  <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="p-3.5">Görsel</th>
                       <th className="p-3.5">Ürün Adı & Kategori</th>
@@ -1455,11 +1455,11 @@ export default function AdminControlPanel() {
                       <th className="p-3.5 text-right">İşlemler</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
                     {dbProducts.map((p) => {
                       const imgUrl = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder.svg';
                       return (
-                        <tr key={p.id} className="hover:bg-slate-800/40 transition">
+                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                           <td className="p-3.5">
                             <img
                               src={imgUrl}
@@ -1472,7 +1472,7 @@ export default function AdminControlPanel() {
                             />
                           </td>
                           <td className="p-3.5 max-w-sm">
-                            <div className="font-bold text-white line-clamp-1">{p.name}</div>
+                            <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
                             <div className="text-[10px] text-slate-400 mt-0.5">
                               {p.category?.name || 'Kategorisiz'} {p.brand?.name ? `• ${p.brand.name}` : ''}
                             </div>
@@ -1496,7 +1496,7 @@ export default function AdminControlPanel() {
                                     handleUpdateProductInline(p.id, { salePrice: val });
                                   }
                                 }}
-                                className={`w-24 bg-slate-950 border rounded-lg px-2 py-1 font-mono font-bold text-xs focus:outline-none ${
+                                className={`w-24 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white px-2 py-1 font-mono font-bold text-xs focus:outline-none ${
                                   !p.salePrice || Number(p.salePrice) <= 0
                                     ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
                                     : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
@@ -1523,7 +1523,7 @@ export default function AdminControlPanel() {
                                     handleUpdateProductInline(p.id, { discountPercent: val });
                                   }
                                 }}
-                                className="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
+                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
                               />
                               <span className="text-slate-500 text-[10px]">%</span>
                             </div>
@@ -1539,7 +1539,7 @@ export default function AdminControlPanel() {
                                     handleUpdateProductInline(p.id, { stockQty: val });
                                   }
                                 }}
-                                className="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
+                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
                               />
                               <StockBadge stock={p.stockQty} size="sm" showIcon={false} />
                             </div>
@@ -1579,9 +1579,9 @@ export default function AdminControlPanel() {
                 </table>
 
                 {/* Infinite Scroll Sentinel for Admin */}
-                <div ref={adminProductObserverTarget} className="py-6 text-center border-t border-slate-800/40">
+                <div ref={adminProductObserverTarget} className="py-6 text-center border-t border-slate-200 dark:border-slate-800/40">
                   {loadingMoreProducts && (
-                    <div className="inline-flex items-center gap-2 bg-slate-950 border border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg animate-pulse">
+                    <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg animate-pulse">
                       <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
                       <span>Daha fazla ürün yükleniyor...</span>
                     </div>
@@ -1601,8 +1601,8 @@ export default function AdminControlPanel() {
       {/* TAB 4: CATEGORIES */}
       {activeTab === 'categories' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
               <Plus className="w-4 h-4 text-emerald-400" />
               <span>Yeni Kategori Ekle</span>
             </h3>
@@ -1616,7 +1616,7 @@ export default function AdminControlPanel() {
                   placeholder="Örn: Soğutma Kompresörleri"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 />
               </div>
 
@@ -1625,7 +1625,7 @@ export default function AdminControlPanel() {
                 <select
                   value={newCatParent}
                   onChange={(e) => setNewCatParent(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 >
                   <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
                   {dbCategories.map((c) => (
@@ -1642,7 +1642,7 @@ export default function AdminControlPanel() {
                     placeholder="1, 2, 3..."
                     value={newCatSortOrder}
                     onChange={(e) => setNewCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1655,7 +1655,7 @@ export default function AdminControlPanel() {
                     placeholder="Örn: 20"
                     value={newCatDiscount}
                     onChange={(e) => setNewCatDiscount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
                   />
                 </div>
               </div>
@@ -1669,10 +1669,10 @@ export default function AdminControlPanel() {
             </form>
           </div>
 
-          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <FolderTree className="w-4 h-4 text-purple-400" />
                   <span>Kategori Yönetimi & Sıralama ({dbCategories.length})</span>
                 </h3>
@@ -1696,7 +1696,7 @@ export default function AdminControlPanel() {
                 {dbCategories.map((c, idx) => (
                   <div
                     key={c.id}
-                    className="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex items-center justify-between text-xs hover:border-slate-700 transition"
+                    className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-200 dark:border-slate-800/80 p-3 rounded-xl flex items-center justify-between text-xs hover:border-slate-700 transition"
                   >
                     <div className="flex items-center gap-3">
                       {/* Move Up / Down Buttons */}
@@ -1722,8 +1722,8 @@ export default function AdminControlPanel() {
                       </div>
 
                       <div>
-                        <div className="font-bold text-white flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
                             #{c.sortOrder && c.sortOrder > 0 ? c.sortOrder : idx + 1}
                           </span>
                           <span>{c.name}</span>
@@ -1770,10 +1770,10 @@ export default function AdminControlPanel() {
 
       {/* TAB 5: ORDERS (Live PostgreSQL Database Orders) */}
       {activeTab === 'orders' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-sky-400" />
                 <span>Bayi Sipariş Onay & Sevkiyat Yönetimi</span>
               </h2>
@@ -1786,7 +1786,7 @@ export default function AdminControlPanel() {
               <select
                 value={adminOrderFilter}
                 onChange={(e) => setAdminOrderFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
               >
                 <option value="ALL">Tüm Durumlar ({adminOrders.length})</option>
                 <option value="PENDING_APPROVAL">⏳ Onay Bekleyenler</option>
@@ -1798,7 +1798,7 @@ export default function AdminControlPanel() {
 
               <button
                 onClick={loadAdminOrders}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition"
                 title="Yenile"
               >
                 <RefreshCw className={`w-4 h-4 ${loadingAdminOrders ? 'animate-spin text-sky-400' : ''}`} />
@@ -1827,9 +1827,9 @@ export default function AdminControlPanel() {
                   return (
                     <div
                       key={order.id}
-                      className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 text-xs hover:border-slate-700 transition shadow-lg"
+                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 text-xs hover:border-slate-700 transition shadow-lg"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-sky-400 text-sm">#{order.orderNumber}</span>
@@ -1854,11 +1854,11 @@ export default function AdminControlPanel() {
                       </div>
 
                       {/* Items */}
-                      <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-800/60 space-y-2">
+                      <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800/60 space-y-2">
                         <span className="text-[11px] font-bold text-slate-400 block">Sipariş Kalemleri ({order.items?.length || 0} Ürün):</span>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {order.items?.map((item: any) => (
-                            <div key={item.id} className="flex items-center gap-2.5 bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                            <div key={item.id} className="flex items-center gap-2.5 bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px]">
                               <img
                                 src={item.image || '/placeholder.svg'}
                                 alt=""
@@ -1866,7 +1866,7 @@ export default function AdminControlPanel() {
                                 onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-white truncate">{item.name}</div>
+                                <div className="font-semibold text-slate-900 dark:text-white truncate">{item.name}</div>
                                 <div className="text-[10px] text-slate-400 font-mono">
                                   {item.sku} • {item.quantity} {item.unit || 'ADET'} × {formatCurrency(item.unitNetExVat)}
                                 </div>
@@ -1880,7 +1880,7 @@ export default function AdminControlPanel() {
                       </div>
 
                       {order.orderNote && (
-                        <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-[11px] text-amber-300">
+                        <div className="bg-amber-50/50 dark:bg-slate-900 p-2.5 rounded-xl border border-amber-200 dark:border-slate-800 text-[11px] text-amber-800 dark:text-amber-300">
                           <strong>Bayi Sipariş Notu:</strong> {order.orderNote}
                         </div>
                       )}
@@ -1955,14 +1955,14 @@ export default function AdminControlPanel() {
       {/* TAB: LIVE CARTS (CANLI SEPETLER) */}
       {activeTab === 'carts' && (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>Aktif Bayi Canlı Sepetleri</span>
                     <span className="text-xs bg-cyan-500/20 text-cyan-400 font-mono px-2 py-0.5 rounded-full border border-cyan-500/30">
                       {adminCarts.length} Aktif Sepet
@@ -1982,7 +1982,7 @@ export default function AdminControlPanel() {
                     placeholder="Bayi adı, kullanıcı veya ürün ara..."
                     value={cartSearchQuery}
                     onChange={(e) => setCartSearchQuery(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
                   />
                 </div>
                 <button
@@ -2002,13 +2002,13 @@ export default function AdminControlPanel() {
                 <span>Canlı sepet verileri yükleniyor...</span>
               </div>
             ) : adminCarts.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
+              <div className="p-12 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
                 Şu anda sistemde ürün eklenmiş aktif bir bayi sepeti bulunmuyor.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="py-3 px-4">Bayi Bilgisi</th>
                       <th className="py-3 px-4">İletişim</th>
@@ -2020,7 +2020,7 @@ export default function AdminControlPanel() {
                       <th className="py-3 px-4 text-right">İşlem</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
                     {adminCarts
                       .filter((c) => {
                         if (!cartSearchQuery.trim()) return true;
@@ -2032,10 +2032,10 @@ export default function AdminControlPanel() {
                         );
                       })
                       .map((cart) => (
-                        <tr key={cart.cartId} className="hover:bg-slate-800/40 transition group">
+                        <tr key={cart.cartId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition group">
                           <td className="py-3.5 px-4">
                             <div className="font-mono font-bold text-sky-400">{cart.dealer.username}</div>
-                            <div className="font-bold text-white text-sm">{cart.dealer.companyName}</div>
+                            <div className="font-bold text-slate-900 dark:text-white text-sm">{cart.dealer.companyName}</div>
                             <div className="text-[10px] text-slate-500">VN: {cart.dealer.taxNo}</div>
                           </td>
                           <td className="py-3.5 px-4">
@@ -2048,7 +2048,7 @@ export default function AdminControlPanel() {
                             </span>
                           </td>
                           <td className="py-3.5 px-4 text-center font-mono">
-                            <span className="font-bold text-white">{cart.summary.distinctItemCount} Çeşit</span>
+                            <span className="font-bold text-slate-900 dark:text-white">{cart.summary.distinctItemCount} Çeşit</span>
                             <span className="text-slate-500 block text-[10px]">Toplam {cart.summary.totalQuantity} Adet</span>
                           </td>
                           <td className="py-3.5 px-4 text-right">
@@ -2092,15 +2092,15 @@ export default function AdminControlPanel() {
 
           {/* Interactive Modal for Cart Details */}
           {selectedAdminCart && (
-            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+            <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-sm">
                       <ShoppingBag className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-white">{selectedAdminCart.dealer.companyName}</h3>
+                      <h3 className="text-base font-black text-slate-900 dark:text-white">{selectedAdminCart.dealer.companyName}</h3>
                       <p className="text-xs text-slate-400 font-mono">
                         {selectedAdminCart.dealer.username} • Özel İskonto: %{selectedAdminCart.dealer.customDiscountPercent || 0} • Tel: {selectedAdminCart.dealer.phone}
                       </p>
@@ -2115,10 +2115,10 @@ export default function AdminControlPanel() {
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                  <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                  <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                     <div>
                       <span className="text-xs text-slate-400">Toplam Sepet Kalem / Adet:</span>
-                      <div className="text-sm font-bold text-white font-mono">
+                      <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
                         {selectedAdminCart.summary.distinctItemCount} Çeşit • {selectedAdminCart.summary.totalQuantity} Adet
                       </div>
                     </div>
@@ -2130,18 +2130,18 @@ export default function AdminControlPanel() {
                     </div>
                   </div>
 
-                  <div className="border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80">
+                  <div className="border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80">
                     {selectedAdminCart.items.map((item: any) => (
-                      <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-800/30 transition">
+                      <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
                         <div className="flex items-center gap-3">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-12 h-12 rounded-xl object-cover bg-slate-950 border border-slate-800 shrink-0"
+                            className="w-12 h-12 rounded-xl object-cover bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 shrink-0"
                             onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
                           />
                           <div>
-                            <div className="font-bold text-white text-xs">{item.name}</div>
+                            <div className="font-bold text-slate-900 dark:text-white text-xs">{item.name}</div>
                             <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
                             <div className="text-[10px] text-slate-400 mt-0.5">
                               Liste: {formatCurrency(item.basePriceTRY)} • Bayi Fiyatı: <strong className="text-emerald-400">{formatCurrency(item.unitPriceTRY)}</strong>
@@ -2177,10 +2177,10 @@ export default function AdminControlPanel() {
                   </div>
                 </div>
 
-                <div className="p-4 border-t border-slate-800 bg-slate-950/60 flex justify-end">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex justify-end">
                   <button
                     onClick={() => setSelectedAdminCart(null)}
-                    className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                    className="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
                   >
                     Kapat
                   </button>
@@ -2196,14 +2196,14 @@ export default function AdminControlPanel() {
         <div className="space-y-8">
           
           {/* Section 1: Dealer Applications (Bayilik Başvuruları) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>Gelen Bayilik Başvuruları</span>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                       {dealerApplications.filter(a => a.status === 'PENDING').length} Bekleyen Başvuru
@@ -2221,7 +2221,7 @@ export default function AdminControlPanel() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="py-3 px-4">Firma Ünvanı & Yetkili</th>
                       <th className="py-3 px-4">İletişim & Konum</th>
@@ -2231,11 +2231,11 @@ export default function AdminControlPanel() {
                       <th className="py-3 px-4 text-right">İşlemler</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
                     {dealerApplications.map((app) => (
-                      <tr key={app.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-white">{app.companyName}</div>
+                          <div className="font-bold text-slate-900 dark:text-white">{app.companyName}</div>
                           <div className="text-slate-400 text-[11px]">{app.contactPerson}</div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -2334,10 +2334,10 @@ export default function AdminControlPanel() {
           </div>
 
           {/* Section 2: Registered Dealers Table & Management */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-sky-400" />
                   <span>Kayıtlı Bayiler & Cari Yönetimi ({dealersList.length})</span>
                 </h2>
@@ -2346,7 +2346,7 @@ export default function AdminControlPanel() {
               <button
                 onClick={loadDealers}
                 disabled={loadingDealers}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loadingDealers ? 'animate-spin text-sky-400' : ''}`} />
                 <span>Listeyi Yenile</span>
@@ -2359,13 +2359,13 @@ export default function AdminControlPanel() {
                 <span>Bayiler yükleniyor...</span>
               </div>
             ) : dealersList.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
+              <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
                 Kayıtlı bayi bulunamadı. Yukarıdaki başvurulardan bayilik onaylayarak yeni bayi oluşturabilirsiniz.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
                       <th className="py-3 px-4">Yetkili & İletişim</th>
@@ -2378,12 +2378,12 @@ export default function AdminControlPanel() {
                       <th className="py-3 px-4 text-right">İşlemler</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
                     {dealersList.map((dealer) => (
-                      <tr key={dealer.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={dealer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="py-3.5 px-4">
                           <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
-                          <div className="font-bold text-white text-sm">{dealer.companyName}</div>
+                          <div className="font-bold text-slate-900 dark:text-white text-sm">{dealer.companyName}</div>
                           <div className="text-[10px] text-slate-500">Kayıt: {dealer.registeredAt}</div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -2408,7 +2408,7 @@ export default function AdminControlPanel() {
                           {formatCurrency(dealer.availableCredit)}
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-white">{dealer.totalOrders} Sipariş</div>
+                          <div className="font-bold text-slate-900 dark:text-white">{dealer.totalOrders} Sipariş</div>
                           <div className="text-[10px] text-slate-500">Son: {dealer.lastOrderDate}</div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -2439,16 +2439,16 @@ export default function AdminControlPanel() {
 
           {/* Section 3: Interactive Dealer Details & Live Cart & Cari Modal */}
           {selectedDealerId && selectedDealerDetail && (
-            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
                 {/* Modal Header */}
-                <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-sm">
                       {selectedDealerDetail.legalName?.slice(0, 2).toUpperCase() || 'ER'}
                     </div>
                     <div>
-                      <h2 className="text-base font-black text-white">{selectedDealerDetail.legalName}</h2>
+                      <h2 className="text-base font-black text-slate-900 dark:text-white">{selectedDealerDetail.legalName}</h2>
                       <p className="text-xs text-slate-400 font-mono">
                         {selectedDealerDetail.user?.username} • Özel İskonto: %{selectedDealerDetail.customDiscountPercent || 0} • {selectedDealerDetail.phone}
                       </p>
@@ -2466,7 +2466,7 @@ export default function AdminControlPanel() {
                 </div>
 
                 {/* Modal Tabs Bar */}
-                <div className="flex border-b border-slate-800 bg-slate-950/40 px-5 gap-2">
+                <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 px-5 gap-2">
                   {[
                     { id: 'info', label: 'Genel & Limit', icon: Building2 },
                     { id: 'finance', label: `Cari & Hareketler (${selectedDealerDetail.finance?.transactions?.length || 0})`, icon: CreditCard },
@@ -2529,7 +2529,7 @@ export default function AdminControlPanel() {
                       }}
                       className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
                     >
-                      <div className="md:col-span-2 bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="md:col-span-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div>
                           <span className="text-slate-400 block text-[11px] font-semibold">Bayi Giriş Kullanıcı Adı:</span>
                           <span className="text-sm font-mono font-bold text-sky-400">
@@ -2576,7 +2576,7 @@ export default function AdminControlPanel() {
                           required
                           value={editLegalName}
                           onChange={(e) => setEditLegalName(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                         />
                       </div>
 
@@ -2591,7 +2591,7 @@ export default function AdminControlPanel() {
                             placeholder="0.00"
                             value={editCustomDiscount}
                             onChange={(e) => setEditCustomDiscount(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-8 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
+                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-8 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
                           />
                           <span className="absolute right-3 top-2 text-slate-500 font-bold">%</span>
                         </div>
@@ -2604,7 +2604,7 @@ export default function AdminControlPanel() {
                           type="text"
                           value={editTaxOffice}
                           onChange={(e) => setEditTaxOffice(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                         />
                       </div>
 
@@ -2614,7 +2614,7 @@ export default function AdminControlPanel() {
                           type="text"
                           value={editTaxNo}
                           onChange={(e) => setEditTaxNo(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
                         />
                       </div>
 
@@ -2624,7 +2624,7 @@ export default function AdminControlPanel() {
                           type="text"
                           value={editPhone}
                           onChange={(e) => setEditPhone(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
                         />
                       </div>
 
@@ -2634,7 +2634,7 @@ export default function AdminControlPanel() {
                           type="email"
                           value={editEmail}
                           onChange={(e) => setEditEmail(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                         />
                       </div>
 
@@ -2644,7 +2644,7 @@ export default function AdminControlPanel() {
                           type="number"
                           value={editCreditLimit}
                           onChange={(e) => setEditCreditLimit(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
                         />
                       </div>
 
@@ -2653,7 +2653,7 @@ export default function AdminControlPanel() {
                         <select
                           value={editStatus}
                           onChange={(e) => setEditStatus(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                         >
                           <option value="ACTIVE">Aktif (Sipariş Verebilir)</option>
                           <option value="SUSPENDED">Askıda (Geçici Olarak Kapalı)</option>
@@ -2677,25 +2677,25 @@ export default function AdminControlPanel() {
                     <div className="space-y-6">
                       {/* Financial KPI Cards */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
                           <span className="text-slate-400 block mb-1">Cari Bakiye (Borç)</span>
                           <span className="text-base font-black text-rose-400 font-mono">
                             {formatCurrency(selectedDealerDetail.finance?.currentBalance || 0)}
                           </span>
                         </div>
-                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
                           <span className="text-slate-400 block mb-1">Kredi Limiti</span>
                           <span className="text-base font-black text-emerald-400 font-mono">
                             {formatCurrency(selectedDealerDetail.finance?.creditLimit || 0)}
                           </span>
                         </div>
-                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
                           <span className="text-slate-400 block mb-1">Kullanılabilir Limit</span>
                           <span className="text-base font-black text-cyan-400 font-mono">
                             {formatCurrency(selectedDealerDetail.finance?.availableCredit || 0)}
                           </span>
                         </div>
-                        <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl">
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
                           <span className="text-slate-400 block mb-1">Toplam İşlem Adedi</span>
                           <span className="text-base font-black text-slate-200 font-mono">
                             {selectedDealerDetail.finance?.transactions?.length || 0}
@@ -2704,8 +2704,8 @@ export default function AdminControlPanel() {
                       </div>
 
                       {/* Add Transaction Form */}
-                      <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl space-y-3">
-                        <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                      <div className="bg-slate-50 dark:bg-[#0B1120]/60 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
                           <Plus className="w-4 h-4 text-emerald-400" />
                           <span>Yeni Cari Hareket Ekle (Borç / Tahsilat)</span>
                         </h4>
@@ -2753,7 +2753,7 @@ export default function AdminControlPanel() {
                             <select
                               value={drawerDocType}
                               onChange={(e) => setDrawerDocType(e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white focus:outline-none"
                             >
                               <option value="MANUAL_DEBIT">Manuel Borç (Fatura / Satış)</option>
                               <option value="MANUAL_CREDIT">Tahsilat / Ödeme (Alacak)</option>
@@ -2769,7 +2769,7 @@ export default function AdminControlPanel() {
                               placeholder="0.00"
                               value={drawerAmount}
                               onChange={(e) => setDrawerAmount(e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
                             />
                           </div>
 
@@ -2780,7 +2780,7 @@ export default function AdminControlPanel() {
                               placeholder="Örn: DEK-2026-001"
                               value={drawerDocNo}
                               onChange={(e) => setDrawerDocNo(e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
                             />
                           </div>
 
@@ -2791,7 +2791,7 @@ export default function AdminControlPanel() {
                               placeholder="Örn: Havale ile tahsilat"
                               value={drawerNote}
                               onChange={(e) => setDrawerNote(e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white focus:outline-none"
                             />
                           </div>
 
@@ -2811,7 +2811,7 @@ export default function AdminControlPanel() {
                       {/* Transactions Table */}
                       <div className="overflow-x-auto border border-slate-800 rounded-2xl">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                          <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
                             <tr>
                               <th className="py-2.5 px-3">Tarih</th>
                               <th className="py-2.5 px-3">Tür</th>
@@ -2820,9 +2820,9 @@ export default function AdminControlPanel() {
                               <th className="py-2.5 px-3 text-right">Son Bakiye</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/60">
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
                             {selectedDealerDetail.finance?.transactions?.map((t: any) => (
-                              <tr key={t.id} className="hover:bg-slate-800/40">
+                              <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                 <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
                                   {new Date(t.createdAt).toLocaleDateString('tr-TR')} {new Date(t.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                 </td>
@@ -2855,8 +2855,8 @@ export default function AdminControlPanel() {
                   {/* TAB 3: LIVE CART */}
                   {dealerDrawerTab === 'cart' && (
                     <div className="space-y-4 text-xs">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <span className="font-bold text-white">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <span className="font-bold text-slate-900 dark:text-white">
                           Bayinin Aktif Veritabanı Sepeti ({selectedDealerDetail.cart?.items?.length || 0} Kalem)
                         </span>
                         <span className="font-mono text-emerald-400 font-bold text-sm">
@@ -2865,15 +2865,15 @@ export default function AdminControlPanel() {
                       </div>
 
                       {!selectedDealerDetail.cart || selectedDealerDetail.cart.items.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 bg-slate-950/40 rounded-2xl border border-slate-800">
+                        <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-800">
                           Bayinin sepeti şu anda boş.
                         </div>
                       ) : (
-                        <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
                           {selectedDealerDetail.cart.items.map((item: any) => (
-                            <div key={item.id} className="p-3.5 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition">
+                            <div key={item.id} className="p-3.5 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                               <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 shrink-0 overflow-hidden">
+                                <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-1 shrink-0 overflow-hidden">
                                   <img
                                     src={item.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
                                     alt={item.name}
@@ -2882,7 +2882,7 @@ export default function AdminControlPanel() {
                                   />
                                 </div>
                                 <div>
-                                  <div className="font-bold text-white text-xs">{item.name}</div>
+                                  <div className="font-bold text-slate-900 dark:text-white text-xs">{item.name}</div>
                                   <div className="text-[10px] font-mono text-sky-400 mt-0.5">{item.sku}</div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <span className="text-[10px] text-slate-400">Birim: {formatCurrency(item.salePrice)} + KDV</span>
@@ -2892,7 +2892,7 @@ export default function AdminControlPanel() {
                               </div>
 
                               <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-1">
+                                <div className="flex items-center gap-1 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-lg p-1">
                                   <button
                                     onClick={async () => {
                                       await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
@@ -2902,11 +2902,11 @@ export default function AdminControlPanel() {
                                       });
                                       openDealerDrawer(selectedDealerDetail.id);
                                     }}
-                                    className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold"
+                                    className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold"
                                   >
                                     -
                                   </button>
-                                  <span className="w-8 text-center font-mono font-bold text-white">{item.quantity}</span>
+                                  <span className="w-8 text-center font-mono font-bold text-slate-900 dark:text-white">{item.quantity}</span>
                                   <button
                                     onClick={async () => {
                                       await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
@@ -2916,7 +2916,7 @@ export default function AdminControlPanel() {
                                       });
                                       openDealerDrawer(selectedDealerDetail.id);
                                     }}
-                                    className="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold"
+                                    className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold"
                                   >
                                     +
                                   </button>
@@ -2954,13 +2954,13 @@ export default function AdminControlPanel() {
                   {dealerDrawerTab === 'orders' && (
                     <div className="space-y-3 text-xs">
                       {selectedDealerDetail.orders.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 bg-slate-950/40 rounded-2xl border border-slate-800">
+                        <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-800">
                           Bu bayiye ait henüz sipariş kaydı bulunmuyor.
                         </div>
                       ) : (
-                        <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
                           {selectedDealerDetail.orders.map((order: any) => (
-                            <div key={order.id} className="p-4 space-y-2 hover:bg-slate-800/30 transition">
+                            <div key={order.id} className="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <span className="font-mono font-bold text-sky-400">{order.orderNo}</span>
@@ -3001,8 +3001,8 @@ export default function AdminControlPanel() {
       {/* TAB 7: BANK ACCOUNTS & SETTINGS */}
       {activeTab === 'bank_accounts' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
               <Plus className="w-4 h-4 text-emerald-400" />
               <span>Yeni Banka Hesabı Ekle</span>
             </h3>
@@ -3016,7 +3016,7 @@ export default function AdminControlPanel() {
                   placeholder="Örn: Garanti BBVA"
                   value={newBankName}
                   onChange={(e) => setNewBankName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 />
               </div>
 
@@ -3027,7 +3027,7 @@ export default function AdminControlPanel() {
                   required
                   value={newAccountHolder}
                   onChange={(e) => setNewAccountHolder(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 />
               </div>
 
@@ -3039,7 +3039,7 @@ export default function AdminControlPanel() {
                   placeholder="TR..."
                   value={newIban}
                   onChange={(e) => setNewIban(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sky-300 font-mono font-bold focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sky-300 font-mono font-bold focus:outline-none"
                 />
               </div>
 
@@ -3051,7 +3051,7 @@ export default function AdminControlPanel() {
                     placeholder="Darıca Şubesi"
                     value={newBranch}
                     onChange={(e) => setNewBranch(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3059,7 +3059,7 @@ export default function AdminControlPanel() {
                   <select
                     value={newCurrency}
                     onChange={(e) => setNewCurrency(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                   >
                     <option value="TRY">TRY (₺)</option>
                     <option value="USD">USD ($)</option>
@@ -3075,7 +3075,7 @@ export default function AdminControlPanel() {
                   placeholder="TGBAISX"
                   value={newSwift}
                   onChange={(e) => setNewSwift(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
                 />
               </div>
 
@@ -3088,9 +3088,9 @@ export default function AdminControlPanel() {
             </form>
           </div>
 
-          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-sky-400" />
                 <span>Tanımlı Banka Hesapları ({bankAccounts.length})</span>
               </h3>
@@ -3110,11 +3110,11 @@ export default function AdminControlPanel() {
                 {bankAccounts.map((b) => (
                   <div
                     key={b.id}
-                    className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-xs gap-3"
+                    className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between text-xs gap-3"
                   >
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white">{b.bankName}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{b.bankName}</span>
                         <span className="bg-slate-800 text-emerald-400 px-2 py-0.2 rounded font-mono font-bold text-[10px]">
                           {b.currency}
                         </span>
@@ -3140,14 +3140,14 @@ export default function AdminControlPanel() {
 
       {/* TAB 8: AUDIT LOGS & SECURITY */}
       {activeTab === 'audit' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>Sistem Güvenlik & Audit Günlüğü</span>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
                     {auditLogs.length} Kayıt
@@ -3160,7 +3160,7 @@ export default function AdminControlPanel() {
             <button
               onClick={loadAuditLogs}
               disabled={loadingAuditLogs}
-              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700"
+              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingAuditLogs ? 'animate-spin text-purple-400' : ''}`} />
               <span>Yenile</span>
@@ -3176,7 +3176,7 @@ export default function AdminControlPanel() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="py-3 px-4">Tarih / Saat</th>
                     <th className="py-3 px-4">Kullanıcı & Rol</th>
@@ -3185,14 +3185,14 @@ export default function AdminControlPanel() {
                     <th className="py-3 px-4">Detay / Payload</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
                   {auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-800/40 transition">
+                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                       <td className="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">
                         {log.createdAt}
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-white">{log.actorName}</div>
+                        <div className="font-bold text-slate-900 dark:text-white">{log.actorName}</div>
                         <span className="text-[10px] text-sky-400 font-mono">{log.actorRole}</span>
                       </td>
                       <td className="py-3.5 px-4">
@@ -3211,7 +3211,7 @@ export default function AdminControlPanel() {
                         <div className="text-[10px] text-slate-500 font-mono truncate max-w-[120px]">{log.entityId}</div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="bg-slate-950 p-2 rounded-lg font-mono text-[11px] text-slate-300 max-w-md overflow-x-auto">
+                        <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded-lg font-mono text-[11px] text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-800 max-w-md overflow-x-auto">
                           {log.afterJson ? JSON.stringify(log.afterJson) : log.beforeJson ? JSON.stringify(log.beforeJson) : '—'}
                         </div>
                       </td>
@@ -3227,9 +3227,9 @@ export default function AdminControlPanel() {
       {/* MODAL: NEW PRODUCT */}
       {isNewProductModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-white text-base">Yeni Ürün Oluştur</h3>
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">Yeni Ürün Oluştur</h3>
               <button onClick={() => setIsNewProductModalOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -3244,7 +3244,7 @@ export default function AdminControlPanel() {
                   placeholder="Örn: 2.5 kW Tavan Tipi Evaporatör"
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 />
               </div>
 
@@ -3257,7 +3257,7 @@ export default function AdminControlPanel() {
                     placeholder="ERS-7010..."
                     value={newProductSku}
                     onChange={(e) => setNewProductSku(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3265,7 +3265,7 @@ export default function AdminControlPanel() {
                   <select
                     value={newProductCategory}
                     onChange={(e) => setNewProductCategory(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                   >
                     <option value="">-- Kategori Seçin --</option>
                     {dbCategories.map((c) => (
@@ -3284,7 +3284,7 @@ export default function AdminControlPanel() {
                     placeholder="0.00"
                     value={newProductCost}
                     onChange={(e) => setNewProductCost(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3295,7 +3295,7 @@ export default function AdminControlPanel() {
                     placeholder="0.00"
                     value={newProductSale}
                     onChange={(e) => setNewProductSale(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3308,7 +3308,7 @@ export default function AdminControlPanel() {
                     placeholder="0"
                     value={newProductDiscount}
                     onChange={(e) => setNewProductDiscount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3317,7 +3317,7 @@ export default function AdminControlPanel() {
                     type="number"
                     value={newProductStock}
                     onChange={(e) => setNewProductStock(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3333,7 +3333,7 @@ export default function AdminControlPanel() {
                 <button
                   type="button"
                   onClick={() => setIsNewProductModalOpen(false)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
                 >
                   İptal
                 </button>
@@ -3352,11 +3352,11 @@ export default function AdminControlPanel() {
       {/* MODAL: EDIT PRODUCT */}
       {editingProduct && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Edit className="w-4 h-4 text-sky-400" />
-                <h3 className="font-bold text-white text-base">Ürünü Düzenle</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">Ürünü Düzenle</h3>
               </div>
               <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
@@ -3371,7 +3371,7 @@ export default function AdminControlPanel() {
                   required
                   value={editProdName}
                   onChange={(e) => setEditProdName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -3383,7 +3383,7 @@ export default function AdminControlPanel() {
                     required
                     value={editProdSku}
                     onChange={(e) => setEditProdSku(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none focus:border-sky-500"
                   />
                 </div>
                 <div>
@@ -3393,7 +3393,7 @@ export default function AdminControlPanel() {
                     value={editProdBarcode}
                     onChange={(e) => setEditProdBarcode(e.target.value)}
                     placeholder="8690000000000"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-300 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-300 focus:outline-none"
                   />
                 </div>
               </div>
@@ -3403,7 +3403,7 @@ export default function AdminControlPanel() {
                 <select
                   value={editProdCategory}
                   onChange={(e) => setEditProdCategory(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
                 >
                   <option value="">-- Kategori Seçin --</option>
                   {dbCategories.map((c) => (
@@ -3421,7 +3421,7 @@ export default function AdminControlPanel() {
                     placeholder="0.00"
                     value={editProdCost}
                     onChange={(e) => setEditProdCost(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3432,7 +3432,7 @@ export default function AdminControlPanel() {
                     placeholder="0.00"
                     value={editProdSale}
                     onChange={(e) => setEditProdSale(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -3445,7 +3445,7 @@ export default function AdminControlPanel() {
                     placeholder="0"
                     value={editProdDiscount}
                     onChange={(e) => setEditProdDiscount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
@@ -3454,7 +3454,7 @@ export default function AdminControlPanel() {
                     type="number"
                     value={editProdStock}
                     onChange={(e) => setEditProdStock(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3470,7 +3470,7 @@ export default function AdminControlPanel() {
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
                 >
                   İptal
                 </button>
@@ -3497,11 +3497,11 @@ export default function AdminControlPanel() {
       {/* MODAL: EDIT CATEGORY */}
       {editingCategory && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FolderTree className="w-4 h-4 text-purple-400" />
-                <h3 className="font-bold text-white text-base">Kategoriyi Düzenle</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">Kategoriyi Düzenle</h3>
               </div>
               <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
@@ -3516,7 +3516,7 @@ export default function AdminControlPanel() {
                   required
                   value={editCatName}
                   onChange={(e) => setEditCatName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -3525,7 +3525,7 @@ export default function AdminControlPanel() {
                 <select
                   value={editCatParent}
                   onChange={(e) => setEditCatParent(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
                 >
                   <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
                   {dbCategories
@@ -3543,7 +3543,7 @@ export default function AdminControlPanel() {
                     type="number"
                     value={editCatSortOrder}
                     onChange={(e) => setEditCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
                   />
                 </div>
                 <div>
@@ -3555,7 +3555,7 @@ export default function AdminControlPanel() {
                     max="100"
                     value={editCatDiscount}
                     onChange={(e) => setEditCatDiscount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
                   />
                 </div>
               </div>
@@ -3564,7 +3564,7 @@ export default function AdminControlPanel() {
                 <button
                   type="button"
                   onClick={() => setEditingCategory(null)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
                 >
                   İptal
                 </button>
@@ -3590,9 +3590,9 @@ export default function AdminControlPanel() {
 
       {/* Modal: New Dealer Credentials / Temporary Password */}
       {createdCredentialsModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <span>{createdCredentialsModal.title}</span>
@@ -3609,14 +3609,14 @@ export default function AdminControlPanel() {
               <strong className="text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
             </p>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                 <span className="text-slate-400">Kullanıcı Adı:</span>
                 <span className="text-sky-400 font-bold text-sm">{createdCredentialsModal.username}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Geçici Şifre:</span>
-                <span className="text-emerald-400 font-bold text-sm bg-slate-900 px-2 py-1 rounded border border-slate-800">
+                <span className="text-emerald-400 font-bold text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white">
                   {createdCredentialsModal.tempPassword}
                 </span>
               </div>
@@ -3639,7 +3639,7 @@ export default function AdminControlPanel() {
               </button>
               <button
                 onClick={() => setCreatedCredentialsModal(null)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl transition"
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition"
               >
                 Tamam
               </button>

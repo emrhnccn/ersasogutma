@@ -17,9 +17,9 @@ export default function PrivacyPolicyPage() {
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 text-slate-300 leading-relaxed">
         
-        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex items-center gap-3">
+        <div className="p-4 bg-slate-50 dark:bg-[#0B1120] rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
           <ShieldCheck className="w-8 h-8 text-emerald-400 flex-shrink-0" />
           <div>
             <div className="font-bold text-white text-sm">256-Bit SSL Sertifikalı Güvenli Altyapı</div>

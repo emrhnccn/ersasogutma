@@ -36,7 +36,7 @@ export default function NotesPage() {
             <StickyNote className="w-4 h-4" />
             <span>Kişisel Bayi Araçları</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Notlarım</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Notlarım</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Siparişleriniz, müşteri talepleriniz ve parça listelerinizle ilgili özel notlar
           </p>
@@ -52,7 +52,7 @@ export default function NotesPage() {
       </div>
 
       {/* Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl">
         <div className="relative max-w-md">
           <input
             type="text"
@@ -67,7 +67,7 @@ export default function NotesPage() {
 
       {/* Notes Grid */}
       {filteredNotes.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-sm">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-12 text-center text-slate-500 text-sm">
           Henüz kayıtlı bir notunuz bulunmamaktadır.
         </div>
       ) : (
@@ -75,11 +75,11 @@ export default function NotesPage() {
           {filteredNotes.map((note) => (
             <div
               key={note.id}
-              className="bg-slate-900 border border-slate-800 hover:border-yellow-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-3"
+              className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-yellow-500/40 rounded-2xl p-5 shadow-xl transition flex flex-col justify-between space-y-3"
             >
               <div>
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                  <h3 className="font-bold text-white text-sm">{note.title}</h3>
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 mb-2">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">{note.title}</h3>
                   <button
                     onClick={() => deleteNote(note.id)}
                     className="text-slate-500 hover:text-rose-400 p-1"
@@ -93,7 +93,7 @@ export default function NotesPage() {
                 </p>
               </div>
 
-              <div className="text-[10px] text-slate-500 font-mono pt-2 border-t border-slate-800/80 flex justify-between">
+              <div className="text-[10px] text-slate-500 font-mono pt-2 border-t border-slate-200 dark:border-slate-800/80 flex justify-between">
                 <span>Oluşturulma:</span>
                 <span>{note.date}</span>
               </div>
@@ -104,9 +104,9 @@ export default function NotesPage() {
 
       {/* Add Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
-            <h3 className="text-base font-bold text-white">Yeni Not Ekle</h3>
+        <div className="fixed inset-0 bg-black/60 dark:bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Yeni Not Ekle</h3>
             <form onSubmit={handleAdd} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-300 font-semibold mb-1">Başlık:</label>
@@ -116,7 +116,7 @@ export default function NotesPage() {
                   placeholder="Not başlığı..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
                 />
               </div>
 
@@ -127,7 +127,7 @@ export default function NotesPage() {
                   placeholder="Notunuzun detayları..."
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 resize-none"
                 />
               </div>
 

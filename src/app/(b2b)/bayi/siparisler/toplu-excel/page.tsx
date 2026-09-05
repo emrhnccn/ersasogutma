@@ -174,7 +174,7 @@ export default function ExcelBatchOrderPage() {
             <FileSpreadsheet className="w-4 h-4" />
             <span>Excel / CSV Toplu İçe Aktarma</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Excel ile Toplu Sipariş Oluşturma</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Excel ile Toplu Sipariş Oluşturma</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             ERP veya muhasebe programınızdan aldığınız ürün kodu ve adet listesini yükleyerek tek seferde sipariş verin.
           </p>
@@ -182,7 +182,7 @@ export default function ExcelBatchOrderPage() {
 
         <button
           onClick={handleDownloadTemplate}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition"
+          className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition"
         >
           <Download className="w-4 h-4 text-emerald-400" />
           <span>Örnek Şablonu İndir (.CSV)</span>
@@ -190,11 +190,11 @@ export default function ExcelBatchOrderPage() {
       </div>
 
       {/* Upload Box */}
-      <div className="bg-slate-900 border-2 border-dashed border-slate-700 hover:border-emerald-500/50 rounded-2xl p-8 text-center transition">
+      <div className="bg-white dark:bg-[#111827] border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500/50 rounded-2xl p-8 text-center transition">
         <UploadCloud className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-        <h3 className="text-sm font-bold text-white mb-1">Excel veya CSV Dosyanızı Yükleyin</h3>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Excel veya CSV Dosyanızı Yükleyin</h3>
         <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
-          Format: <code className="bg-slate-950 px-2 py-0.5 rounded text-sky-300 font-mono">stok_kodu, adet</code> (Sütun başlıkları desteklenir)
+          Format: <code className="bg-slate-100 dark:bg-slate-950 px-2 py-0.5 rounded text-sky-600 dark:text-sky-300 font-mono border border-slate-200 dark:border-slate-800">stok_kodu, adet</code> (Sütun başlıkları desteklenir)
         </p>
 
         <label className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer shadow-lg shadow-emerald-950/40 transition">
@@ -211,23 +211,23 @@ export default function ExcelBatchOrderPage() {
 
       {/* Preview Section */}
       {parsedRows.length > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-5 space-y-4">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-xl p-5 space-y-4">
           
           {/* Status Summary Banner */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div className="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+            <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl">
               <span className="text-[10px] text-slate-500 uppercase font-bold block">Toplam Satır</span>
-              <span className="text-lg font-black text-white font-mono">{parsedRows.length} Kalem</span>
+              <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{parsedRows.length} Kalem</span>
             </div>
-            <div className="bg-slate-950 border border-emerald-900/40 p-3 rounded-xl">
+            <div className="bg-emerald-50/60 dark:bg-slate-950 border border-emerald-200 dark:border-emerald-900/40 p-3 rounded-xl">
               <span className="text-[10px] text-emerald-400 uppercase font-bold block">Siparişe Hazır</span>
               <span className="text-lg font-black text-emerald-400 font-mono">{readyCount} Kalem</span>
             </div>
-            <div className="bg-slate-950 border border-amber-900/40 p-3 rounded-xl">
+            <div className="bg-amber-50/60 dark:bg-slate-950 border border-amber-200 dark:border-amber-900/40 p-3 rounded-xl">
               <span className="text-[10px] text-amber-400 uppercase font-bold block">Sınırlı / Tükendi</span>
               <span className="text-lg font-black text-amber-400 font-mono">{lowStockCount} Kalem</span>
             </div>
-            <div className="bg-slate-950 border border-rose-900/40 p-3 rounded-xl flex items-center justify-between">
+            <div className="bg-rose-50/60 dark:bg-slate-950 border border-rose-200 dark:border-rose-900/40 p-3 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[10px] text-rose-400 uppercase font-bold block">Bulunamayan Kod</span>
                 <span className="text-lg font-black text-rose-400 font-mono">{notFoundCount} Kalem</span>
@@ -255,7 +255,7 @@ export default function ExcelBatchOrderPage() {
           {/* Preview Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
+              <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="p-3 w-12">#</th>
                   <th className="p-3 w-44">Yüklenen Kod</th>
@@ -265,15 +265,15 @@ export default function ExcelBatchOrderPage() {
                   <th className="p-3 w-32 text-right">Net Fiyat (TL)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
                 {parsedRows.map((r, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/40 transition">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <td className="p-3 font-mono text-slate-500">{idx + 1}</td>
                     <td className="p-3 font-mono font-bold text-sky-300">{r.rawCode}</td>
                     <td className="p-3">
                       {r.product ? (
                         <div>
-                          <div className="font-bold text-white line-clamp-1">{r.product.name}</div>
+                          <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{r.product.name}</div>
                           <span className="text-[10px] text-slate-400">{r.product.brand}</span>
                         </div>
                       ) : (
@@ -300,7 +300,7 @@ export default function ExcelBatchOrderPage() {
           </div>
 
           {/* Action Bar */}
-          <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs">
               <span className="text-slate-400">Toplam Hazır Tutar (KDV Hariç): </span>
               <span className="text-xl font-black font-mono text-emerald-400">{formatCurrency(totalCalculatedNet)}</span>

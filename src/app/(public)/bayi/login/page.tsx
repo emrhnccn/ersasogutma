@@ -14,7 +14,7 @@ export default function BayiLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-slate-900 p-8 text-center">
+        <div className="bg-slate-100 dark:bg-slate-900 p-8 text-center border-b border-slate-200 dark:border-slate-800">
           <h2 className="text-3xl font-black text-sky-400">ERSA SOĞUTMA</h2>
           <p className="mt-2 text-slate-300">B2B Bayi Portalı Girişi</p>
         </div>

@@ -140,7 +140,7 @@ export default function QuickOrderPage() {
             <Zap className="w-4 h-4 fill-amber-400" />
             <span>Klavye Odaklı B2B Hızlı Sipariş</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Hızlı Sipariş Girişi (SKU / Barkod)</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Hızlı Sipariş Girişi (SKU / Barkod)</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Ürün kodlarını ardı ardına girip ENTER tuşuna basarak saniyeler içinde toplu sipariş oluşturun.
           </p>
@@ -178,7 +178,7 @@ export default function QuickOrderPage() {
               placeholder="Stok Kodu (SKU) veya Barkod yazın..."
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono font-bold focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono font-bold focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -189,7 +189,7 @@ export default function QuickOrderPage() {
               value={inputQty}
               onChange={(e) => setInputQty(parseInt(e.target.value, 10) || 1)}
               placeholder="Miktar"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-center font-mono font-bold text-white focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -204,9 +204,9 @@ export default function QuickOrderPage() {
       </form>
 
       {/* Quick Order Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden space-y-4 p-5">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-xl overflow-hidden space-y-4 p-5">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Package className="w-4 h-4 text-sky-400" />
             <span>Giriş Yapılan Kalemler ({validRows.length} Ürün)</span>
           </h3>
@@ -222,7 +222,7 @@ export default function QuickOrderPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-3 w-12">#</th>
                 <th className="p-3 w-48">Stok Kodu (SKU)</th>
@@ -235,14 +235,14 @@ export default function QuickOrderPage() {
                 <th className="p-3 w-12 text-center">Sil</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
               {items.map((row, index) => {
                 const prod = row.product;
                 const unitNetPrice = prod ? prod.priceTRY * (1 - profile.discountRate) : 0;
                 const lineTotal = prod ? unitNetPrice * row.quantity : 0;
 
                 return (
-                  <tr key={row.id} className="hover:bg-slate-800/40 transition">
+                  <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <td className="p-3 font-mono text-slate-500">{index + 1}</td>
                     
                     <td className="p-3">
@@ -251,7 +251,7 @@ export default function QuickOrderPage() {
                         placeholder="SKU girin..."
                         value={row.query}
                         onChange={(e) => handleRowCodeChange(index, e.target.value)}
-                        className={`w-full bg-slate-950 border rounded-lg px-2.5 py-1.5 font-mono text-xs text-sky-300 focus:outline-none ${
+                        className={`w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-sky-600 dark:text-sky-300 focus:outline-none ${
                           row.error ? 'border-rose-500' : 'border-slate-700 focus:border-sky-500'
                         }`}
                       />
@@ -261,7 +261,7 @@ export default function QuickOrderPage() {
                     <td className="p-3">
                       {prod ? (
                         <div>
-                          <div className="font-bold text-white line-clamp-1">{prod.name}</div>
+                          <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{prod.name}</div>
                           <span className="text-[10px] text-slate-400">{prod.brand} • {prod.category}</span>
                         </div>
                       ) : (
@@ -296,11 +296,11 @@ export default function QuickOrderPage() {
                         disabled={!prod}
                         value={row.quantity}
                         onChange={(e) => handleRowQtyChange(index, parseInt(e.target.value, 10) || 1)}
-                        className="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 font-mono text-center text-xs text-white focus:outline-none focus:border-sky-500 disabled:opacity-30"
+                        className="w-20 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-center text-xs text-white focus:outline-none focus:border-sky-500 disabled:opacity-30"
                       />
                     </td>
 
-                    <td className="p-3 font-mono font-bold text-white text-right">
+                    <td className="p-3 font-mono font-bold text-slate-900 dark:text-white text-right">
                       {prod ? formatCurrency(lineTotal) : '-'}
                     </td>
 
@@ -320,7 +320,7 @@ export default function QuickOrderPage() {
         </div>
 
         {/* Footer Summary & Checkout Action */}
-        <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6 text-xs">
             <div>
               <span className="text-slate-400 block">Liste Toplamı:</span>

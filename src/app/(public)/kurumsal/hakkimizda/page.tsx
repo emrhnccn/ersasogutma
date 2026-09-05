@@ -59,7 +59,7 @@ export default function AboutPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-slate-900 rounded-3xl p-8 text-center text-white">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center text-slate-900 dark:text-white shadow-xs">
           <h2 className="text-2xl font-bold">Ersa Soğutma Bayisi Olun</h2>
           <p className="text-slate-400 mt-2 text-sm max-w-xl mx-auto">
             Özel iskonto oranları, cari ve vadeli çalışma koşulları için hemen bayilik başvurusu yapın.

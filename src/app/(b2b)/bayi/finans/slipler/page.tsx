@@ -43,7 +43,7 @@ export default function PosSlipsPage() {
             <Receipt className="w-4 h-4" />
             <span>Sanal POS İşlem Kayıtları</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Kredi Kartı Slipleri</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Kredi Kartı Slipleri</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Sanal POS üzerinden gerçekleştirdiğiniz başarılı tahsilat dekontları ve slip dökümleri
           </p>
@@ -59,7 +59,7 @@ export default function PosSlipsPage() {
       </div>
 
       {/* Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 shadow-xl">
         <div className="relative max-w-md">
           <input
             type="text"
@@ -73,7 +73,7 @@ export default function PosSlipsPage() {
       </div>
 
       {/* Slips Table (Matching Girdap page=finans/kredi-karti-slipleri) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden shadow-2xl">
         {filteredSlips.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
             Kredi kartı slip kaydı bulunamadı.
@@ -82,7 +82,7 @@ export default function PosSlipsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-950/60">
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-950/60">
                   <th className="py-3.5 px-4">Tarih</th>
                   <th className="py-3.5 px-4">Referans Kodu</th>
                   <th className="py-3.5 px-4">Banka & Program</th>
@@ -93,7 +93,7 @@ export default function PosSlipsPage() {
                   <th className="py-3.5 px-4 text-right">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-200">
                 {filteredSlips.map((slip) => (
                   <tr key={slip.id} className="hover:bg-slate-800/50 transition">
                     <td className="py-3.5 px-4 font-mono text-slate-400">{slip.date}</td>
@@ -146,10 +146,10 @@ export default function PosSlipsPage() {
 
       {/* Printable Slip Receipt Modal */}
       {selectedSlip && (
-        <div className="fixed inset-0 bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
+        <div className="fixed inset-0 bg-black/60 dark:bg-slate-950/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 space-y-4">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-white font-bold text-sm">
                 <Receipt className="w-4 h-4 text-emerald-400" />
                 <span>B2B Sanal POS Dekontu</span>
@@ -163,9 +163,9 @@ export default function PosSlipsPage() {
             </div>
 
             {/* Slip Paper Body */}
-            <div className="bg-slate-950 border border-dashed border-slate-700 rounded-xl p-5 font-mono text-xs text-slate-300 space-y-3">
-              <div className="text-center border-b border-slate-800 pb-2">
-                <div className="font-bold text-white text-sm">ERSA SOĞUTMA ISITMA LTD. ŞTİ.</div>
+            <div className="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 font-mono text-xs text-slate-800 dark:text-slate-300 space-y-3">
+              <div className="text-center border-b border-slate-200 dark:border-slate-800 pb-2">
+                <div className="font-bold text-slate-900 dark:text-white text-sm">ERSA SOĞUTMA ISITMA LTD. ŞTİ.</div>
                 <div className="text-[10px] text-slate-500">Kazım Karabekir Mah. Darıca / Kocaeli</div>
                 <div className="text-[10px] text-slate-500">Mersis: 0334059281700018</div>
               </div>
@@ -205,12 +205,12 @@ export default function PosSlipsPage() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-800 pt-2 flex justify-between items-baseline font-black text-sm">
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between items-baseline font-black text-sm">
                 <span className="text-white">TAHSİLAT TUTARI:</span>
                 <span className="text-emerald-400 text-base">{formatCurrency(selectedSlip.amount)}</span>
               </div>
 
-              <div className="text-center text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+              <div className="text-center text-[10px] text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-800">
                 {selectedSlip.responseMessage} • 3D Secure Onaylı
               </div>
             </div>
@@ -227,7 +227,7 @@ export default function PosSlipsPage() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 shadow-md shadow-sky-600/30 flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-900 dark:text-white bg-sky-600 hover:bg-sky-500 shadow-md shadow-sky-600/30 flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Dekontu Yazdır</span>
