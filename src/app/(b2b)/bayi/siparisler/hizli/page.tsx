@@ -178,7 +178,7 @@ export default function QuickOrderPage() {
               placeholder="Stok Kodu (SKU) veya Barkod yazın..."
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono font-bold focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -296,7 +296,7 @@ export default function QuickOrderPage() {
                         disabled={!prod}
                         value={row.quantity}
                         onChange={(e) => handleRowQtyChange(index, parseInt(e.target.value, 10) || 1)}
-                        className="w-20 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-center text-xs text-white focus:outline-none focus:border-sky-500 disabled:opacity-30"
+                        className="w-20 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-center text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 disabled:opacity-30"
                       />
                     </td>
 

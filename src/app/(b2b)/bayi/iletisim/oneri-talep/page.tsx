@@ -59,13 +59,13 @@ export default function FeedbackPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
+              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                 Bildirim Türünü Seçiniz:
               </label>
               <select
                 value={feedbackType}
                 onChange={(e) => setFeedbackType(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
               >
                 <option value="Öneride Bulunmak İstiyorum">Öneride Bulunmak İstiyorum (Yeni Ürün / Geliştirme)</option>
                 <option value="İstekte Bulunmak İstiyorum">İstekte Bulunmak İstiyorum (Katalog / Özel Fiyat Talebi)</option>
@@ -74,7 +74,7 @@ export default function FeedbackPage() {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
+              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                 Konu Başlığı:
               </label>
               <input
@@ -83,12 +83,12 @@ export default function FeedbackPage() {
                 placeholder="Örn: Yeni Soğuk Oda Gaz Stokları Hakkında"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1.5">
+              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                 Mesajınız & Açıklama:
               </label>
               <textarea
@@ -97,7 +97,7 @@ export default function FeedbackPage() {
                 placeholder="Lütfen detayları belirtiniz..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
+                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
               />
             </div>
 

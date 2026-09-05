@@ -7,10 +7,12 @@ import { X, Printer, Building2, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface InvoiceDetailModalProps {
   invoice: InvoiceDetail | null;
-  onClose: () => void;
+  onClose?: () => void;
+  onCloseAction?: () => void;
 }
 
-export function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps) {
+export function InvoiceDetailModal({ invoice, onClose, onCloseAction }: InvoiceDetailModalProps) {
+  const handleClose = onCloseAction || onClose;
   if (!invoice) return null;
 
   const handlePrint = () => {
@@ -49,7 +51,7 @@ export function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps
               <span>Yazdır</span>
             </button>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
               <X className="w-5 h-5" />
@@ -157,7 +159,7 @@ export function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps
         {/* Modal Footer */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex justify-end">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
           >
             Kapat

@@ -95,45 +95,45 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Yetkili Ad Soyad:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Yetkili Ad Soyad:</label>
                 <input
                   type="text"
                   required
                   value={contactPerson}
                   onChange={(e) => setContactPerson(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Cep Telefonu (GSM):</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Cep Telefonu (GSM):</label>
                 <input
                   type="text"
                   required
                   value={phoneGsm}
                   onChange={(e) => setPhoneGsm(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Sabit Telefon:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Sabit Telefon:</label>
                 <input
                   type="text"
                   value={phoneLandline}
                   onChange={(e) => setPhoneLandline(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">İletişim E-Posta:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">İletişim E-Posta:</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
             </div>
@@ -148,57 +148,57 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="block text-slate-300 font-semibold mb-1">Şirket Resmi Unvanı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Şirket Resmi Unvanı:</label>
                 <input
                   type="text"
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Vergi Dairesi:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Vergi Dairesi:</label>
                 <input
                   type="text"
                   required
                   value={taxOffice}
                   onChange={(e) => setTaxOffice(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Vergi Numarası / VKN:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Vergi Numarası / VKN:</label>
                 <input
                   type="text"
                   required
                   value={taxNumber}
                   onChange={(e) => setTaxNumber(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-slate-300 font-semibold mb-1">E-Arşiv / E-Fatura Gönderim E-Postası:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">E-Arşiv / E-Fatura Gönderim E-Postası:</label>
                 <input
                   type="email"
                   required
                   value={eArchiveEmail}
                   onChange={(e) => setEArchiveEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-slate-300 font-semibold mb-1">Sevkiyat ve Tebligat Adresi:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Sevkiyat ve Tebligat Adresi:</label>
                 <textarea
                   rows={3}
                   required
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
                 />
               </div>
             </div>

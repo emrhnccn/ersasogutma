@@ -109,25 +109,25 @@ export default function NotesPage() {
             <h3 className="text-base font-bold text-slate-900 dark:text-white">Yeni Not Ekle</h3>
             <form onSubmit={handleAdd} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Başlık:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Başlık:</label>
                 <input
                   type="text"
                   required
                   placeholder="Not başlığı..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Açıklama:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1">Açıklama:</label>
                 <textarea
                   rows={4}
                   placeholder="Notunuzun detayları..."
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-yellow-500 resize-none"
                 />
               </div>
 

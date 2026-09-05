@@ -247,7 +247,7 @@ export default function QuotesPage() {
                 <select
                   value={validDays}
                   onChange={(e) => setValidDays(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none"
                 >
                   <option value="7">7 Gün Geçerli</option>
                   <option value="15">15 Gün Geçerli (Önerilen)</option>
@@ -263,7 +263,7 @@ export default function QuotesPage() {
                   placeholder="Örn: Gültekin Şarküteri Soğuk Oda Montaj Projesi Teklifidir..."
                   value={quoteNotes}
                   onChange={(e) => setQuoteNotes(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 

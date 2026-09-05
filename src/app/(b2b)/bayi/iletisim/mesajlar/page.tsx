@@ -172,13 +172,13 @@ export default function MessagesPage() {
 
               <form onSubmit={handleSendMessage} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1.5">
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                     Mesaj Atılacak Kişiyi / Birimi Seçiniz:
                   </label>
                   <select
                     value={recipient}
                     onChange={(e) => setRecipient(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                   >
                     {STAFF_RECIPIENTS.map((s) => (
                       <option key={s.id} value={s.name}>
@@ -189,7 +189,7 @@ export default function MessagesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1.5">
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                     Konu:
                   </label>
                   <input
@@ -198,12 +198,12 @@ export default function MessagesPage() {
                     placeholder="Mesaj konusu (Örn: Ek Iskonto Talebi, Sevkiyat Durumu...)"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1.5">
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                     Mesaj Metni:
                   </label>
                   <textarea
@@ -212,7 +212,7 @@ export default function MessagesPage() {
                     placeholder="Mesajınızı buraya yazınız..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none leading-relaxed"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none leading-relaxed"
                   />
                 </div>
 

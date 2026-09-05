@@ -185,7 +185,7 @@ export default function MaturityCalculatorPage() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
             />
           </div>
 
@@ -198,18 +198,18 @@ export default function MaturityCalculatorPage() {
 
             <form onSubmit={handleAddSingleCheque} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-400 mb-1">Vade Tarihi:</label>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1">Vade Tarihi:</label>
                 <input
                   type="date"
                   required
                   value={singleDate}
                   onChange={(e) => setSingleDate(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-400 mb-1">Tutar (TL):</label>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1">Tutar (TL):</label>
                 <input
                   type="number"
                   step="any"
@@ -217,18 +217,18 @@ export default function MaturityCalculatorPage() {
                   placeholder="Örn: 25000"
                   value={singleAmount}
                   onChange={(e) => setSingleAmount(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-400 mb-1">Banka Adı (Opsiyonel):</label>
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1">Banka Adı (Opsiyonel):</label>
                 <input
                   type="text"
                   placeholder="Örn: Garanti BBVA"
                   value={singleBank}
                   onChange={(e) => setSingleBank(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -252,32 +252,32 @@ export default function MaturityCalculatorPage() {
             <form onSubmit={handleAddSequentialCheques} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Ayın Kaçıncı Günü:</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1">Ayın Kaçıncı Günü:</label>
                   <input
                     type="number"
                     min="1"
                     max="31"
                     value={seqDay}
                     onChange={(e) => setSeqDay(parseInt(e.target.value) || 20)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">Her Çekin Tutarı (TL):</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1">Her Çekin Tutarı (TL):</label>
                   <input
                     type="number"
                     step="any"
                     placeholder="Örn: 15000"
                     value={seqAmount}
                     onChange={(e) => setSeqAmount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               {/* Month Selector Grid */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-400 mb-1.5">
                   Vade Ayları Seçiniz ({selectedMonths.length} Ay Seçildi):
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">

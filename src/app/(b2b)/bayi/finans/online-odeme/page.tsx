@@ -248,7 +248,7 @@ export default function OnlinePaymentPage() {
 
           <form onSubmit={handleProceedToCard} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Ödenecek Tutar (TL):
               </label>
               <div className="relative max-w-xs">
@@ -353,43 +353,43 @@ export default function OnlinePaymentPage() {
 
               <form id="cardForm" onSubmit={handleProceedTo3D} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Kart Numarası:</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Kart Numarası:</label>
                   <input
                     type="text"
                     required
                     placeholder="0000 0000 0000 0000"
                     value={cardNumber}
                     onChange={(e) => handleCardNumberChange(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Kart Üzerindeki İsim:</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Kart Üzerindeki İsim:</label>
                   <input
                     type="text"
                     required
                     placeholder="Ad Soyad"
                     value={cardHolder}
                     onChange={(e) => setCardHolder(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white uppercase focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white uppercase focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-300 font-semibold mb-1">Son Kullanma (AA/YY):</label>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Son Kullanma (AA/YY):</label>
                     <input
                       type="text"
                       required
                       placeholder="MM/YY"
                       value={expiryDate}
                       onChange={(e) => handleExpiryChange(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 text-center"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-semibold mb-1">CVC / Güvenlik No:</label>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">CVC / Güvenlik No:</label>
                     <input
                       type="password"
                       maxLength={4}
@@ -397,7 +397,7 @@ export default function OnlinePaymentPage() {
                       placeholder="•••"
                       value={cvc}
                       onChange={(e) => setCvc(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-white focus:outline-none focus:border-sky-500 text-center"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 text-center"
                     />
                   </div>
                 </div>

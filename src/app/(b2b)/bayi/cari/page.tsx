@@ -409,7 +409,7 @@ export default function CariPage() {
       {/* Invoice Detail Modal */}
       <InvoiceDetailModal
         invoice={selectedInvoice}
-        onClose={() => setSelectedInvoice(null)}
+        onCloseAction={() => setSelectedInvoice(null)}
       />
 
     </div>

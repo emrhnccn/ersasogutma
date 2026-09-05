@@ -111,7 +111,7 @@ export function ImageDropzone({
             placeholder="https://... veya /uploads/..."
             value={value}
             onChange={(e) => triggerChange(e.target.value)}
-            className="flex-1 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+            className="flex-1 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
           />
           {value && (
             <button

@@ -2,7 +2,7 @@
 
 import React, { useActionState } from 'react';
 import Link from 'next/link';
-import { Lock, Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight } from 'lucide-react';
 import { authenticateAdmin } from '@/lib/actions';
 
 export default function AdminLoginPage() {
@@ -12,20 +12,20 @@ export default function AdminLoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090D16] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090D16] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+      <div className="max-w-md w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden transition-colors duration-200">
         <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800">
           <div className="mx-auto w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
             <Shield className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-white">YÖNETİM PANELİ</h2>
-          <p className="mt-2 text-slate-400 text-sm">Sadece yetkili personel erişebilir</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">YÖNETİM PANELİ</h2>
+          <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm font-medium">Sadece yetkili personel erişebilir</p>
         </div>
         
         <div className="p-8">
           <form className="space-y-6" action={formAction}>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Yönetici Kullanıcı Adı
               </label>
               <div className="relative">
@@ -33,14 +33,14 @@ export default function AdminLoginPage() {
                   type="text"
                   name="username"
                   required
-                  className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                  className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Kullanıcı adınızı girin"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Şifre
               </label>
               <div className="relative">
@@ -48,14 +48,14 @@ export default function AdminLoginPage() {
                   type="password"
                   name="password"
                   required
-                  className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                  className="block w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
                   placeholder="Şifrenizi girin"
                 />
               </div>
             </div>
 
             {errorMessage && (
-              <div className="text-red-500 text-sm font-semibold text-center bg-red-500/10 border border-red-500/20 py-2 rounded-lg">
+              <div className="text-red-600 dark:text-red-400 text-sm font-semibold text-center bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 py-2.5 rounded-xl">
                 {errorMessage}
               </div>
             )}
@@ -64,15 +64,15 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition disabled:opacity-50"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition disabled:opacity-50 cursor-pointer"
               >
                 {isPending ? 'Giriş Yapılıyor...' : 'Giriş Yap'} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </form>
           
-          <div className="mt-8 text-center text-sm text-slate-500">
-            <Link href="/" className="font-bold hover:text-white transition">
+          <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            <Link href="/" className="font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
               &larr; Siteye Dön
             </Link>
           </div>

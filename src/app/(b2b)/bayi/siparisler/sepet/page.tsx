@@ -575,18 +575,18 @@ export default function CartPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-slate-400 mb-1 font-semibold">Kart Üzerindeki İsim:</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Kart Üzerindeki İsim:</label>
                     <input
                       type="text"
                       placeholder="AD SOYAD VEYA FİRMA UNVANI"
                       value={cardHolder}
                       onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-slate-400 mb-1 font-semibold">Kart Numarası:</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Kart Numarası:</label>
                     <input
                       type="text"
                       maxLength={19}
@@ -596,12 +596,12 @@ export default function CartPage() {
                         const v = e.target.value.replace(/\D/g, '').slice(0, 16);
                         setCardNumber(v.replace(/(\d{4})/g, '$1 ').trim());
                       }}
-                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-400 mb-1 font-semibold">Son Kullanma Tarihi (AA/YY):</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Son Kullanma Tarihi (AA/YY):</label>
                     <input
                       type="text"
                       maxLength={5}
@@ -612,19 +612,19 @@ export default function CartPage() {
                         if (v.length >= 2) v = `${v.slice(0, 2)}/${v.slice(2)}`;
                         setCardExpiry(v);
                       }}
-                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-400 mb-1 font-semibold">CVC / CVV:</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">CVC / CVV:</label>
                     <input
                       type="password"
                       maxLength={4}
                       placeholder="***"
                       value={cardCvv}
                       onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -706,7 +706,7 @@ export default function CartPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-700 dark:text-slate-300 mb-1.5">
                   Sipariş / Sevkiyat Notunuz:
                 </label>
                 <textarea
@@ -714,12 +714,12 @@ export default function CartPage() {
                   placeholder="Örn: Hafta içi saat 17:00'den önce depoya teslim edilsin, paletli ambalaj yapılsın..."
                   value={orderNote}
                   onChange={(e) => setOrderNote(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-700 dark:text-slate-300 mb-1.5">
                   Muhasebe & Finans Notunuz:
                 </label>
                 <textarea
@@ -727,7 +727,7 @@ export default function CartPage() {
                   placeholder="Örn: Cari hesap faturası muhasebe mailimize iletilsin..."
                   value={accountingNote}
                   onChange={(e) => setAccountingNote(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none"
                 />
               </div>
             </div>

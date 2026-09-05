@@ -1150,7 +1150,7 @@ export default function AdminControlPanel() {
 
               <form onSubmit={handleStartScraper} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı (URL):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı (URL):</label>
                   <div className="space-y-2">
                     <input
                       type="url"
@@ -1158,7 +1158,7 @@ export default function AdminControlPanel() {
                       placeholder="https://www.ersaticaret.com"
                       value={scrapeTargetUrl}
                       onChange={(e) => setScrapeTargetUrl(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono font-bold focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500"
                     />
                     <div className="flex gap-2">
                       <button
@@ -1195,33 +1195,33 @@ export default function AdminControlPanel() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
                     <input
                       type="text"
                       value={scrapeUsername}
                       onChange={(e) => setScrapeUsername(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Şifre:</label>
+                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şifre:</label>
                     <input
                       type="password"
                       value={scrapePassword}
                       onChange={(e) => setScrapePassword(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Maksimum Çekilecek Ürün Limiti:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Maksimum Çekilecek Ürün Limiti:</label>
                   <input
                     type="number"
                     value={scrapeMaxLimit}
                     onChange={(e) => setScrapeMaxLimit(e.target.value)}
                     placeholder="Boş Bırakılırsa Tüm 2.375 Ürün Çekilir"
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500 block mt-1">
                     * Tüm ürünleri almak için bu alanı boş bırakabilirsiniz.
@@ -1351,7 +1351,7 @@ export default function AdminControlPanel() {
                   placeholder="Ürün adı, SKU veya barkod ile ara..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -1539,7 +1539,7 @@ export default function AdminControlPanel() {
                                     handleUpdateProductInline(p.id, { stockQty: val });
                                   }
                                 }}
-                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none"
+                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-slate-900 dark:text-white text-xs focus:outline-none"
                               />
                               <StockBadge stock={p.stockQty} size="sm" showIcon={false} />
                             </div>
@@ -1609,23 +1609,23 @@ export default function AdminControlPanel() {
 
             <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Kategori Adı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori Adı:</label>
                 <input
                   type="text"
                   required
                   placeholder="Örn: Soğutma Kompresörleri"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Üst Kategori (Opsiyonel):</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Üst Kategori (Opsiyonel):</label>
                 <select
                   value={newCatParent}
                   onChange={(e) => setNewCatParent(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 >
                   <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
                   {dbCategories.map((c) => (
@@ -1636,17 +1636,17 @@ export default function AdminControlPanel() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
                   <input
                     type="number"
                     placeholder="1, 2, 3..."
                     value={newCatSortOrder}
                     onChange={(e) => setNewCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
                   <input
                     type="number"
                     step="1"
@@ -1841,7 +1841,7 @@ export default function AdminControlPanel() {
                             </span>
                           </div>
                           <div className="text-slate-300 font-semibold text-xs">
-                            Bayi: <strong className="text-white">{order.companyName}</strong> ({order.userName})
+                            Bayi: <strong className="text-slate-900 dark:text-white">{order.companyName}</strong> ({order.userName})
                           </div>
                         </div>
 
@@ -1982,7 +1982,7 @@ export default function AdminControlPanel() {
                     placeholder="Bayi adı, kullanıcı veya ürün ara..."
                     value={cartSearchQuery}
                     onChange={(e) => setCartSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
                   />
                 </div>
                 <button
@@ -2570,18 +2570,18 @@ export default function AdminControlPanel() {
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
                         <input
                           type="text"
                           required
                           value={editLegalName}
                           onChange={(e) => setEditLegalName(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Bayi Özel İskonto Oranı (%):</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Bayi Özel İskonto Oranı (%):</label>
                         <div className="relative">
                           <input
                             type="number"
@@ -2599,47 +2599,47 @@ export default function AdminControlPanel() {
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Vergi Dairesi:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi Dairesi:</label>
                         <input
                           type="text"
                           value={editTaxOffice}
                           onChange={(e) => setEditTaxOffice(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Vergi No / T.C. Kimlik:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi No / T.C. Kimlik:</label>
                         <input
                           type="text"
                           value={editTaxNo}
                           onChange={(e) => setEditTaxNo(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Telefon Numarası:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Telefon Numarası:</label>
                         <input
                           type="text"
                           value={editPhone}
                           onChange={(e) => setEditPhone(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none font-mono"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">E-posta Adresi:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">E-posta Adresi:</label>
                         <input
                           type="email"
                           value={editEmail}
                           onChange={(e) => setEditEmail(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Tanımlı Kredi Limiti (TL):</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Tanımlı Kredi Limiti (TL):</label>
                         <input
                           type="number"
                           value={editCreditLimit}
@@ -2649,11 +2649,11 @@ export default function AdminControlPanel() {
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 mb-1 font-semibold">Hesap Durumu:</label>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Hesap Durumu:</label>
                         <select
                           value={editStatus}
                           onChange={(e) => setEditStatus(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                         >
                           <option value="ACTIVE">Aktif (Sipariş Verebilir)</option>
                           <option value="SUSPENDED">Askıda (Geçici Olarak Kapalı)</option>
@@ -2749,11 +2749,11 @@ export default function AdminControlPanel() {
                           className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
                         >
                           <div>
-                            <label className="block text-slate-400 mb-1">İşlem Türü:</label>
+                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">İşlem Türü:</label>
                             <select
                               value={drawerDocType}
                               onChange={(e) => setDrawerDocType(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                             >
                               <option value="MANUAL_DEBIT">Manuel Borç (Fatura / Satış)</option>
                               <option value="MANUAL_CREDIT">Tahsilat / Ödeme (Alacak)</option>
@@ -2762,7 +2762,7 @@ export default function AdminControlPanel() {
                           </div>
 
                           <div>
-                            <label className="block text-slate-400 mb-1">Tutar (TL):</label>
+                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Tutar (TL):</label>
                             <input
                               type="number"
                               required
@@ -2774,24 +2774,24 @@ export default function AdminControlPanel() {
                           </div>
 
                           <div>
-                            <label className="block text-slate-400 mb-1">Evrak / Dekont No:</label>
+                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Evrak / Dekont No:</label>
                             <input
                               type="text"
                               placeholder="Örn: DEK-2026-001"
                               value={drawerDocNo}
                               onChange={(e) => setDrawerDocNo(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-slate-400 mb-1">Açıklama / Not:</label>
+                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Açıklama / Not:</label>
                             <input
                               type="text"
                               placeholder="Örn: Havale ile tahsilat"
                               value={drawerNote}
                               onChange={(e) => setDrawerNote(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-white focus:outline-none"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                             />
                           </div>
 
@@ -3009,30 +3009,30 @@ export default function AdminControlPanel() {
 
             <form onSubmit={handleCreateBankAccount} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Banka Adı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Banka Adı:</label>
                 <input
                   type="text"
                   required
                   placeholder="Örn: Garanti BBVA"
                   value={newBankName}
                   onChange={(e) => setNewBankName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Hesap Sahibi:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Hesap Sahibi:</label>
                 <input
                   type="text"
                   required
                   value={newAccountHolder}
                   onChange={(e) => setNewAccountHolder(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">IBAN Numarası:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">IBAN Numarası:</label>
                 <input
                   type="text"
                   required
@@ -3045,21 +3045,21 @@ export default function AdminControlPanel() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Şube:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şube:</label>
                   <input
                     type="text"
                     placeholder="Darıca Şubesi"
                     value={newBranch}
                     onChange={(e) => setNewBranch(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Para Birimi:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Para Birimi:</label>
                   <select
                     value={newCurrency}
                     onChange={(e) => setNewCurrency(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                   >
                     <option value="TRY">TRY (₺)</option>
                     <option value="USD">USD ($)</option>
@@ -3069,13 +3069,13 @@ export default function AdminControlPanel() {
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">SWIFT Kodu (Opsiyonel):</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">SWIFT Kodu (Opsiyonel):</label>
                 <input
                   type="text"
                   placeholder="TGBAISX"
                   value={newSwift}
                   onChange={(e) => setNewSwift(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
                 />
               </div>
 
@@ -3237,20 +3237,20 @@ export default function AdminControlPanel() {
 
             <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Ürün Adı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
                 <input
                   type="text"
                   required
                   placeholder="Örn: 2.5 kW Tavan Tipi Evaporatör"
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
                   <input
                     type="text"
                     required
@@ -3261,11 +3261,11 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Kategori:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
                   <select
                     value={newProductCategory}
                     onChange={(e) => setNewProductCategory(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                   >
                     <option value="">-- Kategori Seçin --</option>
                     {dbCategories.map((c) => (
@@ -3277,18 +3277,18 @@ export default function AdminControlPanel() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
                   <input
                     type="number"
                     step="0.1"
                     placeholder="0.00"
                     value={newProductCost}
                     onChange={(e) => setNewProductCost(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
                   <input
                     type="number"
                     step="0.1"
@@ -3299,7 +3299,7 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">İskonto (%):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto (%):</label>
                   <input
                     type="number"
                     step="1"
@@ -3312,12 +3312,12 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
                   <input
                     type="number"
                     value={newProductStock}
                     onChange={(e) => setNewProductStock(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3365,19 +3365,19 @@ export default function AdminControlPanel() {
 
             <form onSubmit={handleSaveEditProduct} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Ürün Adı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
                 <input
                   type="text"
                   required
                   value={editProdName}
                   onChange={(e) => setEditProdName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
                   <input
                     type="text"
                     required
@@ -3387,7 +3387,7 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Barkod (Opsiyonel):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Barkod (Opsiyonel):</label>
                   <input
                     type="text"
                     value={editProdBarcode}
@@ -3399,11 +3399,11 @@ export default function AdminControlPanel() {
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Kategori:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
                 <select
                   value={editProdCategory}
                   onChange={(e) => setEditProdCategory(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 >
                   <option value="">-- Kategori Seçin --</option>
                   {dbCategories.map((c) => (
@@ -3414,18 +3414,18 @@ export default function AdminControlPanel() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
                   <input
                     type="number"
                     step="0.1"
                     placeholder="0.00"
                     value={editProdCost}
                     onChange={(e) => setEditProdCost(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
                   <input
                     type="number"
                     step="0.1"
@@ -3436,7 +3436,7 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
                   <input
                     type="number"
                     step="1"
@@ -3449,12 +3449,12 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
                   <input
                     type="number"
                     value={editProdStock}
                     onChange={(e) => setEditProdStock(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -3510,22 +3510,22 @@ export default function AdminControlPanel() {
 
             <form onSubmit={handleSaveEditCategory} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Kategori Adı:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori Adı:</label>
                 <input
                   type="text"
                   required
                   value={editCatName}
                   onChange={(e) => setEditCatName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1">Üst Kategori:</label>
+                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Üst Kategori:</label>
                 <select
                   value={editCatParent}
                   onChange={(e) => setEditCatParent(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
                 >
                   <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
                   {dbCategories
@@ -3538,16 +3538,16 @@ export default function AdminControlPanel() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
                   <input
                     type="number"
                     value={editCatSortOrder}
                     onChange={(e) => setEditCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
                   <input
                     type="number"
                     step="1"
@@ -3606,7 +3606,7 @@ export default function AdminControlPanel() {
             </div>
 
             <p className="text-xs text-slate-400">
-              <strong className="text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
+              <strong className="text-slate-900 dark:text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
             </p>
 
             <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">

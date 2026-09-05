@@ -158,7 +158,7 @@ export default function AllOrdersPage() {
               placeholder="Sipariş Numarası ara (Örn: ERS-2026-6819)..."
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
             />
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
           </div>
@@ -167,7 +167,7 @@ export default function AllOrdersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
             >
               <option value="all">Tüm Sipariş Durumları</option>
               <option value="PENDING_APPROVAL">⏳ Onay Bekleyen</option>
