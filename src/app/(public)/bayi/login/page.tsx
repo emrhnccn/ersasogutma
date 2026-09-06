@@ -96,7 +96,7 @@ export default function BayiLoginPage() {
           
           <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
             Henüz bayi değil misiniz?{' '}
-            <Link href="/iletisim" className="font-bold text-sky-600 dark:text-sky-400 hover:text-sky-500">
+            <Link href="/bayi/basvuru" className="font-bold text-sky-600 dark:text-sky-400 hover:text-sky-500">
               Bayilik Başvurusu Yapın
             </Link>
           </div>

@@ -44,7 +44,7 @@ export function PublicFooter() {
               <li><Link href="/kurumsal/gizlilik" className="hover:text-sky-400 transition">Gizlilik Politikası</Link></li>
               <li><Link href="/kurumsal/sozlesme" className="hover:text-sky-400 transition">Kullanıcı Sözleşmesi</Link></li>
               <li><Link href="/kurumsal/iade" className="hover:text-sky-400 transition">İade ve İptal Koşulları</Link></li>
-              <li><Link href="/iletisim" className="hover:text-sky-400 transition">Bayilik Başvurusu</Link></li>
+              <li><Link href="/bayi/basvuru" className="hover:text-sky-400 font-semibold text-sky-400 transition">Bayilik Başvurusu</Link></li>
               <li><Link href="/admin/login" className="hover:text-red-400 text-xs text-slate-600 transition">Yönetici Girişi</Link></li>
             </ul>
           </div>

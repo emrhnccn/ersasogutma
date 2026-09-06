@@ -16,8 +16,10 @@ import {
   Zap,
   Loader2,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet
 } from 'lucide-react';
+import { exportOrdersToExcel } from '@/lib/export/orderExport';
 
 interface DBOrderItem {
   id: string;
@@ -128,6 +130,30 @@ export default function AllOrdersPage() {
             title="Yenile"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-sky-400' : ''}`} />
+          </button>
+
+          <button
+            onClick={() => {
+              if (filteredOrders.length === 0) {
+                showToast('Dışa aktarılacak sipariş bulunamadı.', 'warning');
+                return;
+              }
+              try {
+                exportOrdersToExcel(
+                  filteredOrders,
+                  `ersa-siparisler-${new Date().toISOString().split('T')[0]}.xlsx`
+                );
+                showToast(`${filteredOrders.length} sipariş Excel (.xlsx) olarak başarıyla indirildi!`, 'success');
+              } catch {
+                showToast('Excel dışa aktarılırken hata oluştu.', 'error');
+              }
+            }}
+            disabled={loading || filteredOrders.length === 0}
+            className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-md transition cursor-pointer"
+            title="Siparişleri Excel Olarak İndir"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Excel&apos;e Aktar</span>
           </button>
 
           <Link

@@ -24,6 +24,8 @@ export async function GET() {
       city: app.city,
       taxOffice: app.taxOffice,
       taxNumber: app.taxNumber,
+      address: app.address || '',
+      idNumber: app.idNumber || '',
       notes: app.notes,
       status: app.status,
       appliedAt: new Date(app.createdAt).toLocaleDateString('tr-TR')
@@ -44,25 +46,70 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { companyName, contactPerson, phone, email, city, taxOffice, taxNumber } = body;
+    const {
+      companyName,
+      contactPerson,
+      phone,
+      email,
+      city,
+      taxOffice,
+      taxNumber,
+      address,
+      idNumber
+    } = body;
     const notes = body.notes || body.message || '';
 
-    if (!phone || !companyName) {
-      return NextResponse.json(
-        { success: false, error: 'Firma adı ve telefon numarası zorunludur.' },
-        { status: 400 }
-      );
+    // Field Validations according to business rules
+    const trimmedCompanyName = (companyName || '').trim();
+    const trimmedContactPerson = (contactPerson || '').trim();
+    const trimmedPhone = (phone || '').trim();
+    const trimmedEmail = (email || '').trim();
+    const trimmedCity = (city || '').trim();
+    const trimmedTaxOffice = (taxOffice || '').trim();
+    const trimmedTaxNumber = (taxNumber || '').trim();
+    const trimmedAddress = (address || '').trim();
+    const trimmedIdNumber = (idNumber || '').trim();
+
+    if (!trimmedCompanyName) {
+      return NextResponse.json({ success: false, error: 'Firma ünvanı boş bırakılamaz.' }, { status: 400 });
+    }
+    if (!trimmedTaxOffice) {
+      return NextResponse.json({ success: false, error: 'Vergi dairesi boş bırakılamaz.' }, { status: 400 });
+    }
+    if (!trimmedTaxNumber || trimmedTaxNumber.length < 10) {
+      return NextResponse.json({ success: false, error: 'Vergi numarası en az 10 hane olmalıdır.' }, { status: 400 });
+    }
+    if (!trimmedContactPerson) {
+      return NextResponse.json({ success: false, error: 'İsim ve soyisim boş bırakılamaz.' }, { status: 400 });
+    }
+    if (!trimmedCity) {
+      return NextResponse.json({ success: false, error: 'Lütfen Türkiye\'nin 81 ilinden birini seçiniz.' }, { status: 400 });
+    }
+    if (!trimmedAddress) {
+      return NextResponse.json({ success: false, error: 'Açık adres boş bırakılamaz.' }, { status: 400 });
+    }
+    if (!trimmedPhone) {
+      return NextResponse.json({ success: false, error: 'Telefon numarası zorunludur.' }, { status: 400 });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      return NextResponse.json({ success: false, error: 'Lütfen geçerli bir e-posta adresi giriniz.' }, { status: 400 });
+    }
+    if (trimmedIdNumber && !/^\d{11}$/.test(trimmedIdNumber)) {
+      return NextResponse.json({ success: false, error: 'T.C. Kimlik Numarası 11 haneli rakam olmalıdır.' }, { status: 400 });
     }
 
     const application = await prisma.dealerApplication.create({
       data: {
-        companyName,
-        contactPerson: contactPerson || companyName,
-        phone,
-        email: email || '',
-        city: city || 'İstanbul',
-        taxOffice: taxOffice || 'Belirtilmedi',
-        taxNumber: taxNumber || 'Belirtilmedi',
+        companyName: trimmedCompanyName,
+        contactPerson: trimmedContactPerson,
+        phone: trimmedPhone,
+        email: trimmedEmail,
+        city: trimmedCity,
+        taxOffice: trimmedTaxOffice,
+        taxNumber: trimmedTaxNumber,
+        address: trimmedAddress,
+        idNumber: trimmedIdNumber || null,
         notes,
         status: 'PENDING'
       }
@@ -217,6 +264,25 @@ export async function PUT(request: NextRequest) {
             email: application.email || company.email
           }
         });
+      }
+
+      // 3.5 Create Address record if address is present in application
+      if (application.address) {
+        const existingAddress = await tx.address.findFirst({
+          where: { companyId: company.id }
+        });
+        if (!existingAddress) {
+          await tx.address.create({
+            data: {
+              companyId: company.id,
+              title: 'Merkez Adres',
+              line1: application.address,
+              city: application.city || 'Kocaeli',
+              country: 'TR',
+              isDefault: true
+            }
+          });
+        }
       }
 
       // 4. Find or Create CurrentAccount

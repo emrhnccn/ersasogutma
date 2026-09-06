@@ -35,9 +35,10 @@ export const DealerApplicationSchema = z.object({
   contactPerson: z.string().min(2, 'Yetkili kişi zorunludur'),
   phone: z.string().min(10, 'Geçerli bir telefon numarası giriniz'),
   email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  city: z.string().min(2, 'İl / İlçe bilgisi zorunludur'),
+  city: z.string().min(2, 'İl bilgisi zorunludur'),
   taxOffice: z.string().min(2, 'Vergi dairesi zorunludur'),
-  taxNumber: z.string().min(10, 'Vergi numarası en az 10 hane olmalıdır'),
+  address: z.string().min(5, 'Açık adres en az 5 karakter olmalıdır').optional().or(z.literal('')),
+  idNumber: z.string().regex(/^\d{11}$/, 'T.C. Kimlik No 11 haneli rakamlardan oluşmalıdır').optional().or(z.literal('')),
   notes: z.string().optional(),
 });
 

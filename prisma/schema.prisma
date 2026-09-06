@@ -669,6 +669,8 @@ model DealerApplication {
   city          String
   taxOffice     String
   taxNumber     String
+  address       String?
+  idNumber      String?
   notes         String?
   status        String    @default("PENDING") // PENDING, APPROVED, REJECTED
   assignedTier  String?
