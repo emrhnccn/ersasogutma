@@ -49,6 +49,14 @@ function ProductsContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>(queryParam);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>(queryParam);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
   const [onlyFavorites, setOnlyFavorites] = useState<boolean>(favoriteOnlyParam);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
@@ -186,7 +194,7 @@ function ProductsContent() {
 
       if (selectedCategory !== 'all') params.set('category', selectedCategory);
       if (selectedBrand !== 'all') params.set('brand', selectedBrand);
-      if (searchQuery.trim() !== '') params.set('q', searchQuery.trim());
+      if (debouncedSearchQuery.trim() !== '') params.set('q', debouncedSearchQuery.trim());
       if (onlyInStock) params.set('stok', '1');
 
       const res = await fetch(`/api/products?${params.toString()}`);
@@ -214,7 +222,7 @@ function ProductsContent() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [selectedCategory, selectedBrand, searchQuery, onlyInStock]);
+  }, [selectedCategory, selectedBrand, debouncedSearchQuery, onlyInStock]);
 
   // Reset and fetch Page 1 whenever filters change
   useEffect(() => {

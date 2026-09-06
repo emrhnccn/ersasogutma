@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { BRANDS } from '@/data/categories';
@@ -23,7 +23,13 @@ import {
 import * as XLSX from 'xlsx';
 
 export default function BulkOrderPage() {
-  const { products, addToCart, cartTotals, showToast, profile } = useStore();
+  const { products, refreshProducts, addToCart, cartTotals, showToast, profile } = useStore();
+
+  useEffect(() => {
+    if (products.length === 0) {
+      refreshProducts();
+    }
+  }, [products.length, refreshProducts]);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   

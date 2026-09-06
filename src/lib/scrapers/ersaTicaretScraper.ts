@@ -120,7 +120,7 @@ export class ErsaTicaretScraper implements ISupplierScraper {
       });
 
       let imported = 0;
-      let updated = 0;
+      const updated = 0;
       let failed = 0;
 
       // Category and Brand caching
@@ -176,59 +176,52 @@ export class ErsaTicaretScraper implements ISupplierScraper {
                 categoryCache.set(categoryName, categoryId);
               }
 
-              // 3. Upsert Product (NO MARGIN: exact raw price)
-              const existingProd = await prisma.product.findUnique({
-                where: { sku: scraped.sku }
+              // 3. Atomic Upsert Product (NO MARGIN: exact raw price)
+              const upsertedProd = await prisma.product.upsert({
+                where: { sku: scraped.sku },
+                update: {
+                  name: scraped.name,
+                  salePrice: scraped.salePrice || 0,
+                  costPrice: scraped.costPrice || 0,
+                  brandId,
+                  categoryId,
+                  description: scraped.description,
+                  stockQty: scraped.stockQty,
+                  status: 'PUBLISHED',
+                  specsJson: scraped.specsJson ? JSON.stringify(scraped.specsJson) : undefined
+                },
+                create: {
+                  name: scraped.name,
+                  slug: scraped.slug + '-' + Math.random().toString(36).substring(2, 6),
+                  sku: scraped.sku,
+                  barcode: scraped.barcode,
+                  description: scraped.description,
+                  salePrice: scraped.salePrice || 0,
+                  costPrice: scraped.costPrice || 0,
+                  brandId,
+                  categoryId,
+                  stockQty: scraped.stockQty,
+                  status: 'PUBLISHED',
+                  specsJson: scraped.specsJson ? JSON.stringify(scraped.specsJson) : undefined
+                }
               });
 
-              if (existingProd) {
-                await prisma.product.update({
-                  where: { id: existingProd.id },
-                  data: {
-                    name: scraped.name,
-                    salePrice: scraped.salePrice || 0,
-                    costPrice: scraped.costPrice || 0,
-                    brandId,
-                    categoryId,
-                    description: scraped.description,
-                    stockQty: scraped.stockQty,
-                    status: 'PUBLISHED',
-                    specsJson: scraped.specsJson ? JSON.stringify(scraped.specsJson) : undefined
-                  }
-                });
-                updated++;
-              } else {
-                const newProd = await prisma.product.create({
-                  data: {
-                    name: scraped.name,
-                    slug: scraped.slug + '-' + Math.random().toString(36).substring(2, 6),
-                    sku: scraped.sku,
-                    barcode: scraped.barcode,
-                    description: scraped.description,
-                    salePrice: scraped.salePrice || 0,
-                    costPrice: scraped.costPrice || 0,
-                    brandId,
-                    categoryId,
-                    stockQty: scraped.stockQty,
-                    status: 'PUBLISHED',
-                    specsJson: scraped.specsJson ? JSON.stringify(scraped.specsJson) : undefined
-                  }
-                });
-
-                // Add Images
-                if (scraped.images && scraped.images.length > 0) {
+              // Add Images if not present
+              if (scraped.images && scraped.images.length > 0) {
+                const imgCount = await prisma.productImage.count({ where: { productId: upsertedProd.id } });
+                if (imgCount === 0) {
                   await prisma.productImage.createMany({
                     data: scraped.images.map((img, idx) => ({
-                      productId: newProd.id,
+                      productId: upsertedProd.id,
                       url: img.url,
                       alt: scraped.name,
                       sortOrder: idx
                     }))
                   });
                 }
-
-                imported++;
               }
+
+              imported++;
 
               if (overallIndex % 25 === 0 || overallIndex === urlsToProcess.length) {
                 log(`[${overallIndex}/${urlsToProcess.length}] Aktarıldı: ${scraped.name.slice(0, 35)}... (SKU: ${scraped.sku})`);

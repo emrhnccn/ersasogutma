@@ -177,9 +177,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  React.useEffect(() => {
-    refreshProducts();
-  }, [refreshProducts]);
+  // Products are loaded on-demand by pages that consume in-memory catalog
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);

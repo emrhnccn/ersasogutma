@@ -119,6 +119,14 @@ export default function AdminControlPanel() {
   const [adminTotalProducts, setAdminTotalProducts] = useState(0);
 
   const [productSearch, setProductSearch] = useState('');
+  const [debouncedProductSearch, setDebouncedProductSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedProductSearch(productSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [productSearch]);
   const [productCategoryFilter, setProductCategoryFilter] = useState('ALL');
   const [productBrandFilter, setProductBrandFilter] = useState('ALL');
   const [adminMissingPriceFilter, setAdminMissingPriceFilter] = useState(false);
@@ -379,7 +387,7 @@ export default function AdminControlPanel() {
 
       if (productCategoryFilter !== 'ALL') params.set('category', productCategoryFilter);
       if (productBrandFilter !== 'ALL') params.set('brand', productBrandFilter);
-      if (productSearch.trim()) params.set('q', productSearch.trim());
+      if (debouncedProductSearch.trim()) params.set('q', debouncedProductSearch.trim());
       if (productSort) params.set('sort', productSort);
       if (adminMissingPriceFilter) params.set('missingPriceOnly', 'true');
 
@@ -406,7 +414,7 @@ export default function AdminControlPanel() {
       setLoadingProducts(false);
       setLoadingMoreProducts(false);
     }
-  }, [productCategoryFilter, productBrandFilter, productSearch, productSort, adminMissingPriceFilter]);
+  }, [productCategoryFilter, productBrandFilter, debouncedProductSearch, productSort, adminMissingPriceFilter]);
 
   // Fetch Brands for Admin Filtering
   const loadBrands = useCallback(async () => {
@@ -567,17 +575,27 @@ export default function AdminControlPanel() {
     }
   }, [loadProducts, loadCategories]);
 
+  // Initial mount: only load dashboard KPIs (categories & orders)
   useEffect(() => {
-    loadProducts();
     loadCategories();
-    loadBankAccounts();
-    loadAuditLogs();
-    loadDealerApplications();
-    loadDealers();
     loadAdminOrders();
-    loadBrands();
-    checkScraperStatus();
-  }, [loadProducts, loadCategories, loadBankAccounts, loadAuditLogs, loadDealerApplications, loadDealers, loadAdminOrders, loadBrands, checkScraperStatus]);
+  }, [loadCategories, loadAdminOrders]);
+
+  // On-demand tab data loading
+  useEffect(() => {
+    if (activeTab === 'dealers') {
+      loadDealers();
+      loadDealerApplications();
+    } else if (activeTab === 'bank_accounts') {
+      loadBankAccounts();
+    } else if (activeTab === 'audit') {
+      loadAuditLogs();
+    } else if (activeTab === 'scraper') {
+      checkScraperStatus();
+    } else if (activeTab === 'products') {
+      loadBrands();
+    }
+  }, [activeTab, loadDealers, loadDealerApplications, loadBankAccounts, loadAuditLogs, checkScraperStatus, loadBrands]);
 
   // Polling during active scraping
   useEffect(() => {

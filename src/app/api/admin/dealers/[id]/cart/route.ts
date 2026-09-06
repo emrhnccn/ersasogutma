@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin, logAuditAction } from '@/lib/auth-guard';
-import { calculateServerPrice } from '@/lib/pricingEngine';
+import { calculateServerPrice, calculateServerPriceBatch } from '@/lib/pricingEngine';
 import { getStockStatus } from '@/lib/stockHelper';
 
 export const dynamic = 'force-dynamic';
@@ -74,53 +74,56 @@ export async function GET(
       });
     }
 
-    const computedItems = await Promise.all(
-      cart.items.map(async (i) => {
-        const basePrice = Number(i.product.salePrice || 0);
-        const qty = Number(i.quantity);
-        const stockQty = Number(i.product.stockQty || 0);
-        const vatRate = Number(i.product.vatRate || 20);
+    const batchInputs = cart.items.map((i) => ({
+      productId: i.productId,
+      basePriceTRY: Number(i.product.salePrice || 0),
+      quantity: Number(i.quantity)
+    }));
+    const priceInfos = await calculateServerPriceBatch(batchInputs, company.id);
 
-        const priceInfo = await calculateServerPrice({
-          productId: i.productId,
-          basePriceTRY: basePrice,
-          quantity: qty,
-          companyId: company.id
-        });
+    const computedItems = cart.items.map((i, idx) => {
+      const basePrice = Number(i.product.salePrice || 0);
+      const qty = Number(i.quantity);
+      const stockQty = Number(i.product.stockQty || 0);
+      const vatRate = Number(i.product.vatRate || 20);
+      const priceInfo = priceInfos[idx] || {
+        basePriceTRY: basePrice,
+        finalPriceTRY: basePrice,
+        appliedDiscountPercent: 0
+      };
 
-        const unitPriceTRY = priceInfo.finalPriceTRY;
-        const lineNet = Number((unitPriceTRY * qty).toFixed(2));
-        const vatAmount = Number(((lineNet * vatRate) / 100).toFixed(2));
-        const lineGross = Number((lineNet + vatAmount).toFixed(2));
-        const unitDiscountAmt = Number(Math.max(0, basePrice - unitPriceTRY).toFixed(2));
-        const totalDiscountAmt = Number((unitDiscountAmt * qty).toFixed(2));
+      const unitPriceTRY = priceInfo.finalPriceTRY;
+      const lineNet = Number((unitPriceTRY * qty).toFixed(2));
+      const vatAmount = Number(((lineNet * vatRate) / 100).toFixed(2));
+      const lineGross = Number((lineNet + vatAmount).toFixed(2));
+      const unitDiscountAmt = Number(Math.max(0, basePrice - unitPriceTRY).toFixed(2));
+      const totalDiscountAmt = Number((unitDiscountAmt * qty).toFixed(2));
 
-        const stockInfo = getStockStatus(stockQty, i.product.unit || 'Adet');
+      const stockInfo = getStockStatus(stockQty, i.product.unit || 'Adet');
 
-        return {
-          id: i.id,
-          productId: i.productId,
-          name: i.product.name,
-          sku: i.product.sku,
-          quantity: qty,
-          unit: i.product.unit || 'Adet',
-          stockQty,
-          stockStatus: stockInfo.status,
-          stockLabel: stockInfo.label,
-          isOverStock: qty > stockQty,
-          basePriceTRY: basePrice,
-          unitPriceTRY: unitPriceTRY,
-          discountPercent: priceInfo.appliedDiscountPercent,
-          unitDiscountAmt: unitDiscountAmt,
-          totalDiscountAmt: totalDiscountAmt,
-          vatRate: vatRate,
-          vatAmount: vatAmount,
-          lineNet: lineNet,
-          lineGross: lineGross,
-          image: i.product.images?.[0]?.url || '/placeholder.svg'
-        };
-      })
-    );
+      return {
+        id: i.id,
+        productId: i.productId,
+        name: i.product.name,
+        sku: i.product.sku,
+        quantity: qty,
+        unit: i.product.unit || 'Adet',
+        stockQty,
+        stockStatus: stockInfo.status,
+        stockLabel: stockInfo.label,
+        isOverStock: qty > stockQty,
+        basePriceTRY: basePrice,
+        unitPriceTRY: unitPriceTRY,
+        discountPercent: priceInfo.appliedDiscountPercent,
+        unitDiscountAmt: unitDiscountAmt,
+        totalDiscountAmt: totalDiscountAmt,
+        vatRate: vatRate,
+        vatAmount: vatAmount,
+        lineNet: lineNet,
+        lineGross: lineGross,
+        image: i.product.images?.[0]?.url || '/placeholder.svg'
+      };
+    });
 
     const subtotalExVat = Number(computedItems.reduce((sum, i) => sum + i.lineNet, 0).toFixed(2));
     const totalDiscount = Number(computedItems.reduce((sum, i) => sum + i.totalDiscountAmt, 0).toFixed(2));

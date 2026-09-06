@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-guard';
-import { calculateServerPrice } from '@/lib/pricingEngine';
+import { calculateServerPriceBatch } from '@/lib/pricingEngine';
 import { getStockStatus } from '@/lib/stockHelper';
 
 export const dynamic = 'force-dynamic';
@@ -70,49 +70,53 @@ export async function GET(request: NextRequest) {
         let totalItemsQty = 0;
         let hasOverStock = false;
 
-        const items = await Promise.all(
-          cart.items.map(async (item) => {
-            const basePrice = Number(item.product.salePrice || 0);
-            const qty = Number(item.quantity);
-            const stockQty = Number(item.product.stockQty || 0);
-            const isOverStock = qty > stockQty;
+        const batchInputs = cart.items.map((item) => ({
+          productId: item.productId,
+          basePriceTRY: Number(item.product.salePrice || 0),
+          quantity: Number(item.quantity)
+        }));
+        const priceInfos = await calculateServerPriceBatch(batchInputs, companyId);
 
-            if (isOverStock) hasOverStock = true;
+        const items = cart.items.map((item, idx) => {
+          const basePrice = Number(item.product.salePrice || 0);
+          const qty = Number(item.quantity);
+          const stockQty = Number(item.product.stockQty || 0);
+          const isOverStock = qty > stockQty;
 
-            const priceInfo = await calculateServerPrice({
-              productId: item.productId,
-              basePriceTRY: basePrice,
-              quantity: qty,
-              companyId
-            });
+          if (isOverStock) hasOverStock = true;
 
-            const lineTotal = Number((priceInfo.finalPriceTRY * qty).toFixed(2));
-            totalCartAmount += lineTotal;
-            totalItemsQty += qty;
+          const priceInfo = priceInfos[idx] || {
+            basePriceTRY: basePrice,
+            finalPriceTRY: basePrice,
+            appliedDiscountPercent: 0
+          };
 
-            const stockInfo = getStockStatus(stockQty, item.product.unit || 'Adet');
+          const lineTotal = Number((priceInfo.finalPriceTRY * qty).toFixed(2));
+          totalCartAmount += lineTotal;
+          totalItemsQty += qty;
 
-            return {
-              id: item.id,
-              productId: item.productId,
-              name: item.product.name,
-              sku: item.product.sku,
-              image: item.product.images?.[0]?.url || '/placeholder.svg',
-              category: item.product.category?.name || 'Genel',
-              brand: item.product.brand?.name || 'Ersa',
-              unit: item.product.unit || 'Adet',
-              quantity: qty,
-              stockQty,
-              stockStatus: stockInfo.status,
-              stockLabel: stockInfo.label,
-              isOverStock,
-              basePriceTRY: basePrice,
-              unitPriceTRY: priceInfo.finalPriceTRY,
-              discountPercent: priceInfo.appliedDiscountPercent,
-              totalTRY: lineTotal
-            };
-          })
-        );
+          const stockInfo = getStockStatus(stockQty, item.product.unit || 'Adet');
+
+          return {
+            id: item.id,
+            productId: item.productId,
+            name: item.product.name,
+            sku: item.product.sku,
+            image: item.product.images?.[0]?.url || '/placeholder.svg',
+            category: item.product.category?.name || 'Genel',
+            brand: item.product.brand?.name || 'Ersa',
+            unit: item.product.unit || 'Adet',
+            quantity: qty,
+            stockQty,
+            stockStatus: stockInfo.status,
+            stockLabel: stockInfo.label,
+            isOverStock,
+            basePriceTRY: basePrice,
+            unitPriceTRY: priceInfo.finalPriceTRY,
+            discountPercent: priceInfo.appliedDiscountPercent,
+            totalTRY: lineTotal
+          };
+        });
 
         return {
           cartId: cart.id,

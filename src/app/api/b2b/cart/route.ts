@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
-import { calculateServerPrice } from '@/lib/pricingEngine';
+import { calculateServerPriceBatch } from '@/lib/pricingEngine';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,38 +49,42 @@ export async function GET() {
       });
     }
 
-    // Compute live B2B prices for cart items
-    const computedItems = await Promise.all(
-      cart.items.map(async (item) => {
-        const basePrice = Number(item.product.salePrice || 0);
-        const qty = Number(item.quantity);
-        const priceInfo = await calculateServerPrice({
-          productId: item.productId,
-          basePriceTRY: basePrice,
-          quantity: qty,
-          companyId
-        });
+    // Compute live B2B prices for cart items in a single batch query
+    const batchInputs = cart.items.map((item) => ({
+      productId: item.productId,
+      basePriceTRY: Number(item.product.salePrice || 0),
+      quantity: Number(item.quantity)
+    }));
+    const priceInfos = await calculateServerPriceBatch(batchInputs, companyId);
 
-        return {
-          id: item.id,
-          productId: item.productId,
-          productCode: item.product.sku,
-          productName: item.product.name,
-          categoryName: item.product.category?.name || 'Genel',
-          brandName: item.product.brand?.name || 'Ersa',
-          image: item.product.images?.[0]?.url || '',
-          quantity: qty,
-          unit: item.product.unit || 'Adet',
-          minOrderQty: Number(item.product.minOrderQty || 1),
-          unitPriceTRY: priceInfo.finalPriceTRY,
-          basePriceTRY: priceInfo.basePriceTRY,
-          appliedDiscountRate: priceInfo.appliedDiscountPercent,
-          totalTRY: Number((priceInfo.finalPriceTRY * qty).toFixed(2)),
-          stockQty: Number(item.product.stockQty || 0),
-          inStock: Number(item.product.stockQty || 0) >= qty,
-        };
-      })
-    );
+    const computedItems = cart.items.map((item, idx) => {
+      const basePrice = Number(item.product.salePrice || 0);
+      const qty = Number(item.quantity);
+      const priceInfo = priceInfos[idx] || {
+        basePriceTRY: basePrice,
+        finalPriceTRY: basePrice,
+        appliedDiscountPercent: 0
+      };
+
+      return {
+        id: item.id,
+        productId: item.productId,
+        productCode: item.product.sku,
+        productName: item.product.name,
+        categoryName: item.product.category?.name || 'Genel',
+        brandName: item.product.brand?.name || 'Ersa',
+        image: item.product.images?.[0]?.url || '',
+        quantity: qty,
+        unit: item.product.unit || 'Adet',
+        minOrderQty: Number(item.product.minOrderQty || 1),
+        unitPriceTRY: priceInfo.finalPriceTRY,
+        basePriceTRY: priceInfo.basePriceTRY,
+        appliedDiscountRate: priceInfo.appliedDiscountPercent,
+        totalTRY: Number((priceInfo.finalPriceTRY * qty).toFixed(2)),
+        stockQty: Number(item.product.stockQty || 0),
+        inStock: Number(item.product.stockQty || 0) >= qty,
+      };
+    });
 
     const subtotalTRY = computedItems.reduce((sum, item) => sum + (item.basePriceTRY * item.quantity), 0);
     const totalTRY = computedItems.reduce((sum, item) => sum + item.totalTRY, 0);

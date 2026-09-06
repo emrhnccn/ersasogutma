@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer, requireDealerOrAdmin, logAuditAction } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
-import { calculateServerPrice } from '@/lib/pricingEngine';
+import { calculateServerPrice, calculateServerPriceBatch } from '@/lib/pricingEngine';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const companyIdParam = searchParams.get('companyId');
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const isAll = searchParams.get('all') === 'true';
+
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
+    const limit = isAll ? undefined : (limitParam ? Math.max(1, parseInt(limitParam, 10)) : 50);
+    const skip = limit !== undefined ? (page - 1) * limit : undefined;
 
     const guard = await requireDealerOrAdmin({
       targetCompanyId: companyIdParam || undefined
@@ -28,29 +35,34 @@ export async function GET(request: NextRequest) {
       whereClause.status = status;
     }
 
-    const orders = await prisma.order.findMany({
-      where: whereClause,
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                images: { take: 1, orderBy: { sortOrder: 'asc' } }
+    const [orders, totalCount] = await Promise.all([
+      prisma.order.findMany({
+        where: whereClause,
+        take: limit,
+        skip,
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  images: { take: 1, orderBy: { sortOrder: 'asc' } }
+                }
               }
             }
-          }
+          },
+          company: {
+            select: { id: true, legalName: true, taxNo: true, phone: true }
+          },
+          user: {
+            select: { id: true, name: true, email: true, username: true }
+          },
+          shipments: true,
+          payments: true
         },
-        company: {
-          select: { id: true, legalName: true, taxNo: true, phone: true }
-        },
-        user: {
-          select: { id: true, name: true, email: true, username: true }
-        },
-        shipments: true,
-        payments: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.order.count({ where: whereClause })
+    ]);
 
     const mapped = orders.map((o) => ({
       id: o.id,
@@ -84,7 +96,16 @@ export async function GET(request: NextRequest) {
       }))
     }));
 
-    return NextResponse.json({ success: true, data: mapped });
+    return NextResponse.json({
+      success: true,
+      data: mapped,
+      pagination: {
+        total: totalCount,
+        page,
+        limit: limit || totalCount,
+        totalPages: limit ? Math.ceil(totalCount / limit) : 1
+      }
+    });
   } catch (error: unknown) {
     console.error('GET /api/b2b/orders error:', error);
     const message = error instanceof Error ? error.message : 'Siparişler yüklenirken hata oluştu.';
@@ -241,16 +262,23 @@ export async function POST(request: NextRequest) {
       appliedRules?: string;
     }> = [];
 
-    for (const item of cart.items) {
+    const batchInputs = cart.items.map((item) => ({
+      productId: item.productId,
+      basePriceTRY: Number(item.product.salePrice || 0),
+      quantity: Number(item.quantity)
+    }));
+    const priceInfos = await calculateServerPriceBatch(batchInputs, companyId);
+
+    for (let idx = 0; idx < cart.items.length; idx++) {
+      const item = cart.items[idx];
       const basePrice = Number(item.product.salePrice || 0);
       const qty = Number(item.quantity);
       const vatRate = Number(item.product.vatRate || 20);
-      const priceInfo = await calculateServerPrice({
-        productId: item.productId,
+      const priceInfo = priceInfos[idx] || {
         basePriceTRY: basePrice,
-        quantity: qty,
-        companyId
-      });
+        finalPriceTRY: basePrice,
+        discountAmountTRY: 0
+      };
 
       if (priceInfo.finalPriceTRY <= 0) {
         return NextResponse.json({

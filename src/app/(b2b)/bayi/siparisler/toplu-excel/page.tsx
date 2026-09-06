@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
@@ -30,7 +30,13 @@ interface ParsedBatchRow {
 
 export default function ExcelBatchOrderPage() {
   const router = useRouter();
-  const { products, addToCart, profile, showToast } = useStore();
+  const { products, refreshProducts, addToCart, profile, showToast } = useStore();
+
+  useEffect(() => {
+    if (products.length === 0) {
+      refreshProducts();
+    }
+  }, [products.length, refreshProducts]);
 
   const [parsedRows, setParsedRows] = useState<ParsedBatchRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);

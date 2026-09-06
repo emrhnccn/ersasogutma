@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireDealer, logAuditAction } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { QuoteCreateSchema } from '@/lib/validations';
-import { calculateServerPrice } from '@/lib/pricingEngine';
+import { calculateServerPriceBatch } from '@/lib/pricingEngine';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,15 +65,22 @@ export async function POST(request: NextRequest) {
     let discountTRY = 0;
     const itemsData = [];
 
-    for (const item of cart.items) {
+    const batchInputs = cart.items.map((item) => ({
+      productId: item.productId,
+      basePriceTRY: Number(item.product.salePrice || 0),
+      quantity: Number(item.quantity)
+    }));
+    const priceInfos = await calculateServerPriceBatch(batchInputs, companyId);
+
+    for (let idx = 0; idx < cart.items.length; idx++) {
+      const item = cart.items[idx];
       const basePrice = Number(item.product.salePrice || 0);
       const qty = Number(item.quantity);
-      const priceInfo = await calculateServerPrice({
-        productId: item.productId,
+      const priceInfo = priceInfos[idx] || {
         basePriceTRY: basePrice,
-        quantity: qty,
-        companyId
-      });
+        finalPriceTRY: basePrice,
+        discountAmountTRY: 0
+      };
 
       const lineBase = basePrice * qty;
       const lineFinal = priceInfo.finalPriceTRY * qty;

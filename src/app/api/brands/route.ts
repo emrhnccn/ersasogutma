@@ -44,11 +44,18 @@ export async function GET(request: NextRequest) {
     // Sort by name alphabetically (Turkish locale)
     formattedBrands.sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'));
 
-    return NextResponse.json({
-      success: true,
-      data: formattedBrands,
-      totalCount: formattedBrands.length
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: formattedBrands,
+        totalCount: formattedBrands.length
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+        }
+      }
+    );
   } catch (error: unknown) {
     console.error('GET /api/brands error:', error);
     return NextResponse.json(

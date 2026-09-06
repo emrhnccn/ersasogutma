@@ -422,6 +422,9 @@ model Order {
   @@index([status])
   @@index([companyId])
   @@index([userId])
+  @@index([createdAt])
+  @@index([companyId, createdAt])
+  @@index([status, createdAt])
 }
 
 model OrderItem {
@@ -443,6 +446,9 @@ model OrderItem {
 
   order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Payment {
