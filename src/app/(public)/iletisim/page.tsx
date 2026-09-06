@@ -11,23 +11,81 @@ import {
   User,
   MessageCircle,
   ShieldCheck,
+  Building2,
+  FileText,
+  AlertCircle,
+  Loader2,
   Navigation
 } from 'lucide-react';
+import { ProvinceSelect } from '@/components/common/ProvinceSelect';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [fullName, setFullName] = useState('');
+  // Invoice & Dealer Application Fields (matching Fatura Adresi specs)
+  const [invoiceType, setInvoiceType] = useState<'CORPORATE' | 'INDIVIDUAL'>('CORPORATE');
   const [companyName, setCompanyName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [taxOffice, setTaxOffice] = useState('');
+  const [taxNumber, setTaxNumber] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [subject, setSubject] = useState('Yeni B2B Bayilik Başvurusu');
   const [message, setMessage] = useState('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (invoiceType === 'CORPORATE') {
+      if (!companyName.trim()) errors.companyName = 'Firma ünvanı zorunludur.';
+      if (!taxOffice.trim()) errors.taxOffice = 'Vergi dairesi zorunludur.';
+      const cleanTaxNo = taxNumber.trim().replace(/\D/g, '');
+      if (!cleanTaxNo || cleanTaxNo.length < 10) errors.taxNumber = 'Vergi numarası en az 10 hane olmalıdır.';
+    }
+
+    if (invoiceType === 'INDIVIDUAL') {
+      const cleanTc = idNumber.trim().replace(/\D/g, '');
+      if (!cleanTc || cleanTc.length !== 11) {
+        errors.idNumber = 'T.C. Kimlik Numarası 11 haneli olmalıdır.';
+      }
+    } else if (idNumber.trim()) {
+      const cleanTc = idNumber.trim().replace(/\D/g, '');
+      if (cleanTc.length !== 11) {
+        errors.idNumber = 'T.C. Kimlik Numarası 11 haneli rakam olmalıdır.';
+      }
+    }
+
+    if (!firstName.trim()) errors.firstName = 'İsim zorunludur.';
+    if (!lastName.trim()) errors.lastName = 'Soyisim zorunludur.';
+    if (!city.trim()) errors.city = 'Lütfen il seçiniz.';
+    if (!address.trim()) errors.address = 'Açık adres zorunludur.';
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRegex.test(email.trim())) {
+      errors.email = 'Lütfen geçerli bir e-posta adresi giriniz.';
+    }
+
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      errors.phone = 'Geçerli bir telefon numarası giriniz.';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setIsSubmitting(true);
     setErrorMsg(null);
 
@@ -36,11 +94,19 @@ export default function ContactPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contactPerson: fullName,
-          companyName: companyName || fullName,
-          phone,
-          email,
-          notes: `[Konu: ${subject}] ${message}`
+          invoiceType,
+          companyName: invoiceType === 'CORPORATE' ? companyName.trim() : `${firstName.trim()} ${lastName.trim()}`,
+          contactPerson: `${firstName.trim()} ${lastName.trim()}`,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          taxOffice: invoiceType === 'CORPORATE' ? taxOffice.trim() : 'Bireysel Fatura',
+          taxNumber: invoiceType === 'CORPORATE' ? taxNumber.trim() : (idNumber.trim() || '1111111111'),
+          idNumber: idNumber.trim() || null,
+          city: city.trim(),
+          address: address.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          notes: `[Konu: ${subject}] ${message}`.trim()
         })
       });
 
@@ -241,116 +307,387 @@ export default function ContactPage() {
           {/* Form */}
           <div className="lg:col-span-2 bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm">
             {submitted ? (
-              <div className="text-center py-12">
-                <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-slate-900">Başvurunuz Alındı!</h3>
-                <p className="text-slate-500 mt-2">Bayilik ve talep kaydınız başarıyla yönetim panelimize ulaştı. En kısa sürede sizinle iletişime geçilecektir.</p>
-                <button
-                  onClick={() => {
-                    setSubmitted(false);
-                    setFullName('');
-                    setCompanyName('');
-                    setPhone('');
-                    setEmail('');
-                    setMessage('');
-                  }}
-                  className="mt-6 px-6 py-2.5 bg-sky-600 text-white rounded-xl font-bold text-sm hover:bg-sky-700 transition"
-                >
-                  Yeni Başvuru / Mesaj Gönder
-                </button>
+              <div className="text-center py-12 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto ring-8 ring-emerald-50">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900">Başvurunuz Başarıyla Alındı!</h3>
+                <p className="text-slate-600 text-sm max-w-lg mx-auto leading-relaxed">
+                  <strong className="text-slate-900">
+                    &ldquo;{invoiceType === 'CORPORATE' ? companyName : `${firstName} ${lastName}`}&rdquo;
+                  </strong>{' '}
+                  adına ilettiğiniz bayilik ve online talep başvurunuz yönetim panelimize ulaştı. Müşteri temsilcimiz en kısa sürede sizinle iletişime geçecektir.
+                </p>
+                <div className="pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitted(false);
+                      setCompanyName('');
+                      setTaxOffice('');
+                      setTaxNumber('');
+                      setIdNumber('');
+                      setFirstName('');
+                      setLastName('');
+                      setCity('');
+                      setAddress('');
+                      setPhone('');
+                      setEmail('');
+                      setMessage('');
+                      setFieldErrors({});
+                    }}
+                    className="px-6 py-3 bg-sky-600 text-white rounded-xl font-bold text-sm hover:bg-sky-700 transition shadow-md shadow-sky-600/20 cursor-pointer"
+                  >
+                    Yeni Başvuru / Form Gönder
+                  </button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">
-                  Online Talep & Bayilik Başvuru Formu
-                </h3>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                    Online Talep & Bayilik Başvuru Formu
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    B2B bayilik başvurusu, toptan fiyat teklifi veya parça talebiniz için fatura ve adres bilgilerinizi eksiksiz doldurunuz.
+                  </p>
+                </div>
 
                 {errorMsg && (
-                  <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold">
-                    {errorMsg}
+                  <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-bold">Başvuru İletilemedi</strong>
+                      <span>{errorMsg}</span>
+                    </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* 1. Fatura Adresi & Fatura Türü (Bireysel / Kurumsal) */}
+                <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-sky-600" />
+                      <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Fatura Adresi</h4>
+                    </div>
+
+                    {/* Radio Toggles: Bireysel vs Kurumsal */}
+                    <div className="flex items-center gap-5 text-xs font-bold text-slate-700">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="invoiceType"
+                          value="INDIVIDUAL"
+                          checked={invoiceType === 'INDIVIDUAL'}
+                          onChange={() => {
+                            setInvoiceType('INDIVIDUAL');
+                            setFieldErrors({});
+                          }}
+                          className="w-4 h-4 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                        />
+                        <span className={invoiceType === 'INDIVIDUAL' ? 'text-sky-700 font-black' : ''}>
+                          Bireysel Fatura
+                        </span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="invoiceType"
+                          value="CORPORATE"
+                          checked={invoiceType === 'CORPORATE'}
+                          onChange={() => {
+                            setInvoiceType('CORPORATE');
+                            setFieldErrors({});
+                          }}
+                          className="w-4 h-4 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                        />
+                        <span className={invoiceType === 'CORPORATE' ? 'text-sky-700 font-black' : ''}>
+                          Kurumsal Fatura
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Kurumsal Fatura Alanları: Firma Ünvanı, Vergi Dairesi, Vergi No */}
+                  {invoiceType === 'CORPORATE' && (
+                    <div className="space-y-4 pt-1">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                          Firma Ünvanı <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={companyName}
+                          onChange={(e) => {
+                            setCompanyName(e.target.value);
+                            if (fieldErrors.companyName) setFieldErrors({ ...fieldErrors, companyName: '' });
+                          }}
+                          placeholder="Ersa Soğutma Isıtma San. ve Tic. Ltd. Şti."
+                          className={`w-full px-4 py-3 bg-white border ${
+                            fieldErrors.companyName ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                          } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition`}
+                        />
+                        {fieldErrors.companyName && (
+                          <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.companyName}</p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                            Vergi Dairesi <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={taxOffice}
+                            onChange={(e) => {
+                              setTaxOffice(e.target.value);
+                              if (fieldErrors.taxOffice) setFieldErrors({ ...fieldErrors, taxOffice: '' });
+                            }}
+                            placeholder="Örn: Uluçınar Vergi Dairesi"
+                            className={`w-full px-4 py-3 bg-white border ${
+                              fieldErrors.taxOffice ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                            } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 transition`}
+                          />
+                          {fieldErrors.taxOffice && (
+                            <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.taxOffice}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                            Vergi Numarası <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            maxLength={11}
+                            value={taxNumber}
+                            onChange={(e) => {
+                              setTaxNumber(e.target.value);
+                              if (fieldErrors.taxNumber) setFieldErrors({ ...fieldErrors, taxNumber: '' });
+                            }}
+                            placeholder="10 Haneli Vergi Numarası"
+                            className={`w-full px-4 py-3 bg-white border ${
+                              fieldErrors.taxNumber ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                            } rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition`}
+                          />
+                          {fieldErrors.taxNumber && (
+                            <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.taxNumber}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tc Kimlik No */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Adınız Soyadınız *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Tc Kimlik No {invoiceType === 'INDIVIDUAL' ? <span className="text-rose-500">*</span> : <span className="text-slate-400 font-normal">(Şahıs Şirketi İse)</span>}
+                    </label>
                     <input
                       type="text"
+                      maxLength={11}
+                      value={idNumber}
+                      onChange={(e) => {
+                        setIdNumber(e.target.value);
+                        if (fieldErrors.idNumber) setFieldErrors({ ...fieldErrors, idNumber: '' });
+                      }}
+                      placeholder="11 Haneli T.C. Kimlik No"
+                      className={`w-full px-4 py-3 bg-white border ${
+                        fieldErrors.idNumber ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                      } rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition`}
+                    />
+                    {fieldErrors.idNumber && (
+                      <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.idNumber}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Yetkili & Adres Bilgileri */}
+                <div className="space-y-4">
+                  {/* İsim & Soyisim */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        İsim <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => {
+                          setFirstName(e.target.value);
+                          if (fieldErrors.firstName) setFieldErrors({ ...fieldErrors, firstName: '' });
+                        }}
+                        placeholder="Adınız"
+                        className={`w-full px-4 py-3 bg-slate-50 border ${
+                          fieldErrors.firstName ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                        } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition`}
+                      />
+                      {fieldErrors.firstName && (
+                        <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.firstName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Soyisim <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => {
+                          setLastName(e.target.value);
+                          if (fieldErrors.lastName) setFieldErrors({ ...fieldErrors, lastName: '' });
+                        }}
+                        placeholder="Soyadınız"
+                        className={`w-full px-4 py-3 bg-slate-50 border ${
+                          fieldErrors.lastName ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                        } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition`}
+                      />
+                      {fieldErrors.lastName && (
+                        <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.lastName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* İl (81 İl Dropdown) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      İl <span className="text-rose-500">*</span>
+                    </label>
+                    <ProvinceSelect
+                      value={city}
+                      onValueChange={(val) => {
+                        setCity(val);
+                        if (fieldErrors.city) setFieldErrors({ ...fieldErrors, city: '' });
+                      }}
+                      placeholder="İl Seçiniz"
+                      error={fieldErrors.city}
                       required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ad Soyad"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
+                    {fieldErrors.city && (
+                      <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.city}</p>
+                    )}
                   </div>
+
+                  {/* Açık Adres */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Firma / Servis Adı</label>
-                    <input
-                      type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Firma Ünvanı"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Açık Adres <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={address}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        if (fieldErrors.address) setFieldErrors({ ...fieldErrors, address: '' });
+                      }}
+                      placeholder="Mahalle, cadde, sokak, bina ve kapı no, ilçe/posta kodu..."
+                      className={`w-full px-4 py-3 bg-slate-50 border ${
+                        fieldErrors.address ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                      } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition`}
                     />
+                    {fieldErrors.address && (
+                      <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.address}</p>
+                    )}
+                  </div>
+
+                  {/* Email & Cep Telefonu */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Email Adresiniz <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
+                        }}
+                        placeholder="ornek@firma.com"
+                        className={`w-full px-4 py-3 bg-slate-50 border ${
+                          fieldErrors.email ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                        } rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition`}
+                      />
+                      {fieldErrors.email && (
+                        <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Cep Telefonu <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value);
+                          if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: '' });
+                        }}
+                        placeholder="05XX XXX XX XX"
+                        className={`w-full px-4 py-3 bg-slate-50 border ${
+                          fieldErrors.phone ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200'
+                        } rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition`}
+                      />
+                      {fieldErrors.phone && (
+                        <p className="text-[11px] text-rose-600 font-semibold mt-1">{fieldErrors.phone}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* 3. Talep Türü & Mesaj */}
+                <div className="space-y-4 pt-2 border-t border-slate-100">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Telefon Numaranız *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="05XX XXX XX XX"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
-                    />
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Konu / Talep Türü <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition cursor-pointer"
+                    >
+                      <option>Yeni B2B Bayilik Başvurusu</option>
+                      <option>Toplu Ürün / Fiyat Teklifi Talebi</option>
+                      <option>Teknik Destek / Parça Sorgulama</option>
+                      <option>Cari Hesap & Ödeme Koşulları</option>
+                      <option>Diğer</option>
+                    </select>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">E-Posta Adresiniz</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ornek@firma.com"
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Mesajınız / Ek Notlar
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Talep ettiğiniz ürünler, faaliyet alanınız veya iletmek istediğiniz detayları buraya yazabilirsiniz..."
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
-                    />
+                    ></textarea>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Konu / Talep Türü</label>
-                  <select
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
-                  >
-                    <option>Yeni B2B Bayilik Başvurusu</option>
-                    <option>Toplu Ürün / Fiyat Teklifi Talebi</option>
-                    <option>Teknik Destek / Parça Sorgulama</option>
-                    <option>Diğer</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Mesajınız *</label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Talebinizi veya sorularınızı buraya yazınız..."
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
-                  ></textarea>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-sky-600/20 transition flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-600/25 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" /> {isSubmitting ? 'Gönderiliyor...' : 'Talebi Gönder'}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Başvuru Gönderiliyor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Talebi & Bayilik Başvurusunu Gönder</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

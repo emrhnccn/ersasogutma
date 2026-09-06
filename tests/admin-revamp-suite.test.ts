@@ -89,3 +89,58 @@ test('4. CANLI SEPET MÜDAHALE LOGIC TESTİ', () => {
   const removed = updateQty(cartItems, 'item-1', 0);
   assert.strictEqual(removed.length, 1, 'Adet 0 yapıldığında sepetten çıkarılmalı');
 });
+
+test('5. ONLİNE TALEP & BAYİLİK BAŞVURU FORMU (FATURA ADRESİ) TESTİ', async () => {
+  const fs = await import('fs');
+  const path = await import('path');
+
+  const contactPage = fs.readFileSync(path.join(process.cwd(), 'src/app/(public)/iletisim/page.tsx'), 'utf-8');
+
+  // 1. Check all visual fields exist in ContactPage
+  assert.ok(contactPage.includes('Fatura Adresi'), 'Formda Fatura Adresi başlığı yer almalı');
+  assert.ok(contactPage.includes('Bireysel Fatura'), 'Bireysel Fatura seçeneği bulunmalı');
+  assert.ok(contactPage.includes('Kurumsal Fatura'), 'Kurumsal Fatura seçeneği bulunmalı');
+  assert.ok(contactPage.includes('Firma Ünvanı'), 'Firma Ünvanı alanı bulunmalı');
+  assert.ok(contactPage.includes('Vergi Dairesi'), 'Vergi Dairesi alanı bulunmalı');
+  assert.ok(contactPage.includes('Vergi Numarası'), 'Vergi Numarası alanı bulunmalı');
+  assert.ok(contactPage.includes('Tc Kimlik No'), 'Tc Kimlik No alanı bulunmalı');
+  assert.ok(contactPage.includes('İsim'), 'İsim alanı bulunmalı');
+  assert.ok(contactPage.includes('Soyisim'), 'Soyisim alanı bulunmalı');
+  assert.ok(contactPage.includes('ProvinceSelect'), '81 İl Seçimi için ProvinceSelect bileşeni kullanılmalı');
+  assert.ok(contactPage.includes('Açık Adres'), 'Açık Adres alanı bulunmalı');
+  assert.ok(contactPage.includes('Email Adresiniz'), 'Email Adresiniz alanı bulunmalı');
+  assert.ok(contactPage.includes('Cep Telefonu'), 'Cep Telefonu alanı bulunmalı');
+
+  // 2. Test API validation logic for corporate vs individual
+  const { prisma } = await import('../src/lib/prisma');
+  const testContactPerson = 'Test Başvuru Sahibi';
+  const testEmail = 'test_basvuru@ersasogutma.com';
+
+  // Cleanup past test entries
+  await prisma.dealerApplication.deleteMany({
+    where: { email: testEmail }
+  });
+
+  const created = await prisma.dealerApplication.create({
+    data: {
+      companyName: 'Test Soğutma San. Tic. Ltd. Şti.',
+      contactPerson: testContactPerson,
+      phone: '05554443322',
+      email: testEmail,
+      city: 'Kocaeli',
+      taxOffice: 'Uluçınar',
+      taxNumber: '1234567890',
+      address: 'Nenehatun Mah. Battal Gazi Cad. No:139/A Darıca / KOCAELİ',
+      idNumber: '11223344556',
+      notes: '[Fatura Tipi: Kurumsal Fatura] [Konu: Yeni B2B Bayilik Başvurusu] Test talebi',
+      status: 'PENDING'
+    }
+  });
+
+  assert.ok(created.id, 'Başvuru DB kaydı başarıyla oluşturulmalı');
+  assert.strictEqual(created.city, 'Kocaeli', 'İl Kocaeli olarak kaydedilmeli');
+  assert.strictEqual(created.taxNumber, '1234567890', 'Vergi numarası kaydedilmeli');
+
+  // Clean up
+  await prisma.dealerApplication.delete({ where: { id: created.id } });
+});

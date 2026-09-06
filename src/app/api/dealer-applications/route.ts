@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
     const {
       companyName,
       contactPerson,
+      firstName,
+      lastName,
+      invoiceType = 'CORPORATE',
       phone,
       email,
       city,
@@ -57,30 +60,40 @@ export async function POST(request: NextRequest) {
       address,
       idNumber
     } = body;
-    const notes = body.notes || body.message || '';
+    const rawNotes = body.notes || body.message || '';
 
-    // Field Validations according to business rules
-    const trimmedCompanyName = (companyName || '').trim();
-    const trimmedContactPerson = (contactPerson || '').trim();
+    // Resolve contact person from individual first/last name if provided
+    const resolvedContactPerson = (contactPerson || `${(firstName || '').trim()} ${(lastName || '').trim()}`).trim();
+    const isIndividual = invoiceType === 'INDIVIDUAL';
+
+    const trimmedCompanyName = (companyName || (isIndividual ? `${resolvedContactPerson} (Bireysel)` : '')).trim();
+    const trimmedContactPerson = resolvedContactPerson;
     const trimmedPhone = (phone || '').trim();
     const trimmedEmail = (email || '').trim();
     const trimmedCity = (city || '').trim();
-    const trimmedTaxOffice = (taxOffice || '').trim();
-    const trimmedTaxNumber = (taxNumber || '').trim();
+    const trimmedTaxOffice = (taxOffice || (isIndividual ? 'Bireysel Fatura' : '')).trim();
+    const trimmedTaxNumber = (taxNumber || (isIndividual ? (idNumber || '1111111111') : '')).trim();
     const trimmedAddress = (address || '').trim();
     const trimmedIdNumber = (idNumber || '').trim();
 
+    const formattedNotes = isIndividual
+      ? `[Fatura Tipi: Bireysel Fatura] ${rawNotes}`.trim()
+      : rawNotes;
+
+    if (!trimmedContactPerson) {
+      return NextResponse.json({ success: false, error: 'İsim ve soyisim boş bırakılamaz.' }, { status: 400 });
+    }
     if (!trimmedCompanyName) {
       return NextResponse.json({ success: false, error: 'Firma ünvanı boş bırakılamaz.' }, { status: 400 });
     }
-    if (!trimmedTaxOffice) {
+    if (!isIndividual && !trimmedTaxOffice) {
       return NextResponse.json({ success: false, error: 'Vergi dairesi boş bırakılamaz.' }, { status: 400 });
     }
-    if (!trimmedTaxNumber || trimmedTaxNumber.length < 10) {
+    if (!isIndividual && (!trimmedTaxNumber || trimmedTaxNumber.length < 10)) {
       return NextResponse.json({ success: false, error: 'Vergi numarası en az 10 hane olmalıdır.' }, { status: 400 });
     }
-    if (!trimmedContactPerson) {
-      return NextResponse.json({ success: false, error: 'İsim ve soyisim boş bırakılamaz.' }, { status: 400 });
+    if (isIndividual && (!trimmedIdNumber || !/^\d{11}$/.test(trimmedIdNumber))) {
+      return NextResponse.json({ success: false, error: 'T.C. Kimlik Numarası 11 haneli rakam olmalıdır.' }, { status: 400 });
     }
     if (!trimmedCity) {
       return NextResponse.json({ success: false, error: 'Lütfen Türkiye\'nin 81 ilinden birini seçiniz.' }, { status: 400 });
@@ -110,7 +123,7 @@ export async function POST(request: NextRequest) {
         taxNumber: trimmedTaxNumber,
         address: trimmedAddress,
         idNumber: trimmedIdNumber || null,
-        notes,
+        notes: formattedNotes,
         status: 'PENDING'
       } as any
     });
