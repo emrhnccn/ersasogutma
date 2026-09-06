@@ -6,7 +6,8 @@ import { ChevronDown, Search, Check, MapPin, X } from 'lucide-react';
 
 interface ProvinceSelectProps {
   value: string;
-  onChange: (city: string) => void;
+  onValueChange?: (city: string) => void;
+  onChange?: (city: string) => void;
   error?: string | null;
   placeholder?: string;
   required?: boolean;
@@ -16,6 +17,7 @@ interface ProvinceSelectProps {
 
 export function ProvinceSelect({
   value,
+  onValueChange,
   onChange,
   error,
   placeholder = 'İl Seçiniz (81 İl)',
@@ -65,15 +67,23 @@ export function ProvinceSelect({
     }
   }, [isOpen]);
 
+  const triggerChange = (val: string) => {
+    if (onValueChange) {
+      onValueChange(val);
+    } else if (onChange) {
+      onChange(val);
+    }
+  };
+
   const handleSelect = (province: Province) => {
-    onChange(province.name);
+    triggerChange(province.name);
     setIsOpen(false);
     setSearchQuery('');
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange('');
+    triggerChange('');
   };
 
   return (

@@ -15,7 +15,7 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    const mapped = applications.map((app) => ({
+    const mapped = (applications as any[]).map((app: any) => ({
       id: app.id,
       companyName: app.companyName,
       contactPerson: app.contactPerson,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         idNumber: trimmedIdNumber || null,
         notes,
         status: 'PENDING'
-      }
+      } as any
     });
 
     return NextResponse.json({
@@ -267,7 +267,8 @@ export async function PUT(request: NextRequest) {
       }
 
       // 3.5 Create Address record if address is present in application
-      if (application.address) {
+      const appData = application as any;
+      if (appData.address) {
         const existingAddress = await tx.address.findFirst({
           where: { companyId: company.id }
         });
@@ -276,8 +277,8 @@ export async function PUT(request: NextRequest) {
             data: {
               companyId: company.id,
               title: 'Merkez Adres',
-              line1: application.address,
-              city: application.city || 'Kocaeli',
+              line1: appData.address,
+              city: appData.city || 'Kocaeli',
               country: 'TR',
               isDefault: true
             }

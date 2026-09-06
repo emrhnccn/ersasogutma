@@ -480,7 +480,7 @@ export default function BayiBasvuruPage() {
                     </label>
                     <ProvinceSelect
                       value={formData.city}
-                      onChange={(city) => {
+                      onValueChange={(city) => {
                         setFormData({ ...formData, city });
                         if (errors.city) setErrors({ ...errors, city: '' });
                       }}
