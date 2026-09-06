@@ -37,9 +37,10 @@ export interface OrderPrintData {
 interface OrderPrintDocumentProps {
   order: OrderPrintData;
   className?: string;
+  isPreview?: boolean;
 }
 
-export function OrderPrintDocument({ order, className = '' }: OrderPrintDocumentProps) {
+export function OrderPrintDocument({ order, className = '', isPreview = false }: OrderPrintDocumentProps) {
   const formattedDate = new Date(order.createdAt).toLocaleDateString('tr-TR', {
     day: '2-digit',
     month: '2-digit',
@@ -72,75 +73,78 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
   return (
     <>
       {/* Embedded Print CSS for strict A4 page geometry */}
-      <style jsx global>{`
-        @page {
-          size: A4 portrait;
-          margin: 10mm 10mm 10mm 10mm;
-        }
-
-        @media print {
-          html, body {
-            background: #ffffff !important;
-            color: #0f172a !important;
-            font-size: 9pt !important;
-            line-height: 1.3 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+      {!isPreview && (
+        <style jsx global>{`
+          @page {
+            size: A4 portrait;
+            margin: 8mm 10mm 8mm 10mm;
           }
 
-          /* Hide ALL other elements in body during print */
-          body * {
-            visibility: hidden !important;
-          }
+          @media print {
+            html, body {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              font-size: 8.5pt !important;
+              line-height: 1.25 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              height: auto !important;
+              min-height: 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
 
-          /* Show ONLY the order print document and its descendants */
-          #order-print-document,
-          #order-print-document * {
-            visibility: visible !important;
-          }
+            /* Completely collapse non-printable layout elements to 0 height */
+            .no-print,
+            .print\\:hidden,
+            .print-hidden,
+            header,
+            nav,
+            aside,
+            footer,
+            [role="navigation"],
+            button,
+            a[href^="/"] {
+              display: none !important;
+            }
 
-          #order-print-document {
-            display: block !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            color: #0f172a !important;
-            box-shadow: none !important;
-            border: none !important;
-          }
+            #order-print-document {
+              display: block !important;
+              position: relative !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #0f172a !important;
+              box-shadow: none !important;
+              border: none !important;
+              border-radius: 0 !important;
+              page-break-after: avoid !important;
+              break-after: avoid !important;
+            }
 
-          /* Hide global navigation, modals chrome, and controls */
-          header, nav, aside, footer, .no-print, [role="navigation"], button, a[href^="/"] {
-            display: none !important;
-          }
+            .ersa-print-page-break-avoid {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
 
-          .ersa-print-page-break-avoid {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
+            .ersa-print-table-header {
+              display: table-header-group !important;
+            }
 
-          .ersa-print-table-header {
-            display: table-header-group !important;
+            .ersa-print-table-row {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
           }
-
-          .ersa-print-table-row {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-        }
-      `}</style>
+        `}</style>
+      )}
 
       {/* Document Layout (A4 styled) */}
       <div
-        id="order-print-document"
-        className={`ersa-print-wrapper bg-white text-slate-900 font-sans p-6 sm:p-8 max-w-4xl mx-auto border border-slate-200 rounded-2xl shadow-sm ${className}`}
+        id={isPreview ? 'order-print-preview' : 'order-print-document'}
+        className={`ersa-print-wrapper bg-white text-slate-900 font-sans p-6 sm:p-8 print:p-0 max-w-4xl mx-auto border border-slate-200 print:border-none rounded-2xl print:rounded-none shadow-sm print:shadow-none ${className}`}
       >
         {/* 1. Header: Brand & Document Info */}
         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-5">
@@ -330,9 +334,9 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
         </div>
 
         {/* 5. Signature / Stamp & Legal Disclaimer */}
-        <div className="pt-4 border-t border-slate-200 ersa-print-page-break-avoid">
-          <div className="grid grid-cols-2 gap-10 text-[10px] text-center mb-6">
-            <div className="space-y-12">
+        <div className="pt-3 border-t border-slate-200 ersa-print-page-break-avoid">
+          <div className="grid grid-cols-2 gap-10 text-[10px] text-center mb-4 print:mb-2">
+            <div className="space-y-8 print:space-y-6">
               <span className="font-bold text-slate-700 block uppercase tracking-wider">
                 Teslim Eden (Ersa Soğutma Isıtma San. ve Tic. Ltd. Şti.)
               </span>
@@ -341,7 +345,7 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
               </div>
             </div>
 
-            <div className="space-y-12">
+            <div className="space-y-8 print:space-y-6">
               <span className="font-bold text-slate-700 block uppercase tracking-wider">
                 Teslim Alan (Bayi / Müşteri Yetkilisi)
               </span>
@@ -351,7 +355,7 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
             </div>
           </div>
 
-          <div className="text-[9px] text-slate-400 text-center border-t border-slate-100 pt-3 leading-relaxed">
+          <div className="text-[9px] print:text-[8px] text-slate-400 text-center border-t border-slate-100 pt-2 leading-relaxed">
             Bu belge, Ersa Soğutma B2B Bayi Portalı üzerinden elektronik olarak üretilmiştir.<br />
             Ürün teslimatında koli/paket kontrolü yapılması, hasarlı veya eksik teslimatlarda kargo tutanağı tutulması zorunludur.
           </div>

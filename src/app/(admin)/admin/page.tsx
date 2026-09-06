@@ -1145,7 +1145,8 @@ export default function AdminControlPanel() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#070B14] text-slate-900 dark:text-slate-100">
+    <>
+      <div className={`flex min-h-screen bg-slate-50 dark:bg-[#070B14] text-slate-900 dark:text-slate-100 ${adminPrintingOrder ? 'no-print print:hidden' : ''}`}>
       {/* Mobile Drawer Backdrop */}
       {mobileSidebarOpen && (
         <div
@@ -4878,11 +4879,11 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* ADMIN ORDER PRINT MODAL (A4 PRINT & PREVIEW) */}
+      {/* ADMIN ORDER PRINT MODAL (ON-SCREEN PREVIEW ONLY - HIDDEN IN PRINT) */}
       {adminPrintingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto print:overflow-visible">
-          {/* Controls Bar (hidden during print) */}
-          <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl print:hidden no-print">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto no-print print:hidden">
+          {/* Controls Bar */}
+          <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl">
             <div className="flex items-center gap-2">
               <Printer className="w-5 h-5 text-sky-400" />
               <div>
@@ -4895,7 +4896,7 @@ export default function AdminControlPanel() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer print:hidden no-print"
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Hemen Yazdır</span>
@@ -4904,21 +4905,29 @@ export default function AdminControlPanel() {
               <button
                 type="button"
                 onClick={() => setAdminPrintingOrder(null)}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer print:hidden no-print"
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Kapat
               </button>
             </div>
           </div>
 
-          {/* Printable Document Container */}
-          <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:overflow-visible">
-            <OrderPrintDocument order={adminPrintingOrder} />
+          {/* On-screen Preview Container */}
+          <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+            <OrderPrintDocument order={adminPrintingOrder} isPreview />
           </div>
         </div>
       )}
         </main>
       </div>
     </div>
+
+    {/* PURE A4 PRINT DOCUMENT - Rendered directly at root level, only visible during print */}
+    {adminPrintingOrder && (
+      <div className="hidden print:block">
+        <OrderPrintDocument order={adminPrintingOrder} />
+      </div>
+    )}
+  </>
   );
 }

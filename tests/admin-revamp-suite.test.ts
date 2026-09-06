@@ -43,9 +43,25 @@ test('2. BAYİ ŞİFRE DEĞİŞTİRME PARAMETRE UYUMLULUĞU TESTİ', () => {
   assert.strictEqual(validate(payloadMismatch).valid, false, 'Uyuşmayan şifreler reddedilmeli');
 });
 
-test('3. SİPARİŞ YAZDIRMA DOKÜMANI İZOLASYONU TESTİ', () => {
-  const printSelector = '#order-print-document';
-  assert.ok(printSelector, 'Sipariş yazdırma dokümanı izole edilebilir ID içermeli');
+test('3. SİPARİŞ YAZDIRMA DOKÜMANI VE TEK SAYFA A4 İZOLASYONU TESTİ', async () => {
+  const fs = await import('fs');
+  const path = await import('path');
+
+  const globalsCss = fs.readFileSync(path.join(process.cwd(), 'src/app/globals.css'), 'utf-8');
+  const orderDoc = fs.readFileSync(path.join(process.cwd(), 'src/components/orders/OrderPrintDocument.tsx'), 'utf-8');
+  const adminPage = fs.readFileSync(path.join(process.cwd(), 'src/app/(admin)/admin/page.tsx'), 'utf-8');
+
+  // 1. Check globals.css does not use visibility: hidden which leaves ghost layout height
+  assert.ok(!globalsCss.includes('visibility: hidden'), 'globals.css içinde sayfa yüksekliğini artıran visibility: hidden olmamalı');
+  assert.ok(globalsCss.includes('#order-print-document'), 'globals.css içinde #order-print-document tanımlı olmalı');
+
+  // 2. Check OrderPrintDocument.tsx does not use visibility: hidden
+  assert.ok(!orderDoc.includes('visibility: hidden'), 'OrderPrintDocument içinde visibility: hidden olmamalı');
+  assert.ok(orderDoc.includes('page-break-after: avoid'), 'OrderPrintDocument içinde page-break-after: avoid tanımlı olmalı');
+
+  // 3. Check admin/page.tsx renders the printable document at root level with print:block
+  assert.ok(adminPage.includes('hidden print:block'), 'admin/page.tsx içinde pure print document hidden print:block ile kök dizinde render edilmeli');
+  assert.ok(adminPage.includes('adminPrintingOrder ? \'no-print print:hidden\' : \'\''), 'admin shell yazdırma anında tamamen gizlenmeli (0 yükseklik)');
 });
 
 test('4. CANLI SEPET MÜDAHALE LOGIC TESTİ', () => {
