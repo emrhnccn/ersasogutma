@@ -58,24 +58,26 @@ export default function AllOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchNo, setSearchNo] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const res = await fetch('/api/b2b/orders');
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
         setOrders(json.data);
       } else {
-        showToast(json.error || 'Siparişler yüklenemedi', 'error');
+        setErrorMessage(json.error || 'Siparişler yüklenemedi.');
       }
     } catch (err) {
       console.error('Failed to load orders:', err);
-      showToast('Siparişler yüklenirken bağlantı hatası', 'error');
+      setErrorMessage('Siparişler yüklenirken bağlantı hatası oluştu.');
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
     loadOrders();
@@ -173,6 +175,21 @@ export default function AllOrdersPage() {
           </Link>
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between text-rose-300 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={loadOrders}
+            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-xs transition cursor-pointer"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      )}
 
       {/* Filter Bar */}
       <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">

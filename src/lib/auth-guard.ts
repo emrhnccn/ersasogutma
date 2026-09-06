@@ -191,10 +191,34 @@ export async function requireDealerOrAdmin(
     if (validated.role === 'B2B_DEALER') {
       let dealerCompanyId = validated.companyId;
       if (!dealerCompanyId) {
-        const membership = await prisma.companyMember.findFirst({
+        let membership = await prisma.companyMember.findFirst({
           where: { userId: validated.id },
           select: { companyId: true }
         });
+
+        // Auto-heal fallback: if user has no membership, try finding an existing company with matching email or name
+        if (!membership && validated.email) {
+          const fallbackCompany = await prisma.company.findFirst({
+            where: {
+              OR: [
+                { email: validated.email },
+                { legalName: validated.name || '' }
+              ]
+            }
+          });
+
+          if (fallbackCompany) {
+            await prisma.companyMember.create({
+              data: {
+                companyId: fallbackCompany.id,
+                userId: validated.id,
+                memberRole: 'OWNER'
+              }
+            });
+            membership = { companyId: fallbackCompany.id };
+          }
+        }
+
         if (membership) {
           dealerCompanyId = membership.companyId;
         } else {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   Product,
   CartItem,
@@ -359,13 +359,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [quotes]);
 
-  const showToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
-  };
+  }, []);
 
   const [isFetchingRates, setIsFetchingRates] = useState(false);
 

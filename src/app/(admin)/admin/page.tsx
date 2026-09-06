@@ -50,7 +50,12 @@ import {
   ArrowUp,
   ArrowDown,
   Printer,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Menu,
+  Minus,
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { OrderStatus, BankAccount } from '@/types';
 import { ScraperProgress, ScraperLog } from '@/lib/scrapers/types';
@@ -58,6 +63,7 @@ import { StockBadge } from '@/components/common/StockBadge';
 import { ImageDropzone } from '@/components/common/ImageDropzone';
 import { exportOrdersToExcel } from '@/lib/export/orderExport';
 import { OrderPrintDocument } from '@/components/orders/OrderPrintDocument';
+import { logoutAction } from '@/lib/actions';
 
 interface DBProduct {
   id: string;
@@ -98,17 +104,71 @@ export default function AdminControlPanel() {
     updateProfile,
     setDealerTier,
     addCariTransaction,
+    theme,
+    toggleTheme,
     showToast
   } = useStore();
 
-  // Active Navigation Tab
+  // Active Navigation Tab & Responsive Sidebar State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'carts' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Live Carts State (Real PostgreSQL DB)
   const [adminCarts, setAdminCarts] = useState<any[]>([]);
   const [loadingAdminCarts, setLoadingAdminCarts] = useState(false);
   const [selectedAdminCart, setSelectedAdminCart] = useState<any | null>(null);
   const [cartSearchQuery, setCartSearchQuery] = useState('');
+  const [cartModifying, setCartModifying] = useState(false);
+  const [addCartProductId, setAddCartProductId] = useState('');
+  const [addCartQty, setAddCartQty] = useState(1);
+  const [cartProductDropdownOpen, setCartProductDropdownOpen] = useState(false);
+
+  // Live Cart Modification Handler (PUT /api/admin/carts)
+  const handleAdminCartAction = async (payload: {
+    action: 'update_qty' | 'remove_item' | 'add_item' | 'clear_cart';
+    itemId?: string;
+    productId?: string;
+    quantity?: number;
+  }) => {
+    if (!selectedAdminCart) return;
+    setCartModifying(true);
+    try {
+      const res = await fetch('/api/admin/carts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartId: selectedAdminCart.cartId,
+          ...payload
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || 'Sepet güncellendi.', 'success');
+        // Refresh carts from DB
+        const reloadRes = await fetch('/api/admin/carts');
+        const reloadJson = await reloadRes.json();
+        if (reloadJson.success && Array.isArray(reloadJson.data)) {
+          setAdminCarts(reloadJson.data);
+          const updated = reloadJson.data.find((c: any) => c.cartId === selectedAdminCart.cartId);
+          if (updated && updated.items.length > 0) {
+            setSelectedAdminCart(updated);
+          } else {
+            setSelectedAdminCart(null);
+          }
+        }
+        setAddCartProductId('');
+        setCartProductSearch('');
+        setAddCartQty(1);
+        setCartProductDropdownOpen(false);
+      } else {
+        showToast(json.error || 'Sepet güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('İşlem sırasında hata oluştu.', 'error');
+    } finally {
+      setCartModifying(false);
+    }
+  };
 
   // DB Products State (Paginated & Infinite Scroll)
   const [dbProducts, setDbProducts] = useState<DBProduct[]>([]);
@@ -994,94 +1054,305 @@ export default function AdminControlPanel() {
     }
   };
 
+  interface NavigationItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string | number | null;
+    alert?: boolean;
+    highlight?: boolean;
+  }
+
+  interface NavigationGroup {
+    title: string;
+    items: NavigationItem[];
+  }
+
+  const navigationGroups: NavigationGroup[] = [
+    {
+      title: 'Genel',
+      items: [
+        { id: 'dashboard', label: 'Genel Bakış', icon: Layers, badge: null }
+      ]
+    },
+    {
+      title: 'Katalog Yönetimi',
+      items: [
+        {
+          id: 'products',
+          label: 'Ürün Kataloğu',
+          icon: Package,
+          badge: adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length
+        },
+        {
+          id: 'categories',
+          label: 'Kategoriler',
+          icon: FolderTree,
+          badge: dbCategories.length
+        },
+        {
+          id: 'scraper',
+          label: 'Tedarikçi Botu',
+          icon: Bot,
+          highlight: isScrapingActive,
+          badge: isScrapingActive ? 'Çekiyor' : null
+        }
+      ]
+    },
+    {
+      title: 'Sipariş & Bayi',
+      items: [
+        {
+          id: 'orders',
+          label: 'Siparişler',
+          icon: ShoppingBag,
+          badge: adminOrders.length,
+          alert: adminOrders.some(o => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING')
+        },
+        {
+          id: 'carts',
+          label: 'Canlı Sepetler',
+          icon: ShoppingCart,
+          badge: adminCarts.length,
+          highlight: adminCarts.length > 0
+        },
+        {
+          id: 'dealers',
+          label: 'Bayi Cari & İskonto',
+          icon: UserCheck,
+          badge: dealersList.length
+        }
+      ]
+    },
+    {
+      title: 'Sistem & Finans',
+      items: [
+        {
+          id: 'bank_accounts',
+          label: 'Banka Hesapları',
+          icon: Building2,
+          badge: bankAccounts.length,
+          alert: bankAccounts.length === 0
+        },
+        {
+          id: 'audit',
+          label: 'Güvenlik & Audit Log',
+          icon: ShieldCheck,
+          badge: auditLogs.length
+        }
+      ]
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      
-      {/* Top Banner & Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-blue-600" />
-              <span>B2B Yönetici Portalı</span>
-            </span>
-            <span className="text-emerald-600 text-xs font-semibold">v2.4 Canlı</span>
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ersa Soğutma Yönetim Merkezi</h1>
-          <p className="text-slate-500 text-xs max-w-2xl">
-            Tedarikçi sitelerinden otomatik ürün çekin, ürün kataloğunu yönetin, siparişleri sevk edin ve bayi cari hesaplarını kontrol edin.
-          </p>
-        </div>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#070B14] text-slate-900 dark:text-slate-100">
+      {/* Mobile Drawer Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => fetchLiveRates(true)}
-            disabled={isFetchingRates}
-            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs transition"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
-            <span>Kurları Yenile</span>
-          </button>
-
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs transition"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-            <span>Ziyaretçi Vitrini</span>
-          </Link>
-
-          <Link
-            href="/bayi"
-            target="_blank"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>Bayi Portalı</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Navigation Tabs Bar */}
-      <div className="flex bg-white border border-slate-200 p-1.5 rounded-2xl gap-1 overflow-x-auto shadow-xs scrollbar-thin">
-        {[
-          { id: 'dashboard', label: 'Genel Bakış', icon: Layers },
-          { id: 'scraper', label: 'Tedarikçi Botu & Ürün Çekme', icon: Bot, highlight: true },
-          { id: 'products', label: `Ürün Kataloğu (${adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length})`, icon: Package },
-          { id: 'categories', label: `Kategoriler (${dbCategories.length})`, icon: FolderTree },
-          { id: 'orders', label: `Siparişler (${adminOrders.length})`, icon: ShoppingBag, highlight: adminOrders.some(o => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING') },
-          { id: 'carts', label: `Canlı Sepetler (${adminCarts.length})`, icon: ShoppingCart, highlight: adminCarts.length > 0 },
-          { id: 'dealers', label: 'Bayi Cari & İskonto', icon: UserCheck },
-          { id: 'bank_accounts', label: `Banka Hesapları (${bankAccounts.length})`, icon: Building2, highlight: bankAccounts.length === 0 },
-          { id: 'audit', label: `Güvenlik & Audit Log (${auditLogs.length})`, icon: ShieldCheck }
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition whitespace-nowrap shrink-0 ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : tab.highlight
-                  ? 'text-amber-600 hover:bg-amber-50'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : tab.highlight ? 'text-amber-500' : 'text-slate-400'}`} />
-              <span>{tab.label}</span>
-              {tab.highlight && !isActive && (
-                <span className="relative flex h-2 w-2 ml-0.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+      {/* LEFT SIDEBAR (STICKY & RESPONSIVE) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0D1322] border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="h-16 border-b border-slate-200 dark:border-slate-800/80 px-5 flex items-center justify-between shrink-0">
+          <Link href="/admin" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm">ERSA SOĞUTMA</span>
+                <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-bold rounded">
+                  ADMİN
                 </span>
-              )}
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">B2B Yönetim Portalı</p>
+            </div>
+          </Link>
+
+          <button
+            onClick={() => setMobileSidebarOpen(false)}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg lg:hidden cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation Categories */}
+        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6 scrollbar-thin">
+          {navigationGroups.map((group) => (
+            <div key={group.title} className="space-y-1">
+              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                {group.title}
+              </div>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id as any);
+                      setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition group cursor-pointer ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 truncate">
+                      <Icon
+                        className={`w-4 h-4 shrink-0 transition-colors ${
+                          isActive
+                            ? 'text-white'
+                            : item.alert
+                            ? 'text-amber-500'
+                            : 'text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                        }`}
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {item.alert && !isActive && (
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
+                      )}
+                      {item.badge !== null && item.badge !== undefined && (
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                            isActive
+                              ? 'bg-white/20 text-white'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 space-y-3 shrink-0">
+          {/* TCMB Live Currency Rates */}
+          <div className="p-2.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-2 font-mono font-bold">
+              <span className="text-emerald-500 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                ${exchangeRates?.USD_TRY || '38.45'}
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="text-sky-500">€{exchangeRates?.EUR_TRY || '42.10'}</span>
+            </div>
+            <button
+              onClick={() => fetchLiveRates(true)}
+              disabled={isFetchingRates}
+              className="p-1 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer"
+              title="Kurları Yenile"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-blue-500' : ''}`} />
             </button>
-          );
-        })}
-      </div>
+          </div>
+
+          {/* Quick Actions & Profile */}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-1.5">
+              <Link
+                href="/"
+                target="_blank"
+                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 transition"
+                title="Vitrin Anasayfası"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                href="/bayi"
+                target="_blank"
+                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-500 rounded-xl border border-slate-200 dark:border-slate-800 transition"
+                title="Bayi Portalı"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+              </Link>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-500 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer"
+                title="Temayı Değiştir"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-600" />}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => logoutAction()}
+              className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition cursor-pointer"
+              title="Güvenli Çıkış Yap"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* MAIN WORKSPACE CONTENT */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Workspace Top Header Bar */}
+        <header className="h-16 bg-white dark:bg-[#0D1322] border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 lg:hidden cursor-pointer"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-slate-400 font-medium">Yönetici Paneli</span>
+                <ChevronRight className="w-3 h-3 text-slate-400" />
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {navigationGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.label || 'Genel Bakış'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-500">
+              <Database className="w-3.5 h-3.5 text-blue-500" />
+              <span>PostgreSQL Canlı</span>
+            </div>
+
+            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200 dark:border-slate-800">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow">
+                E
+              </div>
+              <div className="hidden md:block text-left leading-tight">
+                <div className="text-xs font-bold text-slate-900 dark:text-white">ersaticaret</div>
+                <div className="text-[10px] text-blue-500 font-medium">Süper Yönetici</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
 
       {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' && (
@@ -2221,12 +2492,27 @@ export default function AdminControlPanel() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setSelectedAdminCart(null)}
-                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={cartModifying}
+                      onClick={() => {
+                        if (window.confirm(`"${selectedAdminCart.dealer.companyName}" bayisinin sepetindeki TÜM ürünleri temizlemek istediğinize emin misiniz?`)) {
+                          handleAdminCartAction({ action: 'clear_cart' });
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Sepeti Boşalt</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedAdminCart(null)}
+                      className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1 space-y-4">
@@ -2245,7 +2531,91 @@ export default function AdminControlPanel() {
                     </div>
                   </div>
 
-                  <div className="border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80">
+                  {/* Add Product Section for Admin */}
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Bayi Sepetine Ürün Ekle</span>
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          placeholder="Ürün adı veya SKU ile katalogdan arayın..."
+                          value={cartProductSearch}
+                          onChange={(e) => {
+                            setCartProductSearch(e.target.value);
+                            setCartProductDropdownOpen(true);
+                          }}
+                          onFocus={() => setCartProductDropdownOpen(true)}
+                          className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+                        />
+                        {cartProductDropdownOpen && cartProductSearch.trim().length > 1 && (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                            {dbProducts
+                              .filter((p) => p.name.toLowerCase().includes(cartProductSearch.toLowerCase()) || p.sku.toLowerCase().includes(cartProductSearch.toLowerCase()))
+                              .slice(0, 10)
+                              .map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setAddCartProductId(p.id);
+                                    setCartProductSearch(`${p.name} (${p.sku})`);
+                                    setCartProductDropdownOpen(false);
+                                  }}
+                                  className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition"
+                                >
+                                  <div>
+                                    <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
+                                    <div className="text-[10px] text-sky-400 font-mono">SKU: {p.sku} • Stok: {p.stockQty}</div>
+                                  </div>
+                                  <div className="font-mono font-bold text-emerald-400 text-xs">
+                                    {formatCurrency(p.salePrice || 0)}
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={addCartQty}
+                          onChange={(e) => setAddCartQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                          className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none"
+                          placeholder="Adet"
+                        />
+                        <button
+                          type="button"
+                          disabled={cartModifying || !addCartProductId}
+                          onClick={() => {
+                            if (!addCartProductId) {
+                              showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
+                              return;
+                            }
+                            handleAdminCartAction({
+                              action: 'add_item',
+                              productId: addCartProductId,
+                              quantity: addCartQty
+                            });
+                          }}
+                          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer whitespace-nowrap"
+                        >
+                          {cartModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                          <span>Sepete Ekle</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cart Items List */}
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-800/80">
                     {selectedAdminCart.items.map((item: any) => (
                       <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
                         <div className="flex items-center gap-3">
@@ -2264,28 +2634,80 @@ export default function AdminControlPanel() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                           <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block mb-0.5">Stok Durumu</span>
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Stok</span>
                             <StockBadge stock={item.stockQty} unit={item.unit} />
                           </div>
 
-                          <div className="text-center font-mono">
-                            <span className="text-[10px] text-slate-400 block mb-0.5">Sepetteki Adet</span>
-                            <span className={`text-sm font-bold ${item.isOverStock ? 'text-rose-400' : 'text-white'}`}>
-                              {item.quantity} {item.unit}
-                            </span>
-                            {item.isOverStock && (
-                              <span className="text-[9px] text-rose-400 font-bold block">Stoktan Fazla!</span>
-                            )}
+                          {/* Stepper for Quantity Intervention */}
+                          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1">
+                            <button
+                              type="button"
+                              disabled={cartModifying}
+                              onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity - 1 })}
+                              className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
+                              title="Adeti Azalt"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+
+                            <input
+                              type="number"
+                              min={1}
+                              max={item.stockQty}
+                              defaultValue={item.quantity}
+                              key={`${item.id}-${item.quantity}`}
+                              disabled={cartModifying}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value, 10);
+                                if (!isNaN(val) && val !== item.quantity && val > 0) {
+                                  handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  const val = parseInt((e.target as HTMLInputElement).value, 10);
+                                  if (!isNaN(val) && val !== item.quantity && val > 0) {
+                                    handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                  }
+                                }
+                              }}
+                              className="w-12 text-center font-mono font-bold text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                            />
+
+                            <button
+                              type="button"
+                              disabled={cartModifying || item.quantity >= item.stockQty}
+                              onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity + 1 })}
+                              className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
+                              title="Adeti Artır"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
                           </div>
 
-                          <div className="text-right min-w-[100px]">
-                            <span className="text-[10px] text-slate-400 block mb-0.5">Satır Toplamı</span>
-                            <div className="font-mono font-black text-emerald-400 text-sm">
+                          <div className="text-right min-w-[90px]">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">Satır Tutarı</span>
+                            <div className="font-mono font-black text-emerald-400 text-xs">
                               {formatCurrency(item.totalTRY)}
                             </div>
                           </div>
+
+                          {/* Delete Item Button */}
+                          <button
+                            type="button"
+                            disabled={cartModifying}
+                            onClick={() => {
+                              if (window.confirm(`"${item.name}" ürününü bayinin sepetinden silmek istediğinize emin misiniz?`)) {
+                                handleAdminCartAction({ action: 'remove_item', itemId: item.id });
+                              }
+                            }}
+                            className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition cursor-pointer disabled:opacity-50"
+                            title="Ürünü Sepetten Kaldır"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -2961,6 +3383,7 @@ export default function AdminControlPanel() {
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
                                     newPassword: editNewPassword,
+                                    newPasswordConfirm: editNewPasswordConfirm,
                                     confirmPassword: editNewPasswordConfirm
                                   })
                                 });
@@ -4457,9 +4880,9 @@ export default function AdminControlPanel() {
 
       {/* ADMIN ORDER PRINT MODAL (A4 PRINT & PREVIEW) */}
       {adminPrintingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto print:overflow-visible">
           {/* Controls Bar (hidden during print) */}
-          <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl print:hidden">
+          <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl print:hidden no-print">
             <div className="flex items-center gap-2">
               <Printer className="w-5 h-5 text-sky-400" />
               <div>
@@ -4472,7 +4895,7 @@ export default function AdminControlPanel() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer print:hidden no-print"
               >
                 <Printer className="w-4 h-4" />
                 <span>Hemen Yazdır</span>
@@ -4481,7 +4904,7 @@ export default function AdminControlPanel() {
               <button
                 type="button"
                 onClick={() => setAdminPrintingOrder(null)}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer print:hidden no-print"
               >
                 Kapat
               </button>
@@ -4489,12 +4912,13 @@ export default function AdminControlPanel() {
           </div>
 
           {/* Printable Document Container */}
-          <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none">
+          <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:overflow-visible">
             <OrderPrintDocument order={adminPrintingOrder} />
           </div>
         </div>
       )}
-
+        </main>
+      </div>
     </div>
   );
 }

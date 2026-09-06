@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-guard';
+import { requireAdmin, logAuditAction } from '@/lib/auth-guard';
 import { calculateServerPriceBatch } from '@/lib/pricingEngine';
 import { getStockStatus } from '@/lib/stockHelper';
 
@@ -162,6 +162,138 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('GET /api/admin/carts error:', error);
     const message = error instanceof Error ? error.message : 'Canlı sepetler listelenirken hata oluştu.';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+// PUT /api/admin/carts — Admin modifies any dealer cart directly
+export async function PUT(request: NextRequest) {
+  const guard = await requireAdmin();
+  if (guard instanceof NextResponse) return guard;
+  const { user: adminUser } = guard;
+
+  try {
+    const body = await request.json();
+    const { cartId, action, itemId, productId, quantity } = body;
+
+    if (!cartId) {
+      return NextResponse.json({ success: false, error: 'Sepet ID belirtilmelidir.' }, { status: 400 });
+    }
+
+    const cart = await prisma.cart.findUnique({
+      where: { id: cartId },
+      include: {
+        user: {
+          include: {
+            memberships: {
+              include: { company: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!cart) {
+      return NextResponse.json({ success: false, error: 'Sepet bulunamadı.' }, { status: 404 });
+    }
+
+    const primaryCompany = cart.user?.memberships?.[0]?.company;
+
+    if (action === 'clear_cart') {
+      await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await prisma.cart.update({ where: { id: cart.id }, data: { updatedAt: new Date() } });
+      await logAuditAction({
+        actorId: adminUser.id,
+        action: 'ADMIN_CART_CLEARED',
+        entityType: 'Cart',
+        entityId: cart.id,
+        afterJson: { cartId: cart.id, companyId: primaryCompany?.id, companyName: primaryCompany?.legalName }
+      });
+      return NextResponse.json({ success: true, message: 'Sepet tamamen temizlendi.' });
+    }
+
+    if (action === 'update_qty' && itemId) {
+      const parsedQty = parseInt(String(quantity), 10);
+      const cartItem = await prisma.cartItem.findUnique({
+        where: { id: itemId },
+        include: { product: true }
+      });
+      if (!cartItem) {
+        return NextResponse.json({ success: false, error: 'Sepet kalemi bulunamadı.' }, { status: 404 });
+      }
+
+      if (parsedQty <= 0) {
+        await prisma.cartItem.delete({ where: { id: itemId } });
+      } else {
+        const availableStock = Number(cartItem.product.stockQty || 0);
+        if (parsedQty > availableStock) {
+          return NextResponse.json({
+            success: false,
+            error: `Yetersiz stok! "${cartItem.product.name}" için mevcut stok: ${availableStock} ${cartItem.product.unit || 'Adet'}. Talep edilen: ${parsedQty}`
+          }, { status: 400 });
+        }
+        await prisma.cartItem.update({
+          where: { id: itemId },
+          data: { quantity: parsedQty }
+        });
+      }
+    } else if (action === 'remove_item' && itemId) {
+      const cartItem = await prisma.cartItem.findUnique({ where: { id: itemId } });
+      if (!cartItem) {
+        return NextResponse.json({ success: false, error: 'Silinecek ürün bulunamadı.' }, { status: 404 });
+      }
+      await prisma.cartItem.delete({ where: { id: itemId } });
+    } else if (action === 'add_item' && productId) {
+      const parsedQty = Math.max(1, parseInt(String(quantity), 10) || 1);
+      const product = await prisma.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        return NextResponse.json({ success: false, error: 'Eklenecek ürün bulunamadı.' }, { status: 404 });
+      }
+      const availableStock = Number(product.stockQty || 0);
+      const existing = await prisma.cartItem.findUnique({
+        where: { cartId_productId: { cartId: cart.id, productId } }
+      });
+      const currentQty = existing ? Number(existing.quantity) : 0;
+      const targetQty = currentQty + parsedQty;
+
+      if (targetQty > availableStock) {
+        return NextResponse.json({
+          success: false,
+          error: `Yetersiz stok! "${product.name}" için mevcut stok: ${availableStock} ${product.unit || 'Adet'}.${currentQty > 0 ? ` (Sepette ${currentQty} adet mevcut)` : ''}`
+        }, { status: 400 });
+      }
+
+      if (existing) {
+        await prisma.cartItem.update({
+          where: { id: existing.id },
+          data: { quantity: targetQty }
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: { cartId: cart.id, productId, quantity: parsedQty }
+        });
+      }
+    } else {
+      return NextResponse.json({ success: false, error: 'Geçersiz işlem veya eksik parametre.' }, { status: 400 });
+    }
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: { updatedAt: new Date() }
+    });
+
+    await logAuditAction({
+      actorId: adminUser.id,
+      action: 'ADMIN_CART_MODIFIED',
+      entityType: 'Cart',
+      entityId: cart.id,
+      afterJson: { action, itemId, productId, quantity, cartId: cart.id }
+    });
+
+    return NextResponse.json({ success: true, message: 'Sepet başarıyla güncellendi.' });
+  } catch (error: unknown) {
+    console.error('PUT /api/admin/carts error:', error);
+    const message = error instanceof Error ? error.message : 'Sepet güncellenirken hata oluştu.';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

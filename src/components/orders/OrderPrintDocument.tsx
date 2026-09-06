@@ -75,7 +75,7 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
       <style jsx global>{`
         @page {
           size: A4 portrait;
-          margin: 12mm 12mm 12mm 12mm;
+          margin: 10mm 10mm 10mm 10mm;
         }
 
         @media print {
@@ -90,13 +90,18 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
             print-color-adjust: exact !important;
           }
 
-          /* Hide global navigation and chrome */
-          header, nav, aside, footer, .no-print, [role="navigation"], button, a[href^="/"] {
-            display: none !important;
+          /* Hide ALL other elements in body during print */
+          body * {
+            visibility: hidden !important;
           }
 
-          /* Force container to print clearly */
-          .ersa-print-wrapper {
+          /* Show ONLY the order print document and its descendants */
+          #order-print-document,
+          #order-print-document * {
+            visibility: visible !important;
+          }
+
+          #order-print-document {
             display: block !important;
             position: absolute !important;
             left: 0 !important;
@@ -109,6 +114,11 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
             color: #0f172a !important;
             box-shadow: none !important;
             border: none !important;
+          }
+
+          /* Hide global navigation, modals chrome, and controls */
+          header, nav, aside, footer, .no-print, [role="navigation"], button, a[href^="/"] {
+            display: none !important;
           }
 
           .ersa-print-page-break-avoid {
@@ -129,6 +139,7 @@ export function OrderPrintDocument({ order, className = '' }: OrderPrintDocument
 
       {/* Document Layout (A4 styled) */}
       <div
+        id="order-print-document"
         className={`ersa-print-wrapper bg-white text-slate-900 font-sans p-6 sm:p-8 max-w-4xl mx-auto border border-slate-200 rounded-2xl shadow-sm ${className}`}
       >
         {/* 1. Header: Brand & Document Info */}

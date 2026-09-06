@@ -18,7 +18,8 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const { username, newPassword, newPasswordConfirm, status } = body;
+    const { username, newPassword, newPasswordConfirm, confirmPassword, status } = body;
+    const resolvedConfirm = newPasswordConfirm || confirmPassword;
 
     // Find company and primary user
     const company = await prisma.company.findUnique({
@@ -89,15 +90,15 @@ export async function PUT(
     }
 
     // 2. Password Change & Safe Bcrypt Hashing
-    if (newPassword || newPasswordConfirm) {
-      if (!newPassword || !newPasswordConfirm) {
+    if (newPassword || resolvedConfirm) {
+      if (!newPassword || !resolvedConfirm) {
         return NextResponse.json({
           success: false,
           error: 'Şifre değiştirmek için "Yeni Şifre" ve "Yeni Şifre Tekrar" alanlarının her ikisi de doldurulmalıdır.'
         }, { status: 400 });
       }
 
-      if (newPassword !== newPasswordConfirm) {
+      if (newPassword !== resolvedConfirm) {
         return NextResponse.json({
           success: false,
           error: 'Girilen şifreler birbiriyle eşleşmiyor. Lütfen iki alanı da aynı şifreyle doldurunuz.'
