@@ -34,6 +34,7 @@ import {
   Moon
 } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -60,6 +61,12 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
   const [isCategoryFlyoutOpen, setIsCategoryFlyoutOpen] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [categorySearch, setCategorySearch] = useState('');
+  const [expandedFlyoutCats, setExpandedFlyoutCats] = useState<Record<string, boolean>>({});
+
+  const toggleFlyoutCat = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedFlyoutCats((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   React.useEffect(() => {
     fetch('/api/categories')
@@ -76,7 +83,9 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
     c.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
-  const pendingOrdersCount = orders.filter((o) => o.status === 'bekliyor').length;
+  const pendingOrdersCount = orders.filter((o) =>
+    o.status === 'bekliyor' || o.status === 'onaysiz'
+  ).length;
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const isActive = (path: string) => pathname === path || pathname === `/bayi${path}` || pathname.startsWith(`/bayi${path}/`);
@@ -171,7 +180,8 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
                   Kategori bulunamadı.
                 </div>
-              ) : (
+              ) : categorySearch.trim() !== '' ? (
+                // Filtered search list
                 filteredCategories.map((cat) => (
                   <button
                     key={cat.id}
@@ -189,6 +199,9 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:scale-125 transition-transform" />
                       <span className="truncate font-medium">{cat.name}</span>
+                      {cat.parentId && (
+                        <span className="text-[10px] text-slate-400">(Alt Kategori)</span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -206,6 +219,102 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                     </div>
                   </button>
                 ))
+              ) : (
+                // Hierarchical Accordion Tree
+                categories
+                  .filter((c) => !c.parentId)
+                  .map((mainCat) => {
+                    const subCategories = categories.filter((c) => c.parentId === mainCat.id);
+                    const isExpanded = !!expandedFlyoutCats[mainCat.id];
+
+                    return (
+                      <div key={mainCat.id} className="rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-800/80 transition overflow-hidden">
+                        {/* Main Category Header Row */}
+                        <div className="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCategoryFlyoutOpen(false);
+                              handleClose();
+                              if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: mainCat.name } }));
+                              }
+                              router.push(`/bayi/urunler?category=${encodeURIComponent(mainCat.name)}`);
+                            }}
+                            className="flex-1 flex items-center gap-2 text-left min-w-0 cursor-pointer"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:scale-125 transition-transform flex-shrink-0" />
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                              {mainCat.name}
+                            </span>
+                            {mainCat.discountPercent > 0 && (
+                              <span className="text-[9px] font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 px-1 py-0.2 rounded border border-rose-200 dark:border-rose-500/30 flex-shrink-0">
+                                -%{mainCat.discountPercent}
+                              </span>
+                            )}
+                          </button>
+
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {mainCat._count?.products !== undefined && (
+                              <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                                {mainCat._count.products}
+                              </span>
+                            )}
+
+                            {subCategories.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => toggleFlyoutCat(mainCat.id, e)}
+                                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-md hover:bg-slate-200/60 dark:hover:bg-slate-700/80 transition cursor-pointer"
+                                title={isExpanded ? 'Alt Kategorileri Kapat' : 'Alt Kategorileri Aç'}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-3.5 h-3.5 text-blue-500" />
+                                ) : (
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Subcategories Accordion Content */}
+                        {isExpanded && subCategories.length > 0 && (
+                          <div className="pl-4 pr-1 py-1 space-y-0.5 border-l-2 border-blue-500/30 ml-3 my-1">
+                            {subCategories.map((sub) => (
+                              <button
+                                key={sub.id}
+                                type="button"
+                                onClick={() => {
+                                  setIsCategoryFlyoutOpen(false);
+                                  handleClose();
+                                  if (typeof window !== 'undefined') {
+                                    window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: sub.name } }));
+                                  }
+                                  router.push(`/bayi/urunler?category=${encodeURIComponent(sub.name)}`);
+                                }}
+                                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-blue-50/50 dark:hover:bg-slate-800/60 transition group cursor-pointer"
+                              >
+                                <span className="truncate">{sub.name}</span>
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  {sub.discountPercent > 0 && (
+                                    <span className="text-[8px] font-bold text-rose-500">
+                                      -%{sub.discountPercent}
+                                    </span>
+                                  )}
+                                  {sub._count?.products !== undefined && (
+                                    <span className="text-[9px] font-mono text-slate-400">
+                                      {sub._count.products}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
               )}
             </div>
           </aside>
@@ -357,7 +466,7 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 </div>
                 {pendingOrdersCount > 0 && (
                   <span className="bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono font-bold text-[10px] px-1.5 py-0.5 rounded border border-amber-200 dark:border-transparent">
-                    {pendingOrdersCount}
+                    {pendingOrdersCount} Bekleyen
                   </span>
                 )}
               </Link>
@@ -436,6 +545,32 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 <Building2 className="w-4 h-4" />
                 <span>Banka Hesapları</span>
               </Link>
+
+              {/* Bayi Kredi Limiti & İskonto Durumu Widget */}
+              <div className="mt-2 mx-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2 select-none">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Kredi Limiti</span>
+                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                    {formatCurrency(profile.creditLimit || 150000)}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(2, Math.round(((profile.currentBalance > 0 ? profile.currentBalance : 0) / (profile.creditLimit || 150000)) * 100)))}%`
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-slate-500 dark:text-slate-400 truncate mr-1">
+                    Kullanılabilir: {formatCurrency(Math.max(0, (profile.creditLimit || 150000) - (profile.currentBalance > 0 ? profile.currentBalance : 0)))}
+                  </span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono whitespace-nowrap">
+                    %{((profile.discountRate || 0.4) * 100).toFixed(0)} İskonto
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -534,7 +669,12 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
             </div>
             <div className="truncate">
               <div className="text-xs font-bold text-slate-800 dark:text-white truncate">{profile.companyName}</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Bayi • {profile.dealerCode}</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Bayi • {profile.dealerCode}</span>
+                <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 px-1 py-0.2 rounded border border-blue-200 dark:border-blue-800/40">
+                  %{((profile.discountRate || 0.4) * 100).toFixed(0)}
+                </span>
+              </div>
             </div>
           </div>
           

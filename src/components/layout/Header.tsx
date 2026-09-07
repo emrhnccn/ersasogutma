@@ -25,7 +25,8 @@ import {
   Layers,
   ArrowRight,
   Sun,
-  Moon
+  Moon,
+  CreditCard
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Currency } from '@/types';
@@ -45,6 +46,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
     unreadCount,
     messages,
     profile,
+    orders,
     isAdminView,
     setIsAdminView,
     currency,
@@ -56,6 +58,10 @@ export function Header({ onToggleSidebar }: HeaderProps) {
     theme,
     toggleTheme
   } = useStore();
+
+  const pendingOrdersCount = (orders || []).filter(
+    (o) => o.status === 'bekliyor' || o.status === 'onaysiz'
+  ).length;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -354,27 +360,115 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 <div className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight truncate max-w-[120px]">
                   {profile.companyName}
                 </div>
-                <div className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-none">
-                  Bayi Hesabı
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-none">Bayi</span>
+                  <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1 py-0.2 rounded border border-blue-200 dark:border-blue-800/50 leading-none">
+                    %{((profile.discountRate || 0.4) * 100).toFixed(0)} İskonto
+                  </span>
                 </div>
               </div>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2.5 z-50 animate-in fade-in zoom-in-95">
-                <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1.5">
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{profile.companyName}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{profile.dealerCode}</div>
-                  <div className="mt-2 flex items-center justify-between text-[11px] bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500 dark:text-slate-400">Cari Bakiye:</span>
-                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      {formatCurrency(profile.currentBalance)} ({profile.balanceType})
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 z-50 animate-in fade-in zoom-in-95">
+                
+                {/* 1. Firma Bilgisi & İskonto Rozeti */}
+                <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{profile.companyName}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">Bayi Kodu: {profile.dealerCode}</div>
+                    </div>
+                    <span className="text-[11px] font-bold bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 px-2.5 py-0.5 rounded-full flex-shrink-0">
+                      %{((profile.discountRate || 0.4) * 100).toFixed(0)} Bayi İskontosu
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-0.5 text-xs">
+                {/* 2. Menü Bilgi Kartları: Kredi Limiti, İskonto, Bekleyen Siparişler, Cari Bakiye */}
+                <div className="py-3 space-y-2.5 border-b border-slate-100 dark:border-slate-800">
+                  
+                  {/* Kredi Limitiniz */}
+                  <div className="bg-slate-50 dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Kredi Limitiniz</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                        {formatCurrency(profile.creditLimit || 150000)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 space-y-1">
+                      <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, Math.max(2, Math.round(((profile.currentBalance > 0 ? profile.currentBalance : 0) / (profile.creditLimit || 150000)) * 100)))}%`
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                        <span>Kullanılabilir: {formatCurrency(Math.max(0, (profile.creditLimit || 150000) - (profile.currentBalance > 0 ? profile.currentBalance : 0)))}</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          %{Math.min(100, Math.round(((profile.currentBalance > 0 ? profile.currentBalance : 0) / (profile.creditLimit || 150000)) * 100))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cari Bakiye & İskonto Oranı 2-Kolon */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Cari Bakiye</div>
+                      <div className="font-mono font-bold text-slate-900 dark:text-white mt-0.5 text-xs truncate">
+                        {formatCurrency(profile.currentBalance)}
+                      </div>
+                      <div className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        {profile.currentBalance > 0 ? 'Borç Bakiyesi (B)' : 'Alacak / Dengeli (A)'}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-900/80 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">İskonto Oranınız</div>
+                      <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 text-xs">
+                        %{((profile.discountRate || 0.4) * 100).toFixed(0)}
+                      </div>
+                      <div className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        Ortalama İskonto
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bekleyen Siparişler Quick Link */}
+                  <Link
+                    href="/bayi/siparisler"
+                    onClick={() => setShowUserMenu(false)}
+                    className="flex items-center justify-between p-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/40 text-amber-900 dark:text-amber-300 hover:bg-amber-100/70 dark:hover:bg-amber-950/50 transition"
+                  >
+                    <div className="flex items-center gap-2 text-xs font-semibold">
+                      <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <span>Bekleyen Siparişler</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono font-bold text-[11px] bg-amber-200/80 dark:bg-amber-800/60 px-2 py-0.5 rounded-full text-amber-950 dark:text-amber-100">
+                        {pendingOrdersCount} Bekleyen
+                      </span>
+                      <ChevronDown className="w-3 h-3 text-amber-600 -rotate-90" />
+                    </div>
+                  </Link>
+
+                </div>
+
+                {/* 3. Menü Linkleri */}
+                <div className="pt-2 space-y-0.5 text-xs">
+                  <Link
+                    href="/bayi/cari"
+                    onClick={() => setShowUserMenu(false)}
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                  >
+                    <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span>Cari Hesap & Ekstre</span>
+                  </Link>
+
                   <Link
                     href="/bayi/profil"
                     onClick={() => setShowUserMenu(false)}

@@ -144,13 +144,37 @@ function ProductsContent() {
     }
   }, [selectedCategory, categoriesList]);
 
-  const handleQtyChange = (productId: string, val: number, pim: number) => {
-    const validVal = Math.max(pim || 1, val);
+  // Main Categories & Subcategories derivations
+  const mainCategories = categoriesList.filter((c) => !c.parentId);
+  
+  const activeCategoryObj = categoriesList.find(
+    (c) => c.slug === selectedCategory || c.name === selectedCategory || c.id === selectedCategory
+  );
+  
+  const activeMainCategory = activeCategoryObj
+    ? (activeCategoryObj.parentId
+        ? categoriesList.find((c) => c.id === activeCategoryObj.parentId)
+        : activeCategoryObj)
+    : null;
+
+  const activeSubcategories = activeMainCategory
+    ? categoriesList.filter((c) => c.parentId === activeMainCategory.id)
+    : [];
+
+  const handleQtyChange = (productId: string, val: number, pim: number, maxStock?: number) => {
+    let validVal = Math.max(pim || 1, val);
+    if (maxStock !== undefined && maxStock > 0 && validVal > maxStock) {
+      validVal = maxStock;
+    }
     setQuantities((prev) => ({ ...prev, [productId]: validVal }));
   };
 
   const getQty = (product: Product) => {
-    return quantities[product.id] || product.pim || 1;
+    const raw = quantities[product.id] || product.pim || 1;
+    if (product.stock > 0 && raw > product.stock) {
+      return product.stock;
+    }
+    return raw;
   };
 
   // Map server DB item to frontend Product model
@@ -339,7 +363,7 @@ function ProductsContent() {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Scrollable Container */}
+          {/* Scrollable Container for Main Categories */}
           <div
             ref={categoryScrollRef}
             className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 flex-1 scroll-smooth"
@@ -365,15 +389,16 @@ function ProductsContent() {
               </span>
             </button>
 
-            {categoriesList.map((cat) => {
-              const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name;
+            {mainCategories.map((cat) => {
+              const isSelected = activeMainCategory?.id === cat.id;
+              const subCount = categoriesList.filter((c) => c.parentId === cat.id).length;
               return (
                 <button
                   key={cat.id}
                   type="button"
                   data-selected={isSelected ? 'true' : 'false'}
                   onClick={() => {
-                    const next = isSelected ? 'all' : cat.name;
+                    const next = (isSelected && selectedCategory === cat.name) ? 'all' : cat.name;
                     setSelectedCategory(next);
                     if (next === 'all') {
                       router.push('/bayi/urunler');
@@ -389,6 +414,13 @@ function ProductsContent() {
                 >
                   {getCategoryIcon(cat.slug)}
                   <span className="whitespace-nowrap">{cat.name}</span>
+                  {subCount > 0 && (
+                    <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                      isSelected ? 'bg-blue-700 text-blue-100' : 'bg-slate-200/80 text-slate-600'
+                    }`}>
+                      {subCount} alt
+                    </span>
+                  )}
                   {cat.discountPercent > 0 && (
                     <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200">
                       -%{cat.discountPercent}
@@ -414,6 +446,68 @@ function ProductsContent() {
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+
+        {/* 2nd Tier: Subcategories Pills Bar */}
+        {activeSubcategories.length > 0 && (
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none animate-in fade-in slide-in-from-top-1">
+            <div className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 pl-1 flex-shrink-0">
+              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              <span>{activeMainCategory?.name} Alt Kategorileri:</span>
+            </div>
+
+            {/* All items of Main Category */}
+            <button
+              type="button"
+              onClick={() => {
+                if (activeMainCategory) {
+                  setSelectedCategory(activeMainCategory.name);
+                  router.push(`/bayi/urunler?category=${encodeURIComponent(activeMainCategory.name)}`);
+                }
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
+                selectedCategory === activeMainCategory?.name
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              Tümü ({activeMainCategory?.name})
+            </button>
+
+            {activeSubcategories.map((sub) => {
+              const isSubSelected = selectedCategory === sub.slug || selectedCategory === sub.name;
+              return (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => {
+                    const next = isSubSelected ? (activeMainCategory?.name || 'all') : sub.name;
+                    setSelectedCategory(next);
+                    router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
+                    isSubSelected
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <span>{sub.name}</span>
+                  {sub.discountPercent > 0 && (
+                    <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.2 rounded font-bold">
+                      -%{sub.discountPercent}
+                    </span>
+                  )}
+                  {sub._count?.products !== undefined && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                      isSubSelected ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {sub._count.products}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Search & Filter Bar */}
@@ -448,11 +542,21 @@ function ProductsContent() {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600 cursor-pointer"
             >
               <option value="all">Tüm Kategoriler ({categoriesList.length})</option>
-              {categoriesList.map((cat) => (
-                <option key={cat.id} value={cat.name}>
-                  {cat.name} {cat.discountPercent > 0 ? `(-%${cat.discountPercent})` : ''}
-                </option>
-              ))}
+              {mainCategories.map((mainCat) => {
+                const subs = categoriesList.filter((c) => c.parentId === mainCat.id);
+                return (
+                  <React.Fragment key={mainCat.id}>
+                    <option value={mainCat.name} className="font-bold">
+                      📁 {mainCat.name} {mainCat._count?.products ? `(${mainCat._count.products})` : ''}
+                    </option>
+                    {subs.map((sub) => (
+                      <option key={sub.id} value={sub.name}>
+                        &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name} {sub._count?.products ? `(${sub._count.products})` : ''}
+                      </option>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </select>
           </div>
 
@@ -663,7 +767,7 @@ function ProductsContent() {
                             <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                               <button
                                 type="button"
-                                onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
+                                onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1, product.stock)}
                                 className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                               >
                                 -
@@ -671,14 +775,23 @@ function ProductsContent() {
                               <input
                                 type="number"
                                 min={product.pim || 1}
+                                max={product.stock > 0 ? product.stock : undefined}
                                 step={product.pim || 1}
                                 value={qty}
-                                onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
+                                onChange={(e) => {
+                                  const raw = parseInt(e.target.value, 10);
+                                  let val = isNaN(raw) ? (product.pim || 1) : raw;
+                                  if (val < (product.pim || 1)) val = product.pim || 1;
+                                  if (product.stock > 0 && val > product.stock) {
+                                    val = product.stock;
+                                  }
+                                  handleQtyChange(product.id, val, product.pim || 1, product.stock);
+                                }}
                                 className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                               />
                               <button
                                 type="button"
-                                onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
+                                onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1, product.stock)}
                                 className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                               >
                                 +
@@ -803,7 +916,7 @@ function ProductsContent() {
                       <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1)}
+                          onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1, product.stock)}
                           className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                         >
                           -
@@ -811,14 +924,23 @@ function ProductsContent() {
                         <input
                           type="number"
                           min={product.pim || 1}
+                          max={product.stock > 0 ? product.stock : undefined}
                           step={product.pim || 1}
                           value={qty}
-                          onChange={(e) => handleQtyChange(product.id, parseInt(e.target.value) || (product.pim || 1), product.pim || 1)}
+                          onChange={(e) => {
+                            const raw = parseInt(e.target.value, 10);
+                            let val = isNaN(raw) ? (product.pim || 1) : raw;
+                            if (val < (product.pim || 1)) val = product.pim || 1;
+                            if (product.stock > 0 && val > product.stock) {
+                              val = product.stock;
+                            }
+                            handleQtyChange(product.id, val, product.pim || 1, product.stock);
+                          }}
                           className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                         />
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1)}
+                          onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1, product.stock)}
                           className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
                         >
                           +

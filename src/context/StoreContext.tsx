@@ -326,6 +326,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             creditLimit: s.creditLimit,
             currentBalance: s.rawBalance,
             balanceType: s.balanceType,
+            discountRate: s.customDiscountPercent !== undefined && s.customDiscountPercent > 0 ? s.customDiscountPercent : prev.discountRate,
           }));
         }
       } catch {
@@ -429,40 +430,56 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = (product: Product, quantity = 1) => {
     const minQty = product.pim || 1;
-    const addedQty = Math.max(quantity, minQty);
+    let addedQty = Math.max(quantity, minQty);
+    if (product.stock > 0 && addedQty > product.stock) {
+      addedQty = product.stock;
+    }
+
+    let syncedQty = addedQty;
 
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
+        let nextQty = existing.quantity + addedQty;
+        if (product.stock > 0 && nextQty > product.stock) {
+          nextQty = product.stock;
+        }
+        syncedQty = nextQty;
         return prev.map((item) =>
           item.product.id === product.id
             ? {
                 ...item,
-                quantity: item.quantity + addedQty,
-                totalTRY: (item.quantity + addedQty) * item.unitPriceTRY
+                quantity: nextQty,
+                totalTRY: nextQty * item.unitPriceTRY
               }
             : item
         );
       }
+
+      let initialQty = addedQty;
+      if (product.stock > 0 && initialQty > product.stock) {
+        initialQty = product.stock;
+      }
+      syncedQty = initialQty;
 
       const discountedPrice = product.priceTRY * (1 - (profile.customDiscountPercent ? profile.customDiscountPercent / 100 : profile.discountRate || 0));
       return [
         ...prev,
         {
           product,
-          quantity: addedQty,
+          quantity: initialQty,
           unitPriceTRY: discountedPrice,
-          totalTRY: addedQty * discountedPrice,
+          totalTRY: initialQty * discountedPrice,
           appliedDiscountRate: profile.customDiscountPercent ? profile.customDiscountPercent / 100 : profile.discountRate || 0
         }
       ];
     });
 
-    // Async sync to DB
+    // Async sync to DB with guaranteed clamped quantity
     fetch('/api/b2b/cart', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: product.id, quantity: addedQty, isIncrement: true })
+      body: JSON.stringify({ productId: product.id, quantity: syncedQty, isIncrement: false })
     }).catch((err) => console.error('Failed to sync addToCart with DB:', err));
 
     showToast(`"${product.name}" sepete eklendi!`, 'success');
@@ -473,23 +490,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
+    let finalQty = quantity;
     setCart((prev) =>
-      prev.map((item) =>
-        item.product.id === productId
-          ? {
-              ...item,
-              quantity,
-              totalTRY: quantity * item.unitPriceTRY
-            }
-          : item
-      )
+      prev.map((item) => {
+        if (item.product.id !== productId) return item;
+        let clamped = finalQty;
+        if (item.product.stock > 0 && clamped > item.product.stock) {
+          clamped = item.product.stock;
+        }
+        finalQty = clamped;
+        return {
+          ...item,
+          quantity: clamped,
+          totalTRY: clamped * item.unitPriceTRY
+        };
+      })
     );
 
-    // Async sync to DB
+    // Async sync to DB with guaranteed clamped quantity
     fetch('/api/b2b/cart', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, quantity, isIncrement: false })
+      body: JSON.stringify({ productId, quantity: finalQty, isIncrement: false })
     }).catch((err) => console.error('Failed to sync updateCartQuantity with DB:', err));
   };
 

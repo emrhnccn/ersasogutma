@@ -14,7 +14,7 @@ interface ProductDetailModalProps {
 
 export function ProductDetailModal({ product, onClose }: ProductDetailModalProps) {
   const { addToCart, toggleFavorite, isFavorite, convertPrice, profile } = useStore();
-  const [quantity, setQuantity] = useState(product ? product.pim || 1 : 1);
+  const [quantity, setQuantity] = useState(product ? (product.stock > 0 ? Math.min(product.stock, product.pim || 1) : (product.pim || 1)) : 1);
   const [copiedCode, setCopiedCode] = useState(false);
 
   if (!product) return null;
@@ -163,14 +163,26 @@ export function ProductDetailModal({ product, onClose }: ProductDetailModalProps
                     <input
                       type="number"
                       min={product.pim || 1}
+                      max={product.stock > 0 ? product.stock : undefined}
                       step={product.pim || 1}
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(product.pim || 1, parseInt(e.target.value) || (product.pim || 1)))}
+                      onChange={(e) => {
+                        const raw = parseInt(e.target.value, 10);
+                        let val = isNaN(raw) ? (product.pim || 1) : raw;
+                        if (val < (product.pim || 1)) val = product.pim || 1;
+                        if (product.stock > 0 && val > product.stock) {
+                          val = product.stock;
+                        }
+                        setQuantity(val);
+                      }}
                       className="w-12 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
                     />
                     <button
                       type="button"
-                      onClick={() => setQuantity((q) => q + (product.pim || 1))}
+                      onClick={() => setQuantity((q) => {
+                        const next = q + (product.pim || 1);
+                        return product.stock > 0 ? Math.min(product.stock, next) : next;
+                      })}
                       className="px-2.5 py-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-sm"
                     >
                       +

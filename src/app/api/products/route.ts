@@ -43,13 +43,16 @@ export async function GET(request: NextRequest) {
       conditions.push({ stockQty: { gt: 0 } });
     }
 
-    // Category filter (by ID, Slug, or Name)
+    // Category filter (by ID, Slug, or Name, matching direct products or products under child categories)
     if (category && category !== 'all') {
       conditions.push({
         OR: [
           { categoryId: category },
           { category: { is: { slug: category } } },
-          { category: { is: { name: { equals: category, mode: 'insensitive' } } } }
+          { category: { is: { name: { equals: category, mode: 'insensitive' } } } },
+          { category: { is: { parentId: category } } },
+          { category: { is: { parent: { is: { slug: category } } } } },
+          { category: { is: { parent: { is: { name: { equals: category, mode: 'insensitive' } } } } } }
         ]
       });
     }

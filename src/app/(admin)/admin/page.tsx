@@ -34,8 +34,10 @@ import {
   Play,
   Square,
   ChevronRight,
+  ChevronDown,
   Package,
   FolderTree,
+  FolderPlus,
   FileText,
   CreditCard,
   Settings,
@@ -170,6 +172,48 @@ export default function AdminControlPanel() {
     }
   };
 
+  // Live Order Intervention State (Real PostgreSQL DB)
+  const [selectedAdminOrder, setSelectedAdminOrder] = useState<any | null>(null);
+  const [orderModifying, setOrderModifying] = useState(false);
+  const [addOrderProductId, setAddOrderProductId] = useState('');
+  const [addOrderQty, setAddOrderQty] = useState(1);
+  const [orderProductSearch, setOrderProductSearch] = useState('');
+  const [orderProductDropdownOpen, setOrderProductDropdownOpen] = useState(false);
+
+  // Live Order Modification Handler (POST /api/admin/orders/[id]/items)
+  const handleAdminOrderAction = async (payload: {
+    action: 'update_qty' | 'remove_item' | 'add_item';
+    itemId?: string;
+    productId?: string;
+    quantity?: number;
+  }) => {
+    if (!selectedAdminOrder) return;
+    setOrderModifying(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${selectedAdminOrder.id}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        showToast(json.message || 'Sipariş başarıyla güncellendi.', 'success');
+        setSelectedAdminOrder(json.data);
+        await loadAdminOrders();
+        setAddOrderProductId('');
+        setOrderProductSearch('');
+        setAddOrderQty(1);
+        setOrderProductDropdownOpen(false);
+      } else {
+        showToast(json.error || 'Sipariş güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('İşlem sırasında hata oluştu.', 'error');
+    } finally {
+      setOrderModifying(false);
+    }
+  };
+
   // DB Products State (Paginated & Infinite Scroll)
   const [dbProducts, setDbProducts] = useState<DBProduct[]>([]);
   const [adminProductPage, setAdminProductPage] = useState(1);
@@ -242,10 +286,13 @@ export default function AdminControlPanel() {
   const [savingProduct, setSavingProduct] = useState(false);
 
   // New Category State
+  const [newCatType, setNewCatType] = useState<'main' | 'sub'>('main');
   const [newCatName, setNewCatName] = useState('');
   const [newCatParent, setNewCatParent] = useState('');
   const [newCatSortOrder, setNewCatSortOrder] = useState('0');
   const [newCatDiscount, setNewCatDiscount] = useState('0');
+  const [categoryHierarchySearch, setCategoryHierarchySearch] = useState('');
+  const [expandedMainCategories, setExpandedMainCategories] = useState<Record<string, boolean>>({});
 
   // Edit Category Modal State
   const [editingCategory, setEditingCategory] = useState<DBCategory | null>(null);
@@ -891,29 +938,32 @@ export default function AdminControlPanel() {
   // Handle Create Category
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName) return;
+    if (!newCatName.trim()) return;
     try {
+      const parentIdToUse = newCatType === 'sub' ? (newCatParent || null) : null;
       const res = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newCatName,
-          parentId: newCatParent || null,
+          name: newCatName.trim(),
+          parentId: parentIdToUse,
           sortOrder: parseInt(newCatSortOrder, 10) || 0,
           discountPercent: parseFloat(newCatDiscount) || 0
         })
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Kategori oluşturuldu.', 'success');
+        showToast(newCatType === 'sub' ? 'Alt kategori başarıyla oluşturuldu.' : 'Ana kategori başarıyla oluşturuldu.', 'success');
         setNewCatName('');
         setNewCatParent('');
         setNewCatSortOrder('0');
         setNewCatDiscount('0');
         loadCategories();
+      } else {
+        showToast(data.error || 'Kategori oluşturulamadı.', 'error');
       }
     } catch {
-      showToast('Hata oluştu.', 'error');
+      showToast('Kategori eklenirken hata oluştu.', 'error');
     }
   };
 
@@ -937,7 +987,7 @@ export default function AdminControlPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: editingCategory.id,
-          name: editCatName,
+          name: editCatName.trim(),
           parentId: editCatParent || null,
           sortOrder: parseInt(editCatSortOrder, 10) || 0,
           discountPercent: parseFloat(editCatDiscount) || 0
@@ -958,21 +1008,31 @@ export default function AdminControlPanel() {
     }
   };
 
-  // Handle Move Category Up / Down
+  // Handle Move Category Up / Down (Siblings with same parent)
   const handleMoveCategory = async (catId: string, direction: 'up' | 'down') => {
-    const idx = dbCategories.findIndex((c) => c.id === catId);
+    const targetCat = dbCategories.find((c) => c.id === catId);
+    if (!targetCat) return;
+
+    // Filter siblings having the same parentId (or both null)
+    const siblings = dbCategories.filter((c) => (c.parentId || null) === (targetCat.parentId || null));
+    const idx = siblings.findIndex((c) => c.id === catId);
     if (idx === -1) return;
     if (direction === 'up' && idx === 0) return;
-    if (direction === 'down' && idx === dbCategories.length - 1) return;
+    if (direction === 'down' && idx === siblings.length - 1) return;
 
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-    const reordered = [...dbCategories];
-    const [moved] = reordered.splice(idx, 1);
-    reordered.splice(targetIdx, 0, moved);
+    const reorderedSiblings = [...siblings];
+    const [moved] = reorderedSiblings.splice(idx, 1);
+    reorderedSiblings.splice(targetIdx, 0, moved);
 
     // Optimistic UI update with calculated sortOrders
-    const payload = reordered.map((c, i) => ({ id: c.id, sortOrder: i + 1 }));
-    setDbCategories(reordered.map((c, i) => ({ ...c, sortOrder: i + 1 })));
+    const payload = reorderedSiblings.map((c, i) => ({ id: c.id, sortOrder: i + 1 }));
+    setDbCategories((prev) =>
+      prev.map((c) => {
+        const found = payload.find((p) => p.id === c.id);
+        return found ? { ...c, sortOrder: found.sortOrder } : c;
+      })
+    );
 
     try {
       const res = await fetch('/api/categories', {
@@ -983,6 +1043,7 @@ export default function AdminControlPanel() {
       const data = await res.json();
       if (data.success) {
         showToast('Kategori sıralaması kaydedildi.');
+        loadCategories();
       } else {
         loadCategories();
       }
@@ -994,18 +1055,23 @@ export default function AdminControlPanel() {
 
   // Handle Delete Category
   const handleDeleteCategory = async (id: string, name: string) => {
-    if (!window.confirm(`"${name}" kategorisini silmek istediğinize emin misiniz?`)) return;
+    const subCount = dbCategories.filter((c) => c.parentId === id).length;
+    const confirmMessage = subCount > 0
+      ? `"${name}" ana kategorisi altında ${subCount} adet alt kategori bulunmaktadır.\n\nKategoriyi silerseniz bağlı alt kategoriler ve ürünler korunarak üst kategorisiz (ana kategori) seviyesine aktarılacaktır.\n\nDevam etmek istiyor musunuz?`
+      : `"${name}" kategorisini silmek istediğinize emin misiniz?`;
+
+    if (!window.confirm(confirmMessage)) return;
     try {
       const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        showToast('Kategori silindi.');
+        showToast(data.message || 'Kategori başarıyla silindi.', 'success');
         loadCategories();
       } else {
-        showToast(data.error || 'Silinemedi.', 'error');
+        showToast(data.error || 'Kategori silinemedi.', 'error');
       }
     } catch {
-      showToast('Hata oluştu.', 'error');
+      showToast('İşlem sırasında hata oluştu.', 'error');
     }
   };
 
@@ -1948,175 +2014,521 @@ export default function AdminControlPanel() {
         </div>
       )}
 
-      {/* TAB 4: CATEGORIES */}
-      {activeTab === 'categories' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-              <Plus className="w-4 h-4 text-emerald-400" />
-              <span>Yeni Kategori Ekle</span>
-            </h3>
+      {/* TAB 4: CATEGORIES (Hiyerarşik Ana & Alt Kategori Yönetimi) */}
+      {activeTab === 'categories' && (() => {
+        const mainCategories = dbCategories.filter((c) => !c.parentId);
+        const subCategories = dbCategories.filter((c) => !!c.parentId);
 
-            <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori Adı:</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: Soğutma Kompresörleri"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                />
-              </div>
+        const filteredMainCategories = mainCategories.filter((mainCat) => {
+          if (!categoryHierarchySearch.trim()) return true;
+          const q = categoryHierarchySearch.toLowerCase();
+          const matchMain = mainCat.name.toLowerCase().includes(q);
+          const matchSub = dbCategories.some(
+            (sub) => sub.parentId === mainCat.id && sub.name.toLowerCase().includes(q)
+          );
+          return matchMain || matchSub;
+        });
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Üst Kategori (Opsiyonel):</label>
-                <select
-                  value={newCatParent}
-                  onChange={(e) => setNewCatParent(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                >
-                  <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
-                  {dbCategories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+        // Any orphan subcategories (whose parentId is not in dbCategories)
+        const mainCatIds = new Set(mainCategories.map((m) => m.id));
+        const orphanSubCategories = subCategories.filter(
+          (sub) => sub.parentId && !mainCatIds.has(sub.parentId)
+        );
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
-                  <input
-                    type="number"
-                    placeholder="1, 2, 3..."
-                    value={newCatSortOrder}
-                    onChange={(e) => setNewCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
+        const toggleMainCategory = (catId: string) => {
+          setExpandedMainCategories((prev) => ({
+            ...prev,
+            [catId]: !prev[catId]
+          }));
+        };
+
+        const expandAll = () => {
+          const allTrue: Record<string, boolean> = {};
+          mainCategories.forEach((m) => {
+            allTrue[m.id] = true;
+          });
+          setExpandedMainCategories(allTrue);
+        };
+
+        const collapseAll = () => {
+          setExpandedMainCategories({});
+        };
+
+        return (
+          <div className="space-y-5">
+            {/* Top KPI Summary Banner */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                  <FolderTree className="w-5 h-5" />
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    max="100"
-                    placeholder="Örn: 20"
-                    value={newCatDiscount}
-                    onChange={(e) => setNewCatDiscount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
-                  />
+                  <span className="text-[11px] text-slate-400 block font-medium">Toplam Kategori</span>
+                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">{dbCategories.length}</span>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
-              >
-                Kategori Kaydet
-              </button>
-            </form>
-          </div>
-
-          <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <FolderTree className="w-4 h-4 text-purple-400" />
-                  <span>Kategori Yönetimi & Sıralama ({dbCategories.length})</span>
-                </h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Ok butonları ile kategorilerin sıralamasını ayarlayabilir, düzenle butonu ile isim ve iskonto güncelleyebilirsiniz.
-                </p>
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold">
+                  <FolderPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-slate-400 block font-medium">Ana Kategoriler</span>
+                  <span className="text-xl font-black text-sky-400 font-mono">{mainCategories.length}</span>
+                </div>
               </div>
-              <button onClick={loadCategories} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingCategories ? 'animate-spin' : ''}`} />
-              </button>
+
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] text-slate-400 block font-medium">Bağlı Alt Kategoriler</span>
+                  <span className="text-xl font-black text-emerald-400 font-mono">{subCategories.length}</span>
+                </div>
+              </div>
             </div>
 
-            {loadingCategories ? (
-              <div className="py-10 text-center text-slate-400">Yükleniyor...</div>
-            ) : dbCategories.length === 0 ? (
-              <div className="py-10 text-center text-slate-500 text-xs">
-                Kayıtlı kategori bulunamadı. Tedarikçi botu ile kategoriler otomatik içe aktarılacaktır.
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {dbCategories.map((c, idx) => (
-                  <div
-                    key={c.id}
-                    className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-200 dark:border-slate-800/80 p-3 rounded-xl flex items-center justify-between text-xs hover:border-slate-700 transition"
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Create Category Form */}
+              <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4 h-fit">
+                <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-emerald-400" />
+                    <span>Yeni Kategori Tanımla</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Kataloğunuzu zenginleştirmek için ana veya alt kategori ekleyin.
+                  </p>
+                </div>
+
+                {/* Type Selector (Ana Kategori / Alt Kategori) */}
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-[#0B1120] rounded-xl border border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewCatType('main');
+                      setNewCatParent('');
+                    }}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                      newCatType === 'main'
+                        ? 'bg-sky-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      {/* Move Up / Down Buttons */}
-                      <div className="flex flex-col gap-0.5">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => handleMoveCategory(c.id, 'up')}
-                          className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 disabled:hover:text-slate-400 rounded transition"
-                          title="Yukarı Taşı"
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === dbCategories.length - 1}
-                          onClick={() => handleMoveCategory(c.id, 'down')}
-                          className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 disabled:hover:text-slate-400 rounded transition"
-                          title="Aşağı Taşı"
-                        >
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    📁 Ana Kategori
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewCatType('sub');
+                      if (!newCatParent && mainCategories.length > 0) {
+                        setNewCatParent(mainCategories[0].id);
+                      }
+                    }}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                      newCatType === 'sub'
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    ↳ Alt Kategori
+                  </button>
+                </div>
 
-                      <div>
-                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
-                            #{c.sortOrder && c.sortOrder > 0 ? c.sortOrder : idx + 1}
-                          </span>
-                          <span>{c.name}</span>
-                          {c.discountPercent !== undefined && Number(c.discountPercent) > 0 && (
-                            <span className="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.2 rounded-full font-bold">
-                              %{c.discountPercent} İskonto
-                            </span>
-                          )}
-                          {c._count?.products !== undefined && (
-                            <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
-                              {c._count.products} Ürün
-                            </span>
-                          )}
-                        </div>
-                        {c.parent && (
-                          <span className="text-[10px] text-slate-500">Üst Kategori: {c.parent.name}</span>
-                        )}
-                      </div>
+                <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
+                  {newCatType === 'sub' && (
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Bağlanacağı Ana Kategori: <span className="text-rose-500">*</span>
+                      </label>
+                      <select
+                        required
+                        value={newCatParent}
+                        onChange={(e) => setNewCatParent(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
+                      >
+                        <option value="" disabled>-- Ana Kategori Seçiniz --</option>
+                        {mainCategories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                  )}
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => openEditCategoryModal(c)}
-                        className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition"
-                        title="Kategori İsmi ve İskontoyu Düzenle"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(c.id, c.name)}
-                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
-                        title="Kategoriyi Sil"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                      {newCatType === 'main' ? 'Ana Kategori Adı:' : 'Alt Kategori Adı:'} <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={newCatType === 'main' ? 'Örn: Soğutma Kompresörleri' : 'Örn: Hermetik Kompresörler'}
+                      value={newCatName}
+                      onChange={(e) => setNewCatName(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Sıra Numarası:</label>
+                      <input
+                        type="number"
+                        placeholder="1, 2, 3..."
+                        value={newCatSortOrder}
+                        onChange={(e) => setNewCatSortOrder(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">İskonto Oranı (%):</label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        placeholder="Örn: 15"
+                        value={newCatDiscount}
+                        onChange={(e) => setNewCatDiscount(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-500 font-bold focus:outline-none"
+                      />
                     </div>
                   </div>
-                ))}
+
+                  <button
+                    type="submit"
+                    className={`w-full text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 cursor-pointer ${
+                      newCatType === 'main'
+                        ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
+                        : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{newCatType === 'main' ? 'Ana Kategori Oluştur' : 'Alt Kategori Oluştur'}</span>
+                  </button>
+                </form>
               </div>
-            )}
+
+              {/* Right Column: Hierarchical Category Tree */}
+              <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <FolderTree className="w-4 h-4 text-purple-400" />
+                      <span>Kategori Hiyerarşisi ({mainCategories.length} Ana / {subCategories.length} Alt)</span>
+                    </h3>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      Ana kategorileri genişleterek alt kategorileri yönetebilir, sıralamayı düzenleyebilirsiniz.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={expandAll}
+                      className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                    >
+                      Tümünü Aç
+                    </button>
+                    <button
+                      type="button"
+                      onClick={collapseAll}
+                      className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                    >
+                      Kapat
+                    </button>
+                    <button
+                      onClick={loadCategories}
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                      title="Yenile"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingCategories ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search Input for Categories */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Ana veya alt kategori adına göre ara..."
+                    value={categoryHierarchySearch}
+                    onChange={(e) => setCategoryHierarchySearch(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                  />
+                  {categoryHierarchySearch && (
+                    <button
+                      onClick={() => setCategoryHierarchySearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {loadingCategories ? (
+                  <div className="py-12 text-center text-slate-400 flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                    <span>Kategoriler yükleniyor...</span>
+                  </div>
+                ) : mainCategories.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs space-y-1">
+                    <FolderTree className="w-8 h-8 mx-auto text-slate-600" />
+                    <p>Henüz kategori kaydı bulunmuyor.</p>
+                  </div>
+                ) : filteredMainCategories.length === 0 ? (
+                  <div className="py-8 text-center text-slate-400 text-xs">
+                    Arama kriterine uygun kategori bulunamadı.
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                    {filteredMainCategories.map((mainCat, mainIdx) => {
+                      const subs = dbCategories
+                        .filter((c) => c.parentId === mainCat.id)
+                        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+                      const isExpanded = categoryHierarchySearch.trim() !== '' ? true : Boolean(expandedMainCategories[mainCat.id]);
+
+                      return (
+                        <div
+                          key={mainCat.id}
+                          className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition shadow-sm"
+                        >
+                          {/* Main Category Header Bar */}
+                          <div
+                            className="p-3.5 flex items-center justify-between gap-2 border-b border-transparent data-[expanded=true]:border-slate-200 dark:data-[expanded=true]:border-slate-800/80 bg-white dark:bg-[#111827]/60"
+                            data-expanded={isExpanded}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              {/* Move Up / Down Buttons for Main Categories */}
+                              <div className="flex flex-col gap-0.5 flex-shrink-0">
+                                <button
+                                  type="button"
+                                  disabled={mainIdx === 0}
+                                  onClick={() => handleMoveCategory(mainCat.id, 'up')}
+                                  className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
+                                  title="Yukarı Taşı"
+                                >
+                                  <ArrowUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={mainIdx === filteredMainCategories.length - 1}
+                                  onClick={() => handleMoveCategory(mainCat.id, 'down')}
+                                  className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
+                                  title="Aşağı Taşı"
+                                >
+                                  <ArrowDown className="w-3 h-3" />
+                                </button>
+                              </div>
+
+                              <div className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                <FolderPlus className="w-3.5 h-3.5" />
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                                    #{mainCat.sortOrder && mainCat.sortOrder > 0 ? mainCat.sortOrder : mainIdx + 1}
+                                  </span>
+                                  <span className="font-bold text-slate-900 dark:text-white text-xs truncate">
+                                    {mainCat.name}
+                                  </span>
+
+                                  {mainCat.discountPercent !== undefined && Number(mainCat.discountPercent) > 0 && (
+                                    <span className="text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded-full font-bold">
+                                      %{mainCat.discountPercent} İskonto
+                                    </span>
+                                  )}
+
+                                  <span className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.2 rounded-full font-mono font-bold">
+                                    {subs.length} Alt Kategori
+                                  </span>
+
+                                  {mainCat._count?.products !== undefined && (
+                                    <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
+                                      {mainCat._count.products} Ürün
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCatType('sub');
+                                  setNewCatParent(mainCat.id);
+                                  showToast(`"${mainCat.name}" için alt kategori ekleme modu seçildi.`);
+                                }}
+                                className="px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                title="Bu Ana Kategoriye Alt Kategori Ekle"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span className="hidden sm:inline">Alt Kategori Ekle</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => openEditCategoryModal(mainCat)}
+                                className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                title="Düzenle"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategory(mainCat.id, mainCat.name)}
+                                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                title="Sil"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => toggleMainCategory(mainCat.id)}
+                                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer ml-1"
+                                title={isExpanded ? 'Gizle' : 'Genişlet'}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4 text-purple-400" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Subcategories Accordion Content */}
+                          {isExpanded && (
+                            <div className="p-3 bg-slate-50/50 dark:bg-[#070b14]/60 space-y-1.5">
+                              {subs.length === 0 ? (
+                                <div className="py-3 px-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                                  Bu ana kategoriye bağlı alt kategori bulunmuyor.{' '}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setNewCatType('sub');
+                                      setNewCatParent(mainCat.id);
+                                    }}
+                                    className="text-purple-400 font-bold hover:underline"
+                                  >
+                                    Hemen bir alt kategori ekleyin.
+                                  </button>
+                                </div>
+                              ) : (
+                                subs.map((sub, subIdx) => (
+                                  <div
+                                    key={sub.id}
+                                    className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#0E1526] border border-slate-200 dark:border-slate-800/80 hover:border-purple-500/30 transition text-xs group"
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      {/* Subcategory Reorder Buttons */}
+                                      <div className="flex flex-col gap-0.5 flex-shrink-0">
+                                        <button
+                                          type="button"
+                                          disabled={subIdx === 0}
+                                          onClick={() => handleMoveCategory(sub.id, 'up')}
+                                          className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
+                                          title="Yukarı Taşı"
+                                        >
+                                          <ArrowUp className="w-2.5 h-2.5" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={subIdx === subs.length - 1}
+                                          onClick={() => handleMoveCategory(sub.id, 'down')}
+                                          className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
+                                          title="Aşağı Taşı"
+                                        >
+                                          <ArrowDown className="w-2.5 h-2.5" />
+                                        </button>
+                                      </div>
+
+                                      <span className="text-purple-400 font-bold font-mono">↳</span>
+                                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                        {sub.name}
+                                      </span>
+
+                                      {sub.discountPercent !== undefined && Number(sub.discountPercent) > 0 && (
+                                        <span className="text-[9px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded font-bold">
+                                          %{sub.discountPercent} İskonto
+                                        </span>
+                                      )}
+
+                                      {sub._count?.products !== undefined && (
+                                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-800">
+                                          {sub._count.products} Ürün
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditCategoryModal(sub)}
+                                        className="p-1.5 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                        title="Alt Kategoriyi Düzenle / Başka Ana Kategoriye Taşı"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteCategory(sub.id, sub.name)}
+                                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                        title="Alt Kategoriyi Sil"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Orphan Subcategories if any */}
+                    {orphanSubCategories.length > 0 && (
+                      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
+                        <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>Eşleşmeyen / Üst Kategorisi Bulunmayan Alt Kategoriler ({orphanSubCategories.length})</span>
+                        </div>
+                        <div className="space-y-1">
+                          {orphanSubCategories.map((orphan) => (
+                            <div key={orphan.id} className="flex items-center justify-between text-xs bg-slate-900 p-2 rounded-lg border border-amber-500/20">
+                              <span className="text-white font-medium">{orphan.name}</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditCategoryModal(orphan)}
+                                  className="px-2 py-1 bg-amber-500 text-slate-950 rounded text-[10px] font-bold"
+                                >
+                                  Ana Kategori Ata
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 5: ORDERS (Live PostgreSQL Database Orders) */}
       {activeTab === 'orders' && (
@@ -2282,6 +2694,21 @@ export default function AdminControlPanel() {
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <button
                             type="button"
+                            onClick={() => {
+                              setSelectedAdminOrder(order);
+                              setOrderProductSearch('');
+                              setAddOrderProductId('');
+                              setAddOrderQty(1);
+                            }}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
+                            title="Sipariş Kalemlerini Canlı Düzenle (Ürün Ekle, Çıkar, Adet Değiştir)"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Siparişi Düzenle</span>
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => setAdminPrintingOrder(order)}
                             className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white flex items-center gap-1.5 border border-slate-700 cursor-pointer"
                             title="Sipariş Formunu A4 Yazdır / PDF"
@@ -2334,6 +2761,317 @@ export default function AdminControlPanel() {
                     </div>
                   );
                 })}
+            </div>
+          )}
+
+          {/* MODAL: LIVE ORDER INTERVENTION (BAYİ SİPARİŞİNE CANLI MÜDAHALE) */}
+          {selectedAdminOrder && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
+                {/* Modal Header */}
+                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/70">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
+                      <ShoppingBag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-black text-slate-900 dark:text-white">
+                          Sipariş #{selectedAdminOrder.orderNumber}
+                        </h3>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                          {selectedAdminOrder.status}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          {selectedAdminOrder.paymentMethod === 'CARI' ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Peşin'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Bayi: <strong className="text-slate-900 dark:text-white">{selectedAdminOrder.companyName}</strong> ({selectedAdminOrder.userName})
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAdminOrder(null)}
+                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                    title="Kapat"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                  {/* Add Product from Catalog to Order */}
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Plus className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Siparişe Katalogdan Ürün Ekle</span>
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          placeholder="Ürün adı veya SKU ile katalogdan arayın..."
+                          value={orderProductSearch}
+                          onChange={(e) => {
+                            setOrderProductSearch(e.target.value);
+                            setOrderProductDropdownOpen(true);
+                          }}
+                          onFocus={() => setOrderProductDropdownOpen(true)}
+                          className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                        />
+
+                        {orderProductDropdownOpen && orderProductSearch.trim().length > 1 && (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                            {dbProducts
+                              .filter((p) =>
+                                p.name.toLowerCase().includes(orderProductSearch.toLowerCase()) ||
+                                p.sku.toLowerCase().includes(orderProductSearch.toLowerCase())
+                              )
+                              .slice(0, 10)
+                              .map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setAddOrderProductId(p.id);
+                                    setOrderProductSearch(`${p.name} (${p.sku})`);
+                                    setOrderProductDropdownOpen(false);
+                                    setAddOrderQty(1);
+                                  }}
+                                  className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition cursor-pointer"
+                                >
+                                  <div>
+                                    <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
+                                    <div className="text-[10px] text-sky-400 font-mono">
+                                      SKU: {p.sku} • Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
+                                    </div>
+                                  </div>
+                                  <div className="font-mono font-bold text-emerald-400 text-xs">
+                                    {formatCurrency(p.salePrice || 0)}
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Quantity Input with Strict Stock Clamping */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={addOrderQty}
+                          onChange={(e) => {
+                            const raw = parseInt(e.target.value, 10);
+                            let val = isNaN(raw) ? 1 : raw;
+                            if (val < 1) val = 1;
+                            const prod = dbProducts.find((p) => p.id === addOrderProductId);
+                            if (prod && prod.stockQty > 0 && val > prod.stockQty) {
+                              val = prod.stockQty;
+                            }
+                            setAddOrderQty(val);
+                          }}
+                          className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                          placeholder="Adet"
+                        />
+
+                        <button
+                          type="button"
+                          disabled={orderModifying || !addOrderProductId}
+                          onClick={() => {
+                            if (!addOrderProductId) {
+                              showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
+                              return;
+                            }
+                            handleAdminOrderAction({
+                              action: 'add_item',
+                              productId: addOrderProductId,
+                              quantity: addOrderQty
+                            });
+                          }}
+                          className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
+                        >
+                          {orderModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                          <span>Siparişe Ekle</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Items List in Order */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-slate-400 block">
+                      Sipariş Kalemleri ({selectedAdminOrder.items?.length || 0} Ürün):
+                    </span>
+
+                    {selectedAdminOrder.items?.length === 0 ? (
+                      <div className="py-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                        Siparişte ürün bulunmuyor. Yukarıdaki alandan ürün ekleyebilirsiniz.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-[#111827]">
+                        {selectedAdminOrder.items?.map((item: any) => {
+                          const itemStock = item.stockQty || 0;
+                          return (
+                            <div
+                              key={item.id}
+                              className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <img
+                                  src={item.image || '/placeholder.svg'}
+                                  alt=""
+                                  className="w-10 h-10 object-cover rounded-xl bg-white p-0.5 border border-slate-200 dark:border-slate-700 flex-shrink-0"
+                                  onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                                />
+                                <div className="min-w-0">
+                                  <div className="font-bold text-slate-900 dark:text-white text-xs truncate">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                    SKU: {item.sku} • Birim (KDV Hariç): {formatCurrency(item.unitNetExVat)}
+                                    {itemStock > 0 && (
+                                      <span className="ml-2 text-sky-400 font-semibold">• Mevcut Depo Stoğu: {itemStock}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Stepper with stock clamping & Line Total & Delete */}
+                              <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
+                                <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5">
+                                  <button
+                                    type="button"
+                                    disabled={orderModifying}
+                                    onClick={() => {
+                                      const newQty = item.quantity - 1;
+                                      if (newQty <= 0) {
+                                        if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
+                                          handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
+                                        }
+                                      } else {
+                                        handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
+                                      }
+                                    }}
+                                    className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
+                                  >
+                                    -
+                                  </button>
+
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    disabled={orderModifying}
+                                    value={item.quantity}
+                                    onChange={(e) => {
+                                      const raw = parseInt(e.target.value, 10);
+                                      let val = isNaN(raw) ? 1 : raw;
+                                      if (val < 1) val = 1;
+                                      // Max allowed includes what this item already has plus current stock
+                                      const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
+                                      if (maxAllowed > 0 && val > maxAllowed) {
+                                        val = maxAllowed;
+                                      }
+                                      handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                    }}
+                                    className="w-12 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
+                                  />
+
+                                  <button
+                                    type="button"
+                                    disabled={orderModifying}
+                                    onClick={() => {
+                                      const newQty = item.quantity + 1;
+                                      const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
+                                      if (maxAllowed > 0 && newQty > maxAllowed) {
+                                        showToast(`Maksimum depo stoğuna (${maxAllowed}) ulaşıldı.`, 'warning');
+                                        return;
+                                      }
+                                      handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
+                                    }}
+                                    className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+
+                                <div className="font-mono font-bold text-emerald-400 text-xs w-24 text-right">
+                                  {formatCurrency(item.lineGross)}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  disabled={orderModifying}
+                                  onClick={() => {
+                                    if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
+                                      handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
+                                    }
+                                  }}
+                                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                  title="Kalemi Sil"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Financial Summary & CARI Adjustment Notice */}
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Ara Toplam (KDV Hariç)</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                          {formatCurrency(selectedAdminOrder.subtotalExVat || 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Toplam KDV</span>
+                        <span className="font-mono font-bold text-sky-400 text-sm">
+                          {formatCurrency(selectedAdminOrder.vatTotal || 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">Genel Toplam (KDV Dahil)</span>
+                        <span className="font-mono font-black text-emerald-400 text-base">
+                          {formatCurrency(selectedAdminOrder.grandTotal || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedAdminOrder.paymentMethod === 'CARI' && (
+                      <div className="bg-sky-500/10 border border-sky-500/20 rounded-xl p-2.5 text-[11px] text-sky-300 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 flex-shrink-0 text-sky-400" />
+                        <span>
+                          Bu sipariş <strong>Cari Hesap (Açık Hesap)</strong> ile oluşturulduğu için sipariş tutarındaki her artış veya azalış bayinin cari ekstresine anında otomatik borç/alacak kaydı olarak yansıtılmaktadır.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-950/60">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAdminOrder(null)}
+                    className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  >
+                    Değişiklikleri Kaydet & Kapat
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

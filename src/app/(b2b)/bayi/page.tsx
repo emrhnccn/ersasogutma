@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import {
   ShoppingBag,
+  ShoppingCart,
   CreditCard,
   Plus,
   Zap,
@@ -69,7 +70,7 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const { repeatOrder, showToast, profile } = useStore();
+  const { repeatOrder, showToast, profile, cart, cartTotals } = useStore();
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -180,107 +181,150 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 2. 5 KPI CARDS ROW */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* 2. CARDS ROW: CARİ BAKİYE & ANLIK SEPET GÖRÜNTÜSÜ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         
-        {/* KPI 1: Cari Bakiye */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Cari Bakiye</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </div>
+        {/* KART 1: CARİ BAKİYE */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-blue-300 transition-all">
           <div>
-            <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-              {loading ? '...' : formatCurrency(finance?.currentBalance || 0)}
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Güncel bakiyeniz
-            </p>
-          </div>
-        </div>
-
-        {/* KPI 2: Kredi Limitiniz */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Kredi Limitiniz</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-              {loading ? '...' : formatCurrency(finance?.creditLimit || profile.creditLimit || 0)}
-            </div>
-            <div className="mt-2 space-y-1">
-              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(3, finance?.creditUsagePercent || 1))}%` }}
-                />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-800">Cari Bakiye</h2>
+                  <p className="text-[11px] text-slate-500">Güncel hesap ekstresi ve borç/alacak durumu</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-500">
-                <span>Kullanılabilir: {loading ? '...' : formatCurrency(finance?.availableCredit || profile.creditLimit || 0)}</span>
-                <span className="font-semibold text-slate-700">%{finance?.creditUsagePercent || 0}</span>
+              <Link
+                href="/bayi/cari"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition"
+              >
+                <span>Cari Ekstre</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="mt-5 flex items-baseline justify-between flex-wrap gap-2">
+              <div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+                {loading ? '...' : formatCurrency(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance)}
               </div>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                (finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                {(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0 ? 'Borç Bakiyesi (B)' : 'Alacak / Dengeli (A)'}
+              </span>
             </div>
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-xs text-slate-500">
+              {(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0
+                ? 'Son ödeme veya vadeniz öncesi bakiye kapatabilirsiniz'
+                : 'Hesabınız düzenli ve kullanılabilir durumdadır'}
+            </span>
+            <Link
+              href="/bayi/finans/online-odeme"
+              className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl border border-blue-200 transition"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Sanal POS ile Öde</span>
+            </Link>
           </div>
         </div>
 
-        {/* KPI 3: Bekleyen Siparişler */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Bekleyen Siparişler</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
+        {/* KART 2: ANLIK SEPET GÖRÜNTÜSÜ */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-emerald-300 transition-all">
           <div>
-            <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-              {loading ? '...' : orders?.pendingCount || 0}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-800">Anlık Sepet Görüntüsü</h2>
+                  <p className="text-[11px] text-slate-500">
+                    {cartTotals.itemCount > 0
+                      ? `${cartTotals.itemCount} kalem ürün siparişe hazır`
+                      : 'Sepetinizde henüz ürün bulunmuyor'}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/bayi/siparisler/sepet"
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition"
+              >
+                <span>Sepete Git</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-1">
-              <span className="font-medium text-slate-700">{orders?.pendingCount || 0} Bekleyen</span>
-              <span>•</span>
-              <span className="text-slate-600">{orders?.inTransitCount || 0} Yolda</span>
-            </div>
-          </div>
-        </div>
 
-        {/* KPI 4: Canlı Sepetler */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Canlı Sepetler</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
+            <div className="mt-5 flex items-baseline justify-between flex-wrap gap-2">
+              <div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+                {cartTotals.itemCount > 0 ? formatCurrency(cartTotals.grandTotalTRY) : '0,00 TL'}
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                cartTotals.itemCount > 0
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
+              }`}>
+                {cartTotals.itemCount > 0 ? `${cartTotals.itemCount} Ürün Aktif` : 'Sepet Boş'}
+              </span>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-              {orders?.pendingCount ? orders.pendingCount + 1 : 2}
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Sepetiniz aktif
-            </p>
-          </div>
-        </div>
 
-        {/* KPI 5: İskonto Oranınız */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">İskonto Oranınız</span>
-            <div className="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
-              <span className="font-bold text-xs">%</span>
-            </div>
+            {/* Anlık Sepet İçerik Önizlemesi */}
+            {cart.length > 0 && (
+              <div className="mt-3.5 flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin">
+                {cart.slice(0, 3).map((item) => (
+                  <div
+                    key={item.product.id}
+                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5 pr-2.5 flex-shrink-0 max-w-[210px]"
+                    title={`${item.product.name} (x${item.quantity})`}
+                  >
+                    <img
+                      src={item.product.image}
+                      alt={item.product.name}
+                      className="w-8 h-8 object-cover rounded-lg bg-white p-0.5 border border-slate-200 flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-slate-800 truncate">{item.product.name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono font-medium">x{item.quantity} • {formatCurrency(item.totalTRY)}</div>
+                    </div>
+                  </div>
+                ))}
+                {cart.length > 3 && (
+                  <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap pl-1">
+                    +{cart.length - 3} daha
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          <div>
-            <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
-              %{currentDiscountRate}
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Ortalama iskonto
-            </p>
+
+          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-xs text-slate-500">
+              {cartTotals.itemCount > 0 ? 'Fiyatlar bayi özel iskontonuz uygulanmış tutardır' : 'Hızlı sipariş veya katalogdan ürün ekleyebilirsiniz'}
+            </span>
+            {cartTotals.itemCount > 0 ? (
+              <Link
+                href="/bayi/siparisler/sepet"
+                className="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl shadow-xs transition"
+              >
+                <span>Sepeti Tamamla</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <Link
+                href="/bayi/urunler"
+                className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl border border-blue-200 transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Ürün Kataloğu</span>
+              </Link>
+            )}
           </div>
         </div>
 

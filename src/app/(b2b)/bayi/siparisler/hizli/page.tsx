@@ -99,7 +99,14 @@ export default function QuickOrderPage() {
 
   const handleRowQtyChange = (index: number, qty: number) => {
     setItems((prev) =>
-      prev.map((row, idx) => (idx === index ? { ...row, quantity: Math.max(1, qty) } : row))
+      prev.map((row, idx) => {
+        if (idx !== index) return row;
+        let validQty = Math.max(1, qty);
+        if (row.product && row.product.stock > 0 && validQty > row.product.stock) {
+          validQty = row.product.stock;
+        }
+        return { ...row, quantity: validQty };
+      })
     );
   };
 
@@ -192,8 +199,18 @@ export default function QuickOrderPage() {
             <input
               type="number"
               min="1"
+              max={findProduct(inputCode)?.stock && findProduct(inputCode)!.stock > 0 ? findProduct(inputCode)!.stock : undefined}
               value={inputQty}
-              onChange={(e) => setInputQty(parseInt(e.target.value, 10) || 1)}
+              onChange={(e) => {
+                const raw = parseInt(e.target.value, 10);
+                let val = isNaN(raw) ? 1 : raw;
+                if (val < 1) val = 1;
+                const matched = findProduct(inputCode);
+                if (matched && matched.stock > 0 && val > matched.stock) {
+                  val = matched.stock;
+                }
+                setInputQty(val);
+              }}
               placeholder="Miktar"
               className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
             />
@@ -299,9 +316,18 @@ export default function QuickOrderPage() {
                       <input
                         type="number"
                         min="1"
+                        max={prod && prod.stock > 0 ? prod.stock : undefined}
                         disabled={!prod}
                         value={row.quantity}
-                        onChange={(e) => handleRowQtyChange(index, parseInt(e.target.value, 10) || 1)}
+                        onChange={(e) => {
+                          const raw = parseInt(e.target.value, 10);
+                          let val = isNaN(raw) ? 1 : raw;
+                          if (val < 1) val = 1;
+                          if (prod && prod.stock > 0 && val > prod.stock) {
+                            val = prod.stock;
+                          }
+                          handleRowQtyChange(index, val);
+                        }}
                         className="w-20 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-center text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 disabled:opacity-30"
                       />
                     </td>

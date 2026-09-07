@@ -17,6 +17,7 @@ export interface CompanyFinanceSummary {
   totalDebit: number;         // Total debit transactions sum
   totalCredit: number;        // Total credit transactions sum
   lastTransactionDate?: string | null;
+  customDiscountPercent?: number;
 }
 
 /**
@@ -130,6 +131,7 @@ export async function getCompanyFinanceSummary(companyId: string): Promise<Compa
     taxNo: company.taxNo || '—',
     taxOffice: company.taxOffice || '—',
     tierName: company.customerGroup?.name || 'Standart Bayi',
+    customDiscountPercent: Number(company.customDiscountPercent || 0),
     ...computed,
     lastTransactionDate: latestTx ? latestTx.createdAt.toISOString() : null
   };

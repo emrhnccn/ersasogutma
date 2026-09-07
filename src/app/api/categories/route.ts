@@ -167,7 +167,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Kategori ID belirtilmedi.' }, { status: 400 });
     }
 
-    await prisma.category.delete({ where: { id } });
+    // Safely unlink or clean dependencies before deletion
+    await prisma.$transaction([
+      prisma.category.updateMany({ where: { parentId: id }, data: { parentId: null } }),
+      prisma.product.updateMany({ where: { categoryId: id }, data: { categoryId: null } }),
+      prisma.supplierCategoryMapping.updateMany({ where: { targetCategoryId: id }, data: { targetCategoryId: null } }),
+      prisma.priceRule.deleteMany({ where: { categoryId: id } }),
+      prisma.category.delete({ where: { id } })
+    ]);
 
     return NextResponse.json({ success: true, message: 'Kategori başarıyla silindi.' });
   } catch (error: unknown) {

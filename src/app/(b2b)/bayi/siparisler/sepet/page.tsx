@@ -377,14 +377,29 @@ export default function CartPage() {
                             <input
                               type="number"
                               min={minStep}
+                              max={item.product.stock > 0 ? item.product.stock : undefined}
                               step={minStep}
                               value={item.quantity}
-                              onChange={(e) => updateCartQuantity(item.product.id, Math.max(minStep, parseInt(e.target.value) || minStep))}
+                              onChange={(e) => {
+                                const raw = parseInt(e.target.value, 10);
+                                let val = isNaN(raw) ? minStep : raw;
+                                if (val < minStep) val = minStep;
+                                if (item.product.stock > 0 && val > item.product.stock) {
+                                  val = item.product.stock;
+                                }
+                                updateCartQuantity(item.product.id, val);
+                              }}
                               className="w-10 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
                             />
                             <button
                               type="button"
-                              onClick={() => updateCartQuantity(item.product.id, item.quantity + minStep)}
+                              onClick={() => {
+                                const next = item.quantity + minStep;
+                                updateCartQuantity(
+                                  item.product.id,
+                                  item.product.stock > 0 ? Math.min(item.product.stock, next) : next
+                                );
+                              }}
                               className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
                             >
                               +
