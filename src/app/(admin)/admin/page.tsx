@@ -67,6 +67,7 @@ import { ImageDropzone } from '@/components/common/ImageDropzone';
 import { exportOrdersToExcel } from '@/lib/export/orderExport';
 import { OrderPrintDocument } from '@/components/orders/OrderPrintDocument';
 import { logoutAction } from '@/lib/actions';
+import { AdminAnalyticsDashboard } from '@/components/dashboard/AdminAnalyticsDashboard';
 
 interface DBProduct {
   id: string;
@@ -1513,6 +1514,14 @@ export default function AdminControlPanel() {
               </button>
             </div>
           )}
+
+          {/* Gelişmiş Yönetici Analitik Paneli (Görsel 2: NexaCore & Görsel 3: NovaPulse) */}
+          <AdminAnalyticsDashboard
+            orders={adminOrders}
+            dealersCount={dealersList.length || 12}
+            productsCount={adminTotalProducts || dbProducts.length}
+            categoriesCount={dbCategories.length}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">

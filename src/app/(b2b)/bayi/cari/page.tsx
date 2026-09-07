@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
+import { CreditAccountCard } from '@/components/finance/CreditAccountCard';
 
 export default function CariPage() {
   const { showToast, profile } = useStore();
@@ -160,6 +161,14 @@ export default function CariPage() {
           </button>
         </div>
       </div>
+
+      {/* Görsel 1: Kredi Hesabım & Limit Durumu */}
+      <CreditAccountCard
+        creditLimit={liveCariData?.creditLimit ?? profile.creditLimit}
+        currentBalance={liveCariData?.currentBalance ?? profile.currentBalance}
+        availableCredit={availableCredit}
+        companyName={liveCariData?.companyName || profile.companyName}
+      />
 
       {/* 5 Financial Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
