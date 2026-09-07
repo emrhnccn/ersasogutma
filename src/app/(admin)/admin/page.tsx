@@ -1296,7 +1296,7 @@ export default function AdminControlPanel() {
 
       {/* LEFT SIDEBAR (STICKY & RESPONSIVE) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0D1322] border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 lg:z-30 w-72 bg-white dark:bg-[#0D1322] border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${
           mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
       >
@@ -1326,7 +1326,7 @@ export default function AdminControlPanel() {
         </div>
 
         {/* Navigation Categories */}
-        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto min-h-0 px-3.5 py-4 space-y-6 scrollbar-thin">
           {navigationGroups.map((group) => (
             <div key={group.title} className="space-y-1">
               <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
