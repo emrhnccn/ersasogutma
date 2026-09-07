@@ -108,6 +108,30 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Check if bulk parent assign request
+    if (body.bulkAssign && Array.isArray(body.bulkAssign.categoryIds)) {
+      const { categoryIds, parentId } = body.bulkAssign;
+      const targetParentId = parentId ? String(parentId) : null;
+
+      // Filter out targetParentId if it's in categoryIds to prevent self-referencing loop
+      const validIds = categoryIds.filter((cid: string) => cid !== targetParentId);
+
+      if (validIds.length === 0) {
+        return NextResponse.json({ success: false, error: 'Bağlanacak geçerli kategori seçilmedi.' }, { status: 400 });
+      }
+
+      await prisma.category.updateMany({
+        where: { id: { in: validIds } },
+        data: { parentId: targetParentId }
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `${validIds.length} kategori başarıyla ${targetParentId ? 'seçilen ana kategoriye bağlandı' : 'ana kategoriye dönüştürüldü'}.`,
+        count: validIds.length
+      });
+    }
+
     // Check if bulk reorder request
     if (body.reorder && Array.isArray(body.reorder)) {
       const updates = body.reorder.map((item: { id: string; sortOrder: number }) =>

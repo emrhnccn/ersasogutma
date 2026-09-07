@@ -57,7 +57,8 @@ import {
   Minus,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  Link2
 } from 'lucide-react';
 import { OrderStatus, BankAccount } from '@/types';
 import { ScraperProgress, ScraperLog } from '@/lib/scrapers/types';
@@ -177,15 +178,19 @@ export default function AdminControlPanel() {
   const [orderModifying, setOrderModifying] = useState(false);
   const [addOrderProductId, setAddOrderProductId] = useState('');
   const [addOrderQty, setAddOrderQty] = useState(1);
+  const [addOrderCustomPrice, setAddOrderCustomPrice] = useState('');
   const [orderProductSearch, setOrderProductSearch] = useState('');
   const [orderProductDropdownOpen, setOrderProductDropdownOpen] = useState(false);
 
   // Live Order Modification Handler (POST /api/admin/orders/[id]/items)
   const handleAdminOrderAction = async (payload: {
-    action: 'update_qty' | 'remove_item' | 'add_item';
+    action: 'update_qty' | 'remove_item' | 'add_item' | 'update_price' | 'update_item' | 'apply_discount';
     itemId?: string;
     productId?: string;
     quantity?: number;
+    unitNetExVat?: number;
+    customPrice?: number;
+    discountPercent?: number;
   }) => {
     if (!selectedAdminOrder) return;
     setOrderModifying(true);
@@ -203,6 +208,7 @@ export default function AdminControlPanel() {
         setAddOrderProductId('');
         setOrderProductSearch('');
         setAddOrderQty(1);
+        setAddOrderCustomPrice('');
         setOrderProductDropdownOpen(false);
       } else {
         showToast(json.error || 'Sipariş güncellenemedi.', 'error');
@@ -301,6 +307,14 @@ export default function AdminControlPanel() {
   const [editCatSortOrder, setEditCatSortOrder] = useState('0');
   const [editCatDiscount, setEditCatDiscount] = useState('0');
   const [savingCategory, setSavingCategory] = useState(false);
+
+  // Bulk Link Categories State
+  const [bulkLinkModalOpen, setBulkLinkModalOpen] = useState(false);
+  const [bulkTargetParent, setBulkTargetParent] = useState('');
+  const [bulkSelectedCatIds, setBulkSelectedCatIds] = useState<string[]>([]);
+  const [bulkCatSearch, setBulkCatSearch] = useState('');
+  const [bulkFilterType, setBulkFilterType] = useState<'unlinked' | 'all' | 'linked'>('unlinked');
+  const [bulkAssigning, setBulkAssigning] = useState(false);
 
   // New Bank Account Form State
   const [newBankName, setNewBankName] = useState('');
@@ -1005,6 +1019,63 @@ export default function AdminControlPanel() {
       showToast('Hata oluştu.', 'error');
     } finally {
       setSavingCategory(false);
+    }
+  };
+
+  // Quick Change Parent Category (single category inline select)
+  const handleQuickChangeParent = async (catId: string, newParentId: string) => {
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: catId,
+          parentId: newParentId || null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Kategori üst bağlantısı başarıyla güncellendi.', 'success');
+        loadCategories();
+      } else {
+        showToast(data.error || 'Güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('Kategori güncellenirken hata oluştu.', 'error');
+    }
+  };
+
+  // Bulk Assign Categories to a Parent
+  const handleBulkAssignCategories = async () => {
+    if (bulkSelectedCatIds.length === 0) {
+      showToast('Lütfen bağlanacak en az bir kategori seçiniz.', 'warning');
+      return;
+    }
+    setBulkAssigning(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bulkAssign: {
+            categoryIds: bulkSelectedCatIds,
+            parentId: bulkTargetParent === '__UNBIND__' ? null : (bulkTargetParent || null)
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || `${bulkSelectedCatIds.length} kategori başarıyla bağlandı.`, 'success');
+        setBulkLinkModalOpen(false);
+        setBulkSelectedCatIds([]);
+        loadCategories();
+      } else {
+        showToast(data.error || 'Bağlama işlemi başarısız oldu.', 'error');
+      }
+    } catch {
+      showToast('İşlem sırasında bir hata oluştu.', 'error');
+    } finally {
+      setBulkAssigning(false);
     }
   };
 
@@ -2225,7 +2296,21 @@ export default function AdminControlPanel() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!bulkTargetParent && mainCategories.length > 0) {
+                          setBulkTargetParent(mainCategories[0].id);
+                        }
+                        setBulkLinkModalOpen(true);
+                      }}
+                      className="px-3 py-1 text-[11px] font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      title="Mevcut kategorileri seçtiğiniz ana kategoriye bağlayın"
+                    >
+                      <Link2 className="w-3.5 h-3.5" />
+                      <span>Toplu Kategori Bağla</span>
+                    </button>
                     <button
                       type="button"
                       onClick={expandAll}
@@ -2358,7 +2443,30 @@ export default function AdminControlPanel() {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {/* Quick Move into another Main Category */}
+                              {mainCategories.length > 1 && (
+                                <select
+                                  value=""
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      handleQuickChangeParent(mainCat.id, e.target.value);
+                                    }
+                                  }}
+                                  className="text-[10px] bg-slate-100 dark:bg-[#070b14] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-2 py-1 font-medium cursor-pointer max-w-[140px] truncate"
+                                  title="Bu kategoriyi başka bir ana kategoriye bağla"
+                                >
+                                  <option value="">↳ Şuraya Bağla...</option>
+                                  {mainCategories
+                                    .filter((m) => m.id !== mainCat.id)
+                                    .map((m) => (
+                                      <option key={m.id} value={m.id}>
+                                        📁 {m.name}
+                                      </option>
+                                    ))}
+                                </select>
+                              )}
+
                               <button
                                 type="button"
                                 onClick={() => {
@@ -2470,7 +2578,22 @@ export default function AdminControlPanel() {
                                       )}
                                     </div>
 
-                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                      {/* Quick Change Parent for Subcategory */}
+                                      <select
+                                        value={sub.parentId || ''}
+                                        onChange={(e) => handleQuickChangeParent(sub.id, e.target.value)}
+                                        className="text-[10px] bg-slate-100 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-md px-1.5 py-0.5 font-medium cursor-pointer max-w-[130px] truncate"
+                                        title="Bağlı olduğu ana kategoriyi değiştir veya bağımsız ana kategori yap"
+                                      >
+                                        <option value="">📁 Ana Kategori Yap</option>
+                                        {mainCategories.map((m) => (
+                                          <option key={m.id} value={m.id}>
+                                            ↳ {m.name}
+                                          </option>
+                                        ))}
+                                      </select>
+
                                       <button
                                         type="button"
                                         onClick={() => openEditCategoryModal(sub)}
@@ -2862,25 +2985,40 @@ export default function AdminControlPanel() {
                         )}
                       </div>
 
-                      {/* Quantity Input with Strict Stock Clamping */}
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={addOrderQty}
-                          onChange={(e) => {
-                            const raw = parseInt(e.target.value, 10);
-                            let val = isNaN(raw) ? 1 : raw;
-                            if (val < 1) val = 1;
-                            const prod = dbProducts.find((p) => p.id === addOrderProductId);
-                            if (prod && prod.stockQty > 0 && val > prod.stockQty) {
-                              val = prod.stockQty;
-                            }
-                            setAddOrderQty(val);
-                          }}
-                          className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-                          placeholder="Adet"
-                        />
+                      {/* Quantity & Custom Price Inputs */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="relative" title="Siparişe eklenecek miktar">
+                          <input
+                            type="number"
+                            min={1}
+                            value={addOrderQty}
+                            onChange={(e) => {
+                              const raw = parseInt(e.target.value, 10);
+                              let val = isNaN(raw) ? 1 : raw;
+                              if (val < 1) val = 1;
+                              const prod = dbProducts.find((p) => p.id === addOrderProductId);
+                              if (prod && prod.stockQty > 0 && val > prod.stockQty) {
+                                val = prod.stockQty;
+                              }
+                              setAddOrderQty(val);
+                            }}
+                            className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                            placeholder="Adet"
+                          />
+                        </div>
+
+                        {/* Optional Custom Unit Price (KDV Hariç) */}
+                        <div className="relative" title="İsteğe bağlı: Özel KDV Hariç Birim Fiyat (Boş bırakılırsa bayinin iskonto fiyatı kullanılır)">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            value={addOrderCustomPrice}
+                            onChange={(e) => setAddOrderCustomPrice(e.target.value)}
+                            className="w-28 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-400"
+                            placeholder="Özel Fiyat (₺)"
+                          />
+                        </div>
 
                         <button
                           type="button"
@@ -2893,7 +3031,8 @@ export default function AdminControlPanel() {
                             handleAdminOrderAction({
                               action: 'add_item',
                               productId: addOrderProductId,
-                              quantity: addOrderQty
+                              quantity: addOrderQty,
+                              customPrice: addOrderCustomPrice ? parseFloat(addOrderCustomPrice) : undefined
                             });
                           }}
                           className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
@@ -2907,9 +3046,14 @@ export default function AdminControlPanel() {
 
                   {/* Items List in Order */}
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-400 block">
-                      Sipariş Kalemleri ({selectedAdminOrder.items?.length || 0} Ürün):
-                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-slate-400 block">
+                        Sipariş Kalemleri ({selectedAdminOrder.items?.length || 0} Ürün):
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        💡 <strong>Birim Fiyatı</strong> doğrudan kutudan değiştirebilir veya <strong>% İndirim</strong> butonunu kullanabilirsiniz.
+                      </span>
+                    </div>
 
                     {selectedAdminOrder.items?.length === 0 ? (
                       <div className="py-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
@@ -2936,7 +3080,7 @@ export default function AdminControlPanel() {
                                     {item.name}
                                   </div>
                                   <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                                    SKU: {item.sku} • Birim (KDV Hariç): {formatCurrency(item.unitNetExVat)}
+                                    SKU: {item.sku} • %{item.vatRate || 20} KDV
                                     {itemStock > 0 && (
                                       <span className="ml-2 text-sky-400 font-semibold">• Mevcut Depo Stoğu: {itemStock}</span>
                                     )}
@@ -2944,8 +3088,76 @@ export default function AdminControlPanel() {
                                 </div>
                               </div>
 
-                              {/* Stepper with stock clamping & Line Total & Delete */}
-                              <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
+                              {/* Price Editing, Quick Discount, Quantity Stepper, Line Total, Delete */}
+                              <div className="flex items-center justify-between sm:justify-end gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+                                {/* Editable Unit Price (KDV Hariç) */}
+                                <div
+                                  className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 focus-within:border-purple-500 transition"
+                                  title="KDV Hariç Birim Fiyat (Değiştirip Enter'a basın veya kutudan çıkın)"
+                                >
+                                  <span className="text-[10px] text-slate-400 font-semibold">Birim:</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min={0}
+                                    disabled={orderModifying}
+                                    defaultValue={item.unitNetExVat}
+                                    key={`price-${item.id}-${item.unitNetExVat}`}
+                                    onBlur={(e) => {
+                                      const newPrice = parseFloat(e.target.value);
+                                      if (!isNaN(newPrice) && newPrice >= 0 && newPrice !== Number(item.unitNetExVat)) {
+                                        handleAdminOrderAction({
+                                          action: 'update_price',
+                                          itemId: item.id,
+                                          unitNetExVat: newPrice
+                                        });
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        (e.target as HTMLInputElement).blur();
+                                      }
+                                    }}
+                                    className="w-20 bg-transparent font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none text-right"
+                                  />
+                                  <span className="text-[10px] font-mono text-slate-400">₺</span>
+                                </div>
+
+                                {/* Quick Discount Menu per Item */}
+                                <div className="relative group">
+                                  <button
+                                    type="button"
+                                    className="px-2 py-1.5 text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition cursor-pointer flex items-center gap-1"
+                                    title="Bu kaleme hızlı indirim uygula"
+                                  >
+                                    <span>% İndirim</span>
+                                    <ChevronDown className="w-2.5 h-2.5" />
+                                  </button>
+                                  <div className="hidden group-hover:flex absolute right-0 bottom-full mb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl z-30 gap-1 flex-row">
+                                    {[5, 10, 15, 20, 25].map((pct) => (
+                                      <button
+                                        key={pct}
+                                        type="button"
+                                        disabled={orderModifying}
+                                        onClick={() => {
+                                          const currentNet = Number(item.unitNetExVat);
+                                          const discounted = Number((currentNet * (1 - pct / 100)).toFixed(2));
+                                          handleAdminOrderAction({
+                                            action: 'update_price',
+                                            itemId: item.id,
+                                            unitNetExVat: discounted
+                                          });
+                                        }}
+                                        className="px-2 py-1 text-[10px] font-bold text-slate-900 dark:text-white hover:bg-purple-600 hover:text-white rounded-lg transition font-mono cursor-pointer"
+                                        title={`Birim fiyata %${pct} indirim uygula`}
+                                      >
+                                        -%{pct}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Quantity Stepper */}
                                 <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5">
                                   <button
                                     type="button"
@@ -3027,8 +3239,36 @@ export default function AdminControlPanel() {
                     )}
                   </div>
 
-                  {/* Financial Summary & CARI Adjustment Notice */}
+                  {/* Financial Summary & Order-wide Discount & CARI Notice */}
                   <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    {/* Bulk Order Discount Toolbar */}
+                    {selectedAdminOrder.items?.length > 0 && (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+                        <div className="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
+                          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                          <span>Tüm Siparişe Genel İskonto Uygula:</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {[5, 10, 15, 20].map((pct) => (
+                            <button
+                              key={pct}
+                              type="button"
+                              disabled={orderModifying}
+                              onClick={() => {
+                                if (window.confirm(`Tüm sipariş kalemlerine genel %${pct} indirim uygulamak istediğinize emin misiniz?`)) {
+                                  handleAdminOrderAction({ action: 'apply_discount', discountPercent: pct });
+                                }
+                              }}
+                              className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-600 hover:text-white text-purple-400 border border-purple-500/30 rounded-lg text-xs font-bold transition font-mono cursor-pointer"
+                              title={`Tüm kalemlere %${pct} iskonto uygula`}
+                            >
+                              Tümüne -%{pct}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <span className="text-[10px] text-slate-400 block font-medium">Ara Toplam (KDV Hariç)</span>
@@ -5342,24 +5582,30 @@ export default function AdminControlPanel() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Üst Kategori:</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Üst Kategori (Bağlı Olduğu Ana Kategori):
+                </label>
                 <select
                   value={editCatParent}
                   onChange={(e) => setEditCatParent(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
                 >
-                  <option value="">-- Ana Kategori (Üst Kategori Yok) --</option>
-                  {dbCategories
-                    .filter((c) => c.id !== editingCategory.id)
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
+                  <option value="">📁 Bağımsız Ana Kategori Yap (Üst Kategori Yok)</option>
+                  <optgroup label="Mevcut Ana Kategoriler">
+                    {dbCategories
+                      .filter((c) => c.id !== editingCategory.id && !c.parentId)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          ↳ {c.name}
+                        </option>
+                      ))}
+                  </optgroup>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                  <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
                   <input
                     type="number"
                     value={editCatSortOrder}
@@ -5368,7 +5614,7 @@ export default function AdminControlPanel() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                  <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
                   <input
                     type="number"
                     step="1"
@@ -5408,6 +5654,284 @@ export default function AdminControlPanel() {
           </div>
         </div>
       )}
+
+      {/* MODAL: BULK LINK CATEGORIES */}
+      {bulkLinkModalOpen && (() => {
+        const mainCats = dbCategories.filter((c) => !c.parentId);
+
+        // Filter categories according to filter tab and search query
+        const displayedCats = dbCategories.filter((cat) => {
+          // Cannot link the target parent to itself
+          if (bulkTargetParent && cat.id === bulkTargetParent) return false;
+
+          if (bulkFilterType === 'unlinked' && cat.parentId) return false;
+          if (bulkFilterType === 'linked' && !cat.parentId) return false;
+
+          if (bulkCatSearch.trim()) {
+            return cat.name.toLowerCase().includes(bulkCatSearch.toLowerCase());
+          }
+          return true;
+        });
+
+        const allDisplayedSelected =
+          displayedCats.length > 0 &&
+          displayedCats.every((c) => bulkSelectedCatIds.includes(c.id));
+
+        const toggleSelectAll = () => {
+          if (allDisplayedSelected) {
+            const displayedIds = new Set(displayedCats.map((c) => c.id));
+            setBulkSelectedCatIds((prev) => prev.filter((id) => !displayedIds.has(id)));
+          } else {
+            const newIds = new Set([...bulkSelectedCatIds, ...displayedCats.map((c) => c.id)]);
+            setBulkSelectedCatIds(Array.from(newIds));
+          }
+        };
+
+        const targetParentObj = dbCategories.find((c) => c.id === bulkTargetParent);
+
+        return (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                    <Link2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                      Toplu Kategori Bağlama & Taşıma
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Mevcut kategorilerinizi seçtiğiniz yeni bir ana kategoriye tek tıkla bağlayın.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBulkLinkModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Step 1: Target Main Category Selector */}
+              <div className="p-3.5 bg-gradient-to-r from-purple-950/30 via-slate-900 to-slate-900 border border-purple-500/30 rounded-xl space-y-2 flex-shrink-0">
+                <label className="block text-xs font-bold text-purple-300">
+                  1. Adım: Hedef Ana Kategoriyi Seçin:
+                </label>
+                <select
+                  value={bulkTargetParent}
+                  onChange={(e) => setBulkTargetParent(e.target.value)}
+                  className="w-full bg-slate-900 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-purple-400 cursor-pointer"
+                >
+                  <option value="" disabled>-- Hedef Ana Kategori Seçiniz --</option>
+                  {mainCats.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      📁 {m.name} ({dbCategories.filter((c) => c.parentId === m.id).length} mevcut alt kategori)
+                    </option>
+                  ))}
+                  <option value="__UNBIND__">📁 Bağımsız Ana Kategoriye Dönüştür (Üst Kategori Bağlantısını Kaldır)</option>
+                </select>
+
+                <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block"></span>
+                  {bulkTargetParent === '__UNBIND__' ? (
+                    <span>Seçilen kategoriler üst kategorisiz <strong>Ana Kategori</strong> yapılacaktır.</span>
+                  ) : targetParentObj ? (
+                    <span>Seçilen kategoriler <strong>"{targetParentObj.name}"</strong> ana kategorisinin altına alt kategori olarak bağlanacaktır.</span>
+                  ) : (
+                    <span>Lütfen yukarıdan hedef ana kategoriyi belirleyin.</span>
+                  )}
+                </p>
+              </div>
+
+              {/* Step 2: Category Filter & Search Bar */}
+              <div className="space-y-2 flex-shrink-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    2. Adım: Bağlamak İstediğiniz Kategorileri Seçin:
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={toggleSelectAll}
+                      className="text-[11px] font-bold text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                    >
+                      {allDisplayedSelected ? 'Seçimi Kaldır' : `Görüntülenenleri Seç (${displayedCats.length})`}
+                    </button>
+                    {bulkSelectedCatIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setBulkSelectedCatIds([])}
+                        className="text-[11px] text-slate-400 hover:text-rose-400 cursor-pointer"
+                      >
+                        Temizle ({bulkSelectedCatIds.length})
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filter Tabs & Search Box */}
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-bold w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setBulkFilterType('unlinked')}
+                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                        bulkFilterType === 'unlinked'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                    >
+                      Boştaki Kategoriler ({dbCategories.filter((c) => !c.parentId && c.id !== bulkTargetParent).length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkFilterType('all')}
+                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                        bulkFilterType === 'all'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                    >
+                      Tümü ({dbCategories.filter((c) => c.id !== bulkTargetParent).length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkFilterType('linked')}
+                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                        bulkFilterType === 'linked'
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                    >
+                      Bağlı Olanlar ({dbCategories.filter((c) => !!c.parentId).length})
+                    </button>
+                  </div>
+
+                  <div className="relative flex-1 w-full">
+                    <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Listede kategori adına göre filtrele..."
+                      value={bulkCatSearch}
+                      onChange={(e) => setBulkCatSearch(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-7 pr-3 py-1 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable Categories List */}
+              <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[300px] min-h-[160px]">
+                {displayedCats.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    Seçilen filtreye uygun kategori bulunamadı.
+                  </div>
+                ) : (
+                  displayedCats.map((cat) => {
+                    const isSelected = bulkSelectedCatIds.includes(cat.id);
+                    const currentParent = cat.parentId
+                      ? dbCategories.find((c) => c.id === cat.parentId)?.name
+                      : null;
+
+                    return (
+                      <label
+                        key={cat.id}
+                        className={`flex items-center justify-between p-2.5 text-xs hover:bg-purple-500/5 cursor-pointer transition ${
+                          isSelected ? 'bg-purple-500/10' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              setBulkSelectedCatIds((prev) =>
+                                prev.includes(cat.id)
+                                  ? prev.filter((id) => id !== cat.id)
+                                  : [...prev, cat.id]
+                              );
+                            }}
+                            className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-700"
+                          />
+                          <span className="font-bold text-slate-900 dark:text-white truncate">
+                            {cat.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {currentParent ? (
+                            <span className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full font-medium">
+                              ↳ {currentParent} altında
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full font-medium">
+                              📁 Ana Kategori
+                            </span>
+                          )}
+
+                          {cat._count?.products !== undefined && (
+                            <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                              {cat._count.products} Ürün
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
+                <div className="text-xs text-slate-400">
+                  <span className="font-bold text-white font-mono">{bulkSelectedCatIds.length}</span> kategori seçildi
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBulkLinkModalOpen(false)}
+                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Vazgeç
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      bulkAssigning ||
+                      bulkSelectedCatIds.length === 0 ||
+                      !bulkTargetParent
+                    }
+                    onClick={handleBulkAssignCategories}
+                    className="px-5 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer"
+                  >
+                    {bulkAssigning ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Bağlanıyor...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="w-3.5 h-3.5" />
+                        <span>
+                          Seçilen {bulkSelectedCatIds.length} Kategoriyi{' '}
+                          {bulkTargetParent === '__UNBIND__'
+                            ? 'Ana Kategori Yap'
+                            : `"${targetParentObj?.name || 'Ana Kategori'}"ye Bağla`}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal: New Dealer Credentials / Temporary Password */}
       {createdCredentialsModal && (

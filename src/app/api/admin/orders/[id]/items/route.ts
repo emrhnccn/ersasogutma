@@ -17,7 +17,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { action, productId, itemId, quantity } = body;
+    const { action, productId, itemId, quantity, unitNetExVat, customPrice } = body;
 
     const order = await prisma.order.findFirst({
       where: {
@@ -73,10 +73,18 @@ export async function POST(
         const finalQty = availableStock > 0 && rawQty > availableStock ? availableStock : Math.max(1, rawQty);
 
         const listPrice = Number(product.salePrice || 0);
-        const unitNetExVat = Number((listPrice * (1 - dealerDiscountRate)).toFixed(2));
+        // Custom unit price specified by admin or calculated default
+        const priceToUse =
+          customPrice !== undefined && !isNaN(Number(customPrice)) && Number(customPrice) >= 0
+            ? Number(Number(customPrice).toFixed(2))
+            : unitNetExVat !== undefined && !isNaN(Number(unitNetExVat)) && Number(unitNetExVat) >= 0
+            ? Number(Number(unitNetExVat).toFixed(2))
+            : Number((listPrice * (1 - dealerDiscountRate)).toFixed(2));
+
+        const finalUnitNetExVat = priceToUse;
         const vatRate = Number(product.vatRate || 20);
-        const vatAmount = Number((unitNetExVat * (vatRate / 100)).toFixed(2));
-        const lineGross = Number(((unitNetExVat + vatAmount) * finalQty).toFixed(2));
+        const vatAmount = Number((finalUnitNetExVat * (vatRate / 100)).toFixed(2));
+        const lineGross = Number(((finalUnitNetExVat + vatAmount) * finalQty).toFixed(2));
 
         // Deduct from product stock
         await tx.product.update({
@@ -88,11 +96,13 @@ export async function POST(
         const existingItem = order.items.find((i) => i.productId === productId);
         if (existingItem) {
           const newQty = Number(existingItem.quantity) + finalQty;
-          const newLineGross = Number(((unitNetExVat + vatAmount) * newQty).toFixed(2));
+          const newLineGross = Number(((finalUnitNetExVat + vatAmount) * newQty).toFixed(2));
           await tx.orderItem.update({
             where: { id: existingItem.id },
             data: {
               quantity: newQty,
+              unitNetExVat: finalUnitNetExVat,
+              vatAmount,
               lineGross: newLineGross
             }
           });
@@ -106,7 +116,7 @@ export async function POST(
               quantity: finalQty,
               unit: product.unit || 'ADET',
               currency: order.currency || 'TRY',
-              unitNetExVat,
+              unitNetExVat: finalUnitNetExVat,
               vatRate,
               vatAmount,
               lineGross,
@@ -114,7 +124,11 @@ export async function POST(
             }
           });
         }
-      } else if (action === 'update_qty') {
+      } else if (
+        action === 'update_qty' ||
+        action === 'update_item' ||
+        action === 'update_price'
+      ) {
         if (!itemId) {
           throw new Error('Kalem ID belirtilmedi.');
         }
@@ -125,7 +139,7 @@ export async function POST(
         }
 
         const oldQty = Number(existingItem.quantity);
-        const newQty = Number(quantity);
+        const newQty = quantity !== undefined ? Number(quantity) : oldQty;
 
         if (newQty <= 0) {
           if (existingItem.productId) {
@@ -138,7 +152,7 @@ export async function POST(
         } else {
           // Check product stock clamp (including what this order item already holds)
           let finalQty = newQty;
-          if (existingItem.productId) {
+          if (existingItem.productId && quantity !== undefined) {
             const prod = await tx.product.findUnique({ where: { id: existingItem.productId } });
             const maxAllowed = prod ? Math.max(0, Number(prod.stockQty) + oldQty) : finalQty;
             if (maxAllowed > 0 && finalQty > maxAllowed) {
@@ -161,14 +175,22 @@ export async function POST(
             }
           }
 
-          const unitNet = Number(existingItem.unitNetExVat);
-          const vatAmt = Number(existingItem.vatAmount);
-          const newLineGross = Number(((unitNet + vatAmt) * finalQty).toFixed(2));
+          // Check custom unit price
+          const finalUnitNet =
+            unitNetExVat !== undefined && !isNaN(Number(unitNetExVat)) && Number(unitNetExVat) >= 0
+              ? Number(Number(unitNetExVat).toFixed(2))
+              : Number(existingItem.unitNetExVat);
+
+          const vatRate = Number(existingItem.vatRate || 20);
+          const newVatAmt = Number((finalUnitNet * (vatRate / 100)).toFixed(2));
+          const newLineGross = Number(((finalUnitNet + newVatAmt) * finalQty).toFixed(2));
 
           await tx.orderItem.update({
             where: { id: itemId },
             data: {
               quantity: finalQty,
+              unitNetExVat: finalUnitNet,
+              vatAmount: newVatAmt,
               lineGross: newLineGross
             }
           });
@@ -188,6 +210,26 @@ export async function POST(
           });
         }
         await tx.orderItem.delete({ where: { id: itemId } });
+      } else if (action === 'apply_discount') {
+        const percent = Number(body.discountPercent);
+        if (isNaN(percent) || percent <= 0 || percent >= 100) {
+          throw new Error('Geçerli bir indirim yüzdesi giriniz (1-99 arası).');
+        }
+        for (const itm of order.items) {
+          const currentNet = Number(itm.unitNetExVat);
+          const discountedNet = Number((currentNet * (1 - percent / 100)).toFixed(2));
+          const vatRate = Number(itm.vatRate || 20);
+          const newVatAmt = Number((discountedNet * (vatRate / 100)).toFixed(2));
+          const newLineGross = Number(((discountedNet + newVatAmt) * Number(itm.quantity)).toFixed(2));
+          await tx.orderItem.update({
+            where: { id: itm.id },
+            data: {
+              unitNetExVat: discountedNet,
+              vatAmount: newVatAmt,
+              lineGross: newLineGross
+            }
+          });
+        }
       } else {
         throw new Error(`Bilinmeyen işlem: ${action}`);
       }
@@ -298,6 +340,8 @@ export async function POST(
           quantity: Number(i.quantity),
           unit: i.unit,
           unitNetExVat: Number(i.unitNetExVat),
+          vatRate: Number(i.vatRate || 20),
+          vatAmount: Number(i.vatAmount || 0),
           discountAmt: Number(i.discountAmt),
           lineGross: Number(i.lineGross),
           image: i.product?.images?.[0]?.url || '/placeholder.svg',
