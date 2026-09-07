@@ -46,8 +46,28 @@ export async function GET() {
       });
     }
 
+    // Calculate aggregated product counts (parent category products + all its subcategories' products)
+    const categoryProductMap = new Map<string, number>();
+    categories.forEach((c) => categoryProductMap.set(c.id, c._count?.products || 0));
+
+    const enrichedCategories = categories.map((c) => {
+      const childCategories = categories.filter((child) => child.parentId === c.id);
+      const directCount = categoryProductMap.get(c.id) || 0;
+      const childrenCount = childCategories.reduce((sum, child) => sum + (categoryProductMap.get(child.id) || 0), 0);
+      const totalCount = directCount + childrenCount;
+
+      return {
+        ...c,
+        _count: {
+          ...c._count,
+          products: totalCount,
+          directProducts: directCount
+        }
+      };
+    });
+
     return NextResponse.json(
-      { success: true, data: categories },
+      { success: true, data: enrichedCategories },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'

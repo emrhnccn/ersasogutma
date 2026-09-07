@@ -23,7 +23,6 @@ import {
   Loader2
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { CreditAccountCard } from '@/components/finance/CreditAccountCard';
 
 interface DashboardData {
   company: {
@@ -182,17 +181,60 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 2. CARDS ROW: KREDİ HESABIM (GÖRSEL 1) & ANLIK SEPET GÖRÜNTÜSÜ */}
+      {/* 2. CARDS ROW: CARİ BAKİYE & ANLIK SEPET GÖRÜNTÜSÜ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         
-        {/* KART 1: KREDİ HESABIM & KULLANILABİLİR LİMİT (GÖRSEL 1 STİLİ) */}
-        <CreditAccountCard
-          creditLimit={finance?.creditLimit !== undefined ? finance.creditLimit : profile.creditLimit}
-          currentBalance={finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance}
-          availableCredit={finance?.availableCredit}
-          companyName={company?.legalName || profile.companyName}
-          dealerCode={company?.dealerCode}
-        />
+        {/* KART 1: CARİ BAKİYE */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-blue-300 transition-all">
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-800">Cari Bakiye</h2>
+                  <p className="text-[11px] text-slate-500">Güncel hesap ekstresi ve borç/alacak durumu</p>
+                </div>
+              </div>
+              <Link
+                href="/bayi/cari"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition"
+              >
+                <span>Cari Ekstre</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="mt-5 flex items-baseline justify-between flex-wrap gap-2">
+              <div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+                {loading ? '...' : formatCurrency(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance)}
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                (finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                {(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0 ? 'Borç Bakiyesi (B)' : 'Alacak / Dengeli (A)'}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-xs text-slate-500">
+              {(finance?.currentBalance !== undefined ? finance.currentBalance : profile.currentBalance) > 0
+                ? 'Son ödeme veya vadeniz öncesi bakiye kapatabilirsiniz'
+                : 'Hesabınız düzenli ve kullanılabilir durumdadır'}
+            </span>
+            <Link
+              href="/bayi/finans/online-odeme"
+              className="inline-flex items-center gap-1.5 text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-xl border border-blue-200 transition"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Sanal POS ile Öde</span>
+            </Link>
+          </div>
+        </div>
 
         {/* KART 2: ANLIK SEPET GÖRÜNTÜSÜ */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-emerald-300 transition-all">

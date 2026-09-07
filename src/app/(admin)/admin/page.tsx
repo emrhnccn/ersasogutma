@@ -114,7 +114,7 @@ export default function AdminControlPanel() {
   } = useStore();
 
   // Active Navigation Tab & Responsive Sidebar State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'scraper' | 'products' | 'categories' | 'orders' | 'carts' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'scraper' | 'products' | 'categories' | 'orders' | 'carts' | 'dealers' | 'bank_accounts' | 'audit'>('dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Live Carts State (Real PostgreSQL DB)
@@ -1210,7 +1210,8 @@ export default function AdminControlPanel() {
     {
       title: 'Genel',
       items: [
-        { id: 'dashboard', label: 'Genel Bakış', icon: Layers, badge: null }
+        { id: 'dashboard', label: 'Genel Bakış', icon: Layers, badge: null },
+        { id: 'analytics', label: 'Operasyon Analizi', icon: TrendingUp, badge: null }
       ]
     },
     {
@@ -1515,14 +1516,6 @@ export default function AdminControlPanel() {
             </div>
           )}
 
-          {/* Gelişmiş Yönetici Analitik Paneli (Görsel 2: NexaCore & Görsel 3: NovaPulse) */}
-          <AdminAnalyticsDashboard
-            orders={adminOrders}
-            dealersCount={dealersList.length || 12}
-            productsCount={adminTotalProducts || dbProducts.length}
-            categoriesCount={dbCategories.length}
-          />
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
               <div>
@@ -1628,6 +1621,19 @@ export default function AdminControlPanel() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB: OPERASYON ANALİZİ (CCNCORE) */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          <AdminAnalyticsDashboard
+            orders={adminOrders}
+            dealersCount={dealersList.length}
+            dealers={dealersList}
+            products={dbProducts}
+            categories={dbCategories}
+          />
         </div>
       )}
 

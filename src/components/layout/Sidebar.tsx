@@ -61,12 +61,7 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
   const [isCategoryFlyoutOpen, setIsCategoryFlyoutOpen] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [categorySearch, setCategorySearch] = useState('');
-  const [expandedFlyoutCats, setExpandedFlyoutCats] = useState<Record<string, boolean>>({});
-
-  const toggleFlyoutCat = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedFlyoutCats((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const [selectedFlyoutMainCatId, setSelectedFlyoutMainCatId] = useState<string | null>(null);
 
   React.useEffect(() => {
     fetch('/api/categories')
@@ -88,6 +83,18 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
   ).length;
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const selectedMainCat = categories.find((c) => c.id === selectedFlyoutMainCatId);
+  const selectedSubCategories = selectedMainCat
+    ? categories.filter((c) => c.parentId === selectedMainCat.id)
+    : [];
+  const selectedMainCatTotalProducts = selectedMainCat
+    ? Math.max(
+        selectedMainCat._count?.products || 0,
+        (selectedMainCat._count?.directProducts ?? selectedMainCat._count?.products ?? 0) +
+          selectedSubCategories.reduce((sum, s) => sum + (s._count?.directProducts ?? s._count?.products ?? 0), 0)
+      )
+    : 0;
+
   const isActive = (path: string) => pathname === path || pathname === `/bayi${path}` || pathname.startsWith(`/bayi${path}/`);
 
   const navLinkClass = (path: string) =>
@@ -105,6 +112,7 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
           onClick={() => {
             handleClose();
             setIsCategoryFlyoutOpen(false);
+            setSelectedFlyoutMainCatId(null);
           }}
           className="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/80 z-40 lg:hidden backdrop-blur-xs transition-opacity"
         />
@@ -115,10 +123,14 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
         <>
           {/* Backdrop for Flyout on Desktop if clicked outside */}
           <div
-            onClick={() => setIsCategoryFlyoutOpen(false)}
+            onClick={() => {
+              setIsCategoryFlyoutOpen(false);
+              setSelectedFlyoutMainCatId(null);
+            }}
             className="fixed inset-0 z-40 bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-[1px]"
           />
 
+          {/* MAIN CATEGORIES PANEL (Panel 1) */}
           <aside className="fixed top-0 bottom-0 left-0 lg:left-72 z-50 w-72 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transition-all duration-200 animate-in slide-in-from-left-4">
             {/* Header */}
             <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0D1424] flex items-center justify-between transition-colors">
@@ -132,8 +144,11 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 </div>
               </div>
               <button
-                onClick={() => setIsCategoryFlyoutOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition"
+                onClick={() => {
+                  setIsCategoryFlyoutOpen(false);
+                  setSelectedFlyoutMainCatId(null);
+                }}
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                 title="Kapat"
               >
                 <X className="w-4 h-4" />
@@ -161,13 +176,14 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                 type="button"
                 onClick={() => {
                   setIsCategoryFlyoutOpen(false);
+                  setSelectedFlyoutMainCatId(null);
                   handleClose();
                   if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: 'all' } }));
                   }
                   router.push('/bayi/urunler');
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4" />
@@ -188,13 +204,14 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                     type="button"
                     onClick={() => {
                       setIsCategoryFlyoutOpen(false);
+                      setSelectedFlyoutMainCatId(null);
                       handleClose();
                       if (typeof window !== 'undefined') {
                         window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: cat.name } }));
                       }
                       router.push(`/bayi/urunler?category=${encodeURIComponent(cat.name)}`);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 transition group border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 transition group border border-transparent hover:border-slate-200 dark:hover:border-slate-800 cursor-pointer"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500 group-hover:scale-125 transition-transform" />
@@ -207,7 +224,7 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {cat.discountPercent > 0 && (
                         <span className="text-[9px] font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-500/30">
-                          %{cat.discountPercent}
+                          -%{cat.discountPercent}
                         </span>
                       )}
                       {cat._count?.products !== undefined && (
@@ -220,104 +237,165 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
                   </button>
                 ))
               ) : (
-                // Hierarchical Accordion Tree
+                // Hierarchical Main Categories List (No bottom accordion, opens extra panel to the right)
                 categories
                   .filter((c) => !c.parentId)
                   .map((mainCat) => {
                     const subCategories = categories.filter((c) => c.parentId === mainCat.id);
-                    const isExpanded = !!expandedFlyoutCats[mainCat.id];
+                    const totalProducts = Math.max(
+                      mainCat._count?.products || 0,
+                      (mainCat._count?.directProducts ?? mainCat._count?.products ?? 0) +
+                        subCategories.reduce((sum, s) => sum + (s._count?.directProducts ?? s._count?.products ?? 0), 0)
+                    );
+                    const isSelected = selectedFlyoutMainCatId === mainCat.id;
 
                     return (
-                      <div key={mainCat.id} className="rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-800/80 transition overflow-hidden">
-                        {/* Main Category Header Row */}
-                        <div className="flex items-center justify-between p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
-                          <button
-                            type="button"
-                            onClick={() => {
+                      <div
+                        key={mainCat.id}
+                        onMouseEnter={() => {
+                          if (subCategories.length > 0) {
+                            setSelectedFlyoutMainCatId(mainCat.id);
+                          }
+                        }}
+                        className={`flex items-center justify-between p-2 rounded-xl transition border cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold border-blue-200 dark:border-blue-800'
+                            : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (subCategories.length > 0) {
+                              setSelectedFlyoutMainCatId(isSelected ? null : mainCat.id);
+                            } else {
                               setIsCategoryFlyoutOpen(false);
+                              setSelectedFlyoutMainCatId(null);
                               handleClose();
                               if (typeof window !== 'undefined') {
                                 window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: mainCat.name } }));
                               }
                               router.push(`/bayi/urunler?category=${encodeURIComponent(mainCat.name)}`);
-                            }}
-                            className="flex-1 flex items-center gap-2 text-left min-w-0 cursor-pointer"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:scale-125 transition-transform flex-shrink-0" />
-                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
-                              {mainCat.name}
+                            }
+                          }}
+                          className="flex-1 flex items-center gap-2 text-left min-w-0"
+                        >
+                          <div className={`w-2 h-2 rounded-full transition-transform ${isSelected ? 'bg-blue-600 ring-2 ring-blue-400/50 scale-125' : 'bg-blue-500'}`} />
+                          <span className="text-xs truncate">{mainCat.name}</span>
+                          {mainCat.discountPercent > 0 && (
+                            <span className="text-[9px] font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 px-1 py-0.2 rounded border border-rose-200 dark:border-rose-500/30 flex-shrink-0">
+                              -%{mainCat.discountPercent}
                             </span>
-                            {mainCat.discountPercent > 0 && (
-                              <span className="text-[9px] font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 px-1 py-0.2 rounded border border-rose-200 dark:border-rose-500/30 flex-shrink-0">
-                                -%{mainCat.discountPercent}
-                              </span>
-                            )}
-                          </button>
+                          )}
+                        </button>
 
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            {mainCat._count?.products !== undefined && (
-                              <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-                                {mainCat._count.products}
-                              </span>
-                            )}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold">
+                            {totalProducts}
+                          </span>
 
-                            {subCategories.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={(e) => toggleFlyoutCat(mainCat.id, e)}
-                                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-md hover:bg-slate-200/60 dark:hover:bg-slate-700/80 transition cursor-pointer"
-                                title={isExpanded ? 'Alt Kategorileri Kapat' : 'Alt Kategorileri Aç'}
-                              >
-                                {isExpanded ? (
-                                  <ChevronDown className="w-3.5 h-3.5 text-blue-500" />
-                                ) : (
-                                  <ChevronRight className="w-3.5 h-3.5" />
-                                )}
-                              </button>
-                            )}
-                          </div>
+                          {subCategories.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedFlyoutMainCatId(isSelected ? null : mainCat.id);
+                              }}
+                              className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                              title="Alt Kategorileri Gör"
+                            >
+                              <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'translate-x-0.5 text-blue-600 dark:text-blue-400' : ''}`} />
+                            </button>
+                          )}
                         </div>
-
-                        {/* Subcategories Accordion Content */}
-                        {isExpanded && subCategories.length > 0 && (
-                          <div className="pl-4 pr-1 py-1 space-y-0.5 border-l-2 border-blue-500/30 ml-3 my-1">
-                            {subCategories.map((sub) => (
-                              <button
-                                key={sub.id}
-                                type="button"
-                                onClick={() => {
-                                  setIsCategoryFlyoutOpen(false);
-                                  handleClose();
-                                  if (typeof window !== 'undefined') {
-                                    window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: sub.name } }));
-                                  }
-                                  router.push(`/bayi/urunler?category=${encodeURIComponent(sub.name)}`);
-                                }}
-                                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-blue-50/50 dark:hover:bg-slate-800/60 transition group cursor-pointer"
-                              >
-                                <span className="truncate">{sub.name}</span>
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  {sub.discountPercent > 0 && (
-                                    <span className="text-[8px] font-bold text-rose-500">
-                                      -%{sub.discountPercent}
-                                    </span>
-                                  )}
-                                  {sub._count?.products !== undefined && (
-                                    <span className="text-[9px] font-mono text-slate-400">
-                                      {sub._count.products}
-                                    </span>
-                                  )}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     );
                   })
               )}
             </div>
           </aside>
+
+          {/* RIGHT-SIDE EXTRA FLYOUT MENU FOR SUBCATEGORIES (Panel 2 - Opens to the Right) */}
+          {selectedMainCat && selectedSubCategories.length > 0 && (
+            <aside className="fixed top-0 bottom-0 left-0 sm:left-72 lg:left-[36rem] z-50 w-72 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transition-all duration-200 animate-in slide-in-from-left-4">
+              {/* Header */}
+              <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0D1424] flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      {selectedMainCat.name}
+                    </h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {selectedSubCategories.length} Alt Kategori • {selectedMainCatTotalProducts} Ürün
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFlyoutMainCatId(null)}
+                  className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg transition cursor-pointer"
+                  title="Kapat"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Action: View all products in this Main Category */}
+              <div className="p-2 border-b border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCategoryFlyoutOpen(false);
+                    setSelectedFlyoutMainCatId(null);
+                    handleClose();
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: selectedMainCat.name } }));
+                    }
+                    router.push(`/bayi/urunler?category=${encodeURIComponent(selectedMainCat.name)}`);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+                >
+                  <span className="truncate">Tüm "{selectedMainCat.name}" Ürünleri</span>
+                  <ChevronRight className="w-3.5 h-3.5 shrink-0 ml-1" />
+                </button>
+              </div>
+
+              {/* Subcategories List */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin select-none">
+                {selectedSubCategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => {
+                      setIsCategoryFlyoutOpen(false);
+                      setSelectedFlyoutMainCatId(null);
+                      handleClose();
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('ersa:category_select', { detail: { category: sub.name } }));
+                      }
+                      router.push(`/bayi/urunler?category=${encodeURIComponent(sub.name)}`);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-white transition group border border-transparent hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer"
+                  >
+                    <span className="truncate font-medium">{sub.name}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {sub.discountPercent > 0 && (
+                        <span className="text-[9px] font-bold bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 px-1 py-0.2 rounded border border-rose-200 dark:border-rose-500/30">
+                          -%{sub.discountPercent}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-300 font-bold">
+                        {sub._count?.products || 0}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </aside>
+          )}
         </>
       )}
 
