@@ -1674,6 +1674,8 @@ export default function AdminControlPanel() {
                               onClick={() => {
                                 setScrapeTargetUrl('https://bayi.turkuazteknik.com.tr/index.asp?p=15&bul=&aramahedefi=tumu');
                                 setSelectedProvider('turkuaz');
+                                if (!scrapeUsername) setScrapeUsername('ersasoğutma_41');
+                                if (!scrapePassword) setScrapePassword('201841ersa');
                               }}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'turkuaz'
                                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'

@@ -36,9 +36,10 @@ function decodeTurkishIso(buf: Buffer): string {
     const byte = buf[i];
     if (trMap[byte]) {
       str += trMap[byte];
+    } else if (byte === 0x80) {
+      str += '€';
     } else if (byte >= 0x80 && byte <= 0x9F) {
-      if (byte === 0x80) str += '€';
-      else if (byte === 0x91) str += '‘';
+      if (byte === 0x91) str += '‘';
       else if (byte === 0x92) str += '’';
       else if (byte === 0x93) str += '“';
       else if (byte === 0x94) str += '”';
@@ -51,6 +52,31 @@ function decodeTurkishIso(buf: Buffer): string {
     }
   }
   return str;
+}
+
+/**
+ * URL-encodes a string using ISO-8859-9 / Windows-1254 single-byte encoding
+ * required by Classic ASP (IIS) login forms.
+ */
+function encodeIso88599Uri(text: string): string {
+  const trMap: Record<string, string> = {
+    'Ğ': '%D0', 'ğ': '%F0',
+    'İ': '%DD', 'ı': '%FD',
+    'Ş': '%DE', 'ş': '%FE',
+    'Ç': '%C7', 'ç': '%E7',
+    'Ö': '%D6', 'ö': '%F6',
+    'Ü': '%DC', 'ü': '%FC'
+  };
+
+  return text
+    .split('')
+    .map((c) => {
+      if (trMap[c]) return trMap[c];
+      if (/[a-zA-Z0-9_.~-]/.test(c)) return c;
+      if (c.charCodeAt(0) < 128) return encodeURIComponent(c);
+      return encodeURIComponent(c);
+    })
+    .join('');
 }
 
 interface HttpResponse {
@@ -168,7 +194,7 @@ export class TurkuazScraper implements ISupplierScraper {
             headers: reqHeaders,
             agent: this.httpsAgent,
             family: 4,
-            timeout: 15000
+            timeout: 20000
           },
           (res) => {
             this.updateCookies(res.headers['set-cookie']);
@@ -217,7 +243,7 @@ export class TurkuazScraper implements ISupplierScraper {
 
         req.on('timeout', () => {
           req.destroy();
-          reject(new Error(`İstek zaman aşımına uğradı (${url.href}, 15sn)`));
+          reject(new Error(`İstek zaman aşımına uğradı (${url.href}, 20sn)`));
         });
 
         req.on('error', (err) => reject(err));
@@ -274,15 +300,15 @@ export class TurkuazScraper implements ISupplierScraper {
   }
 
   /**
-   * Classic ASP Login flow with Session Cookie maintenance and validation
+   * Classic ASP Login flow with ISO-8859-9 Encoding and Session Cookie maintenance
    */
   private async login(
     username?: string,
     password?: string,
     log?: (msg: string, level?: ScraperLog['level']) => void
   ): Promise<boolean> {
-    const user = username || process.env.TURKUAZ_USERNAME || '';
-    const pass = password || process.env.TURKUAZ_PASSWORD || '';
+    const user = username || process.env.TURKUAZ_USERNAME || 'ersasoğutma_41';
+    const pass = password || process.env.TURKUAZ_PASSWORD || '201841ersa';
 
     if (!user || !pass) {
       const msg = 'Turkuaz Teknik kullanıcı adı veya şifresi tanımlanmamış. Lütfen TURKUAZ_USERNAME ve TURKUAZ_PASSWORD environment değişkenlerini veya admin panelindeki giriş alanlarını doldurun.';
@@ -303,15 +329,18 @@ export class TurkuazScraper implements ISupplierScraper {
       log(`🍪 Oturum çerezi alındı: ${sessionCookieKey}`, 'info');
     }
 
-    // Step 2: POST login.asp with exact Classic ASP form payload
+    // Step 2: POST login.asp with exact Classic ASP form payload using ISO-8859-9 encoding
+    const encodedUser = encodeIso88599Uri(user);
+    const encodedPass = encodeIso88599Uri(pass);
+
     const postData = [
-      `username=${encodeURIComponent(user)}`,
-      `password=${encodeURIComponent(pass)}`,
+      `username=${encodedUser}`,
+      `password=${encodedPass}`,
       'logintype=Giri%FE', // 'Giriş' in ISO-8859-9
       'hatirla=1',
       'Submit=Giri%FE',
-      'Submit.x=50',
-      'Submit.y=20'
+      'Submit.x=45',
+      'Submit.y=18'
     ].join('&');
 
     await this.makeRequest(`${this.baseUrl}/login.asp`, {
@@ -330,9 +359,44 @@ export class TurkuazScraper implements ISupplierScraper {
       verifyRes.body.includes('action="login.asp"') ||
       verifyRes.body.includes('id="username"') ||
       verifyRes.responseUrl.toLowerCase().includes('login.asp') ||
-      verifyRes.redirectUrl?.toLowerCase().includes('login.asp');
+      verifyRes.redirectUrl?.toLowerCase().includes('login.asp') ||
+      verifyRes.statusCode === 302;
 
     if (isLoginFailed) {
+      // Fallback: If username had Turkish letters, try plain ascii (e.g. ersasogutma_41 instead of ersasoğutma_41)
+      const asciiUser = slugify(user).replace(/-/g, '_');
+      if (asciiUser !== user) {
+        if (log) log(`🔄 ISO kodlama ile giriş denendi, alternatif ASCII kullanıcı adı (${asciiUser}) deneniyor...`, 'info');
+        const fallbackPost = [
+          `username=${encodeURIComponent(asciiUser)}`,
+          `password=${encodeURIComponent(pass)}`,
+          'logintype=Giri%FE',
+          'hatirla=1',
+          'Submit=Giri%FE',
+          'Submit.x=45',
+          'Submit.y=18'
+        ].join('&');
+
+        await this.makeRequest(`${this.baseUrl}/login.asp`, {
+          method: 'POST',
+          body: fallbackPost,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Referer': `${this.baseUrl}/Login.ASP`
+          }
+        });
+
+        const retryVerify = await this.makeRequest(`${this.baseUrl}/index.asp?p=15&bul=&aramahedefi=tumu`);
+        if (
+          !retryVerify.body.includes('action="login.asp"') &&
+          !retryVerify.body.includes('id="username"') &&
+          !retryVerify.responseUrl.toLowerCase().includes('login.asp')
+        ) {
+          if (log) log(`🎉 Turkuaz Teknik oturumu başarıyla açıldı! (Kullanıcı: ${asciiUser})`, 'success');
+          return true;
+        }
+      }
+
       const errorMsg = 'Turkuaz Teknik giriş başarısız: Kullanıcı adı veya şifre hatalı, oturum açılamadı.';
       if (log) log(errorMsg, 'error');
       throw new Error(errorMsg);
@@ -373,7 +437,7 @@ export class TurkuazScraper implements ISupplierScraper {
       await this.login(username, password, log);
 
       // 3. Scan Catalog & Products via Pagination (?p=15&pu=N)
-      onProgress({ currentStep: 'Ürün kataloğu taranıyor', percent: 25 });
+      onProgress({ currentStep: 'Ürün kataloğu taranıyor', percent: 20 });
       log(`📂 Ürün kataloğu taranıyor ve sayfalar yükleniyor...`, 'info');
 
       // Determine base catalog URL
@@ -404,12 +468,12 @@ export class TurkuazScraper implements ISupplierScraper {
         const pageUrl = new URL(baseCatalogUrl);
         pageUrl.searchParams.set('pu', currentPage.toString());
 
-        log(`📄 Sayfa ${currentPage} yükleniyor...`, 'info');
+        log(`📄 Sayfa ${currentPage}${maxPages > 1 ? ` / ${maxPages}` : ''} taranıyor...`, 'info');
         onProgress({
-          currentStep: `Sayfa ${currentPage} taranıyor (${collectedProducts.length} ürün toplandı)`,
+          currentStep: `Sayfa ${currentPage} / ${maxPages} taranıyor (${collectedProducts.length} ürün toplandı)`,
           processedCategories: currentPage,
-          totalCategories: Math.max(maxPages, currentPage),
-          percent: 25 + Math.min(45, Math.round((currentPage / Math.max(maxPages, 10)) * 45))
+          totalCategories: maxPages,
+          percent: 20 + Math.min(45, Math.round((currentPage / Math.max(maxPages, 10)) * 45))
         });
 
         let pageHtml = '';
@@ -423,17 +487,16 @@ export class TurkuazScraper implements ISupplierScraper {
           continue;
         }
 
-        // Detect max pages from pagination links (?p=15&pu=N)
-        const puRegex = /[?&]pu=(\d+)/gi;
-        let puMatch;
-        let highestPageOnThisPage = 1;
-        while ((puMatch = puRegex.exec(pageHtml)) !== null) {
-          const pVal = parseInt(puMatch[1], 10);
-          if (pVal > highestPageOnThisPage) highestPageOnThisPage = pVal;
-        }
-        if (highestPageOnThisPage > maxPages) {
-          maxPages = highestPageOnThisPage;
-          log(`📑 Toplam ${maxPages} sayfa tespit edildi.`, 'info');
+        // Detect max pages from pagination links on page 1 or subsequent
+        if (currentPage === 1 || maxPages === 1) {
+          const puMatches = [...pageHtml.matchAll(/[?&]pu=(\d+)/gi)];
+          for (const m of puMatches) {
+            const val = parseInt(m[1], 10);
+            if (val > maxPages) maxPages = val;
+          }
+          if (maxPages > 1) {
+            log(`📑 Toplam ${maxPages} sayfa tespit edildi (~${maxPages * 30} potansiyel ürün).`, 'info');
+          }
         }
 
         // Parse products from table
@@ -453,23 +516,23 @@ export class TurkuazScraper implements ISupplierScraper {
           emptyPageCount++;
         } else {
           emptyPageCount = 0;
-          log(`✅ Sayfa ${currentPage}'den ${newCount} adet ürün alındı. (Toplam: ${collectedProducts.length})`, 'info');
+          log(`✅ Sayfa ${currentPage}'den ${newCount} adet ürün ayrıştırıldı. (Toplam: ${collectedProducts.length})`, 'info');
         }
 
         currentPage++;
 
-        // Polite delay between pages
+        // Polite delay between pages (250ms)
         if (!this.isStopped && (!options.maxProducts || collectedProducts.length < options.maxProducts)) {
-          await new Promise((r) => setTimeout(r, 350));
+          await new Promise((r) => setTimeout(r, 250));
         }
       }
 
-      log(`📦 Toplam ${collectedProducts.length} adet ürün başarıyla ayrıştırıldı.`, 'info');
+      log(`📦 Toplam ${collectedProducts.length} adet ürün başarıyla ayrıştırıldı, veritabanına aktarılıyor...`, 'info');
       onProgress({
         totalProducts: collectedProducts.length,
         processedCategories: maxPages,
         totalCategories: maxPages,
-        percent: 70
+        percent: 65
       });
 
       if (collectedProducts.length === 0) {
@@ -480,8 +543,30 @@ export class TurkuazScraper implements ISupplierScraper {
       onProgress({
         currentStep: 'Ürünler veritabanına aktarılıyor',
         totalProducts: collectedProducts.length,
-        percent: 70
+        percent: 65
       });
+
+      // Ensure Supplier 'turkuaz' exists
+      let supplierRecord = null;
+      try {
+        supplierRecord = await prisma.supplier.upsert({
+          where: { code: 'TURKUAZ' },
+          update: {
+            name: 'Turkuaz Teknik',
+            websiteUrl: 'https://bayi.turkuazteknik.com.tr',
+            lastSyncedAt: new Date()
+          },
+          create: {
+            code: 'TURKUAZ',
+            name: 'Turkuaz Teknik',
+            websiteUrl: 'https://bayi.turkuazteknik.com.tr',
+            active: true,
+            lastSyncedAt: new Date()
+          }
+        });
+      } catch (err: any) {
+        log(`Tedarikçi kaydı uyarısı: ${err.message}`, 'warn');
+      }
 
       let importedCount = 0;
       let failedCount = 0;
@@ -517,8 +602,10 @@ export class TurkuazScraper implements ISupplierScraper {
             });
           }
 
+          // Generate collision-safe unique slug
+          const productSlug = `${slugify(prod.name).slice(0, 50)}-${slugify(prod.sku)}`;
+
           // Upsert Product
-          const productSlug = slugify(prod.name) + '-' + prod.sku.toLowerCase().replace(/[^a-z0-9]+/g, '-');
           const savedProduct = await prisma.product.upsert({
             where: { sku: prod.sku },
             update: {
@@ -530,8 +617,9 @@ export class TurkuazScraper implements ISupplierScraper {
               stockQty: prod.stockQty,
               brandId: brandRecord?.id || null,
               categoryId: categoryRecord?.id || null,
+              supplierId: supplierRecord?.id || null,
               description: prod.description,
-              status: 'ACTIVE',
+              status: 'PUBLISHED',
               specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
             },
             create: {
@@ -546,8 +634,9 @@ export class TurkuazScraper implements ISupplierScraper {
               stockQty: prod.stockQty,
               brandId: brandRecord?.id || null,
               categoryId: categoryRecord?.id || null,
+              supplierId: supplierRecord?.id || null,
               description: prod.description,
-              status: 'ACTIVE',
+              status: 'PUBLISHED',
               unit: 'ADET',
               specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
             }
@@ -555,29 +644,29 @@ export class TurkuazScraper implements ISupplierScraper {
 
           // Save Product Images
           if (prod.images && prod.images.length > 0) {
-            await prisma.productImage.deleteMany({ where: { productId: savedProduct.id } });
-            for (let idx = 0; idx < prod.images.length; idx++) {
-              await prisma.productImage.create({
-                data: {
+            const existingImgCount = await prisma.productImage.count({ where: { productId: savedProduct.id } });
+            if (existingImgCount === 0) {
+              await prisma.productImage.createMany({
+                data: prod.images.map((img, idx) => ({
                   productId: savedProduct.id,
-                  url: prod.images[idx].url,
+                  url: img.url,
                   alt: prod.name,
                   sortOrder: idx,
                   sourceSupplier: 'Turkuaz Teknik'
-                }
+                }))
               });
             }
           }
 
           importedCount++;
 
-          if (importedCount % 5 === 0 || i === collectedProducts.length - 1) {
-            const currentPercent = 70 + Math.round((i / collectedProducts.length) * 28);
-            log(`[${importedCount}/${collectedProducts.length}] Aktarıldı: ${prod.name.slice(0, 35)}... (SKU: ${prod.sku}, Fiyat: ${prod.salePrice} ${prod.currency || 'TRY'})`);
+          if (importedCount % 10 === 0 || i === collectedProducts.length - 1) {
+            const currentPercent = 65 + Math.round(((i + 1) / collectedProducts.length) * 35);
+            log(`[${importedCount}/${collectedProducts.length}] Aktarıldı: ${prod.name.slice(0, 35)}... (Kod: ${prod.sku}, Fiyat: ${prod.salePrice} ${prod.currency || 'TRY'})`);
             onProgress({
               importedProducts: importedCount,
               failedProducts: failedCount,
-              percent: currentPercent
+              percent: Math.min(99, currentPercent)
             });
           }
         } catch (err: any) {
@@ -611,130 +700,109 @@ export class TurkuazScraper implements ISupplierScraper {
   public parseProductCards(html: string, sourceUrl: string): ScrapedProduct[] {
     const products: ScrapedProduct[] = [];
 
-    // 1. Match Table Rows (<tr>...</tr>)
-    const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-    const rows = [...html.matchAll(trRegex)].map((m) => m[1]);
+    // Strip tooltip attributes (which contain nested <table align=center><tr><td>...</tr></table>)
+    // to prevent regex truncation of product rows
+    const cleanedHtml = html.replace(/title="[^"]*"/gi, '');
 
-    const headerIndices = {
-      img: -1,
-      code: -1,
-      desc: -1,
-      brand: -1,
-      moq: -1,
-      price: -1,
-      stock: -1
-    };
+    // Match each product row <tr class="yazi_06">...</tr>
+    const rowRegex = /<tr[^>]*class=["']yazi_06["'][^>]*>([\s\S]*?)<\/tr>/gi;
+    const rows = [...cleanedHtml.matchAll(rowRegex)].map((m) => m[1]);
 
-    for (const rowHtml of rows) {
-      const cellRegex = /<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi;
-      const cells = [...rowHtml.matchAll(cellRegex)].map((m) => m[1]);
-
+    for (const row of rows) {
+      // Extract <td> cells
+      const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+      const cells = [...row.matchAll(tdRegex)].map((m) => m[1]);
       if (cells.length < 5) continue;
 
-      const rowCleanText = cells.map((c) => c.replace(/<[^>]+>/g, '').trim()).join(' ').toLowerCase();
-
-      // Check if this row is the table header
-      if (
-        (rowCleanText.includes('kod') || rowCleanText.includes('rn kodu')) &&
-        (rowCleanText.includes('fiyat') || rowCleanText.includes('tutar'))
-      ) {
-        cells.forEach((c, idx) => {
-          const text = c.replace(/<[^>]+>/g, '').trim().toLowerCase();
-          if (text.includes('resim') || text.includes('resmi') || text.includes('gorsel')) headerIndices.img = idx;
-          else if (text.includes('kod')) headerIndices.code = idx;
-          else if (text.includes('aklamas') || text.includes('aciklama') || text.includes('tanm') || text.includes('tanim') || text.includes('ad')) headerIndices.desc = idx;
-          else if (text.includes('retici') || text.includes('uretici') || text.includes('marka')) headerIndices.brand = idx;
-          else if (text.includes('miktar') || text.includes('moq') || text.includes('min')) headerIndices.moq = idx;
-          else if (text.includes('fiyat') || text.includes('tutar')) headerIndices.price = idx;
-          else if (text.includes('stok')) headerIndices.stock = idx;
-        });
-        continue;
-      }
-
-      // Default indices if no explicit header mapped (Classic ASP Turkuaz table: 0:Image, 1:Code, 2:Desc, 3:Brand, 4:MOQ, 5:Price, 6:Stock)
-      const imgIdx = headerIndices.img !== -1 ? headerIndices.img : 0;
-      const codeIdx = headerIndices.code !== -1 ? headerIndices.code : 1;
-      const descIdx = headerIndices.desc !== -1 ? headerIndices.desc : 2;
-      const brandIdx = headerIndices.brand !== -1 ? headerIndices.brand : 3;
-      const moqIdx = headerIndices.moq !== -1 ? headerIndices.moq : 4;
-      const priceIdx = headerIndices.price !== -1 ? headerIndices.price : 5;
-      const stockIdx = headerIndices.stock !== -1 ? headerIndices.stock : 6;
-
-      // Extract SKU / Code
-      const rawCodeCell = cells[codeIdx] || '';
-      const code = rawCodeCell.replace(/<[^>]+>/g, '').trim();
-      if (!code || code.toLowerCase().includes('kod') || code.length < 2) continue;
-
-      // Extract Description / Name
-      const rawDescCell = cells[descIdx] || '';
-      const desc = rawDescCell.replace(/<[^>]+>/g, '').trim();
-
-      // Extract Brand
-      const rawBrandCell = cells[brandIdx] || '';
-      let brand = rawBrandCell.replace(/<[^>]+>/g, '').trim();
-      if (!brand || brand === '-' || brand === '&nbsp;') {
-        const knownBrands = ['VESTEL', 'ARÇELİK', 'BEKO', 'BOSCH', 'SIEMENS', 'TEKA', 'TIBON', 'ARGESON', 'AN-EL', 'GOTTAK', 'EMBRACO', 'DANFOSS'];
-        const found = knownBrands.find((b) => desc.toUpperCase().includes(b));
-        brand = found || 'Turkuaz';
-      }
-
-      // Extract MOQ
-      const rawMoqCell = cells[moqIdx] || '';
-      const moqMatch = rawMoqCell.replace(/<[^>]+>/g, '').match(/\d+/);
-      const minOrderQty = moqMatch ? parseInt(moqMatch[0], 10) : 1;
-
-      // Extract Price & Currency
-      const rawPriceCell = cells[priceIdx] || '';
-      const priceText = rawPriceCell.replace(/<[^>]+>/g, '').trim();
-      let currency = 'TRY';
-      if (/EUR|€/i.test(priceText)) currency = 'EUR';
-      else if (/USD|\$/i.test(priceText)) currency = 'USD';
-      else if (/TL|₺|TRY/i.test(priceText)) currency = 'TRY';
-
-      let salePrice = 0;
-      const cleanP = priceText.replace(/[^\d.,]/g, '');
-      if (cleanP.includes('.') && cleanP.includes(',')) {
-        salePrice = parseFloat(cleanP.replace(/\./g, '').replace(',', '.'));
-      } else if (cleanP.includes(',')) {
-        salePrice = parseFloat(cleanP.replace(',', '.'));
-      } else if (cleanP) {
-        salePrice = parseFloat(cleanP);
-      }
-      if (isNaN(salePrice)) salePrice = 0;
-
-      // Extract Stock
-      const rawStockCell = cells[stockIdx] || '';
-      const stockLower = rawStockCell.toLowerCase();
-      const isOutOfStock =
-        stockLower.includes('cross') ||
-        stockLower.includes('yok') ||
-        stockLower.includes('kirmizi') ||
-        stockLower.includes('sipari') ||
-        stockLower.includes('girdi');
-      const stockStatus = isOutOfStock ? 'OUT_OF_STOCK' : 'IN_STOCK';
-      const stockQty = isOutOfStock ? 0 : 50;
-
-      // Extract Image
-      const rawImgCell = cells[imgIdx] || '';
-      const imgMatch = rawImgCell.match(/<img[^>]+src=["']([^"']+)["']/i);
+      // Cell 0: Images (resim.asp?resimid=...&en=800)
+      const imgMatches = [...cells[0].matchAll(/(?:href|src)=["'](resim\.asp\?[^"']+)["']/gi)];
       const images: { url: string; sortOrder: number }[] = [];
-      if (imgMatch) {
-        try {
-          const fullImgUrl = new URL(imgMatch[1], this.baseUrl).href;
-          images.push({ url: fullImgUrl, sortOrder: 0 });
-        } catch {
-          // ignore
+      const seenImg = new Set<string>();
+      for (const im of imgMatches) {
+        let rawImg = im[1].replace(/&amp;/g, '&');
+        // Always prefer full-resolution (en=800) image
+        if (rawImg.includes('en=48')) {
+          rawImg = rawImg.replace('en=48', 'en=800');
+        }
+        const fullUrl = new URL(rawImg, this.baseUrl).href;
+        if (!seenImg.has(fullUrl)) {
+          seenImg.add(fullUrl);
+          images.push({ url: fullUrl, sortOrder: images.length });
         }
       }
 
-      const name = desc || `Turkuaz ${code}`;
-      const detailUrl = `${this.baseUrl}/index.asp?p=15&bul=${encodeURIComponent(code)}`;
+      // Cell 1: Product Code / SKU
+      let sku = cells[1].replace(/<[^>]+>/g, '').trim();
+      if (!sku) continue;
+
+      // Cell 3: Product Description / Name
+      let name = '';
+      const nobrName = cells[3]?.match(/<NOBR>([\s\S]*?)<\/NOBR>/i);
+      if (nobrName) {
+        name = nobrName[1].replace(/<[^>]+>/g, '').trim();
+      } else if (cells[3]) {
+        name = cells[3].replace(/<[^>]+>/g, '').trim();
+      }
+
+      // Cell 4: Brand
+      let brand = '';
+      const nobrBrand = cells[4]?.match(/<NOBR>([\s\S]*?)<\/NOBR>/i);
+      if (nobrBrand) {
+        brand = nobrBrand[1].replace(/<[^>]+>/g, '').trim();
+      } else if (cells[4]) {
+        brand = cells[4].replace(/<[^>]+>/g, '').trim();
+      }
+      if (!brand || brand === '&nbsp;' || brand === '-') {
+        const knownBrands = ['VESTEL', 'ARÇELİK', 'BEKO', 'BOSCH', 'SIEMENS', 'TEKA', 'TIBON', 'ARGESON', 'AN-EL', 'GOTTAK', 'EMBRACO', 'DANFOSS', 'AKS', 'EGO'];
+        const found = knownBrands.find((b) => name.toUpperCase().includes(b));
+        brand = found || 'Original';
+      }
+
+      // Cell 6: Min Order Qty
+      const moqText = cells[6] ? cells[6].replace(/<[^>]+>/g, '').trim() : '1';
+      const minOrderQty = parseInt(moqText, 10) || 1;
+
+      // Cell 7: Price & Currency
+      const priceCell = cells[7] || '';
+      let currency = 'TRY';
+      if (/EUR|€/i.test(priceCell)) currency = 'EUR';
+      else if (/USD|\$/i.test(priceCell)) currency = 'USD';
+      else if (/TL|₺|TRY/i.test(priceCell)) currency = 'TRY';
+
+      let salePrice = 0;
+      const cleanPrice = priceCell.replace(/<[^>]+>/g, '').trim();
+      const priceNumMatch = cleanPrice.match(/(\d+(?:[.,]\d+)?)/);
+      if (priceNumMatch) {
+        salePrice = parseFloat(priceNumMatch[1].replace(',', '.'));
+      }
+      if (isNaN(salePrice)) salePrice = 0;
+
+      // Cell 8: Stock Status
+      const stockCell = cells[8] || '';
+      const isOutOfStock =
+        stockCell.includes('yok') ||
+        stockCell.includes('cross') ||
+        stockCell.includes('kirmizi') ||
+        stockCell.includes('girdi');
+      const stockStatus = isOutOfStock ? 'OUT_OF_STOCK' : 'IN_STOCK';
+      const stockQty = isOutOfStock ? 0 : 50;
+
+      // Hidden item ID if present
+      const itemIdMatch = row.match(/name=["']URUNID["'][^>]*value=["']?(\d+)/i) ||
+                          row.match(/ItemId=(\d+)/i);
+      const externalId = itemIdMatch ? itemIdMatch[1] : sku;
+
+      if (!name) {
+        name = `Turkuaz ${sku}`;
+      }
+
+      const detailUrl = `${this.baseUrl}/index.asp?p=15&bul=${encodeURIComponent(sku)}`;
 
       products.push({
-        externalId: code,
+        externalId,
         name,
         slug: slugify(name),
-        sku: code,
+        sku,
         description: `${name} - Turkuaz Teknik Yedek Parça`,
         brandName: brand,
         categoryName: 'Klima & Soğutma Yedek Parçaları',
@@ -747,7 +815,7 @@ export class TurkuazScraper implements ISupplierScraper {
         sourceSupplier: 'turkuaz',
         sourceUrl: detailUrl,
         specsJson: {
-          'Ürün Kodu': code,
+          'Ürün Kodu': sku,
           'Marka': brand,
           'Minimum Sipariş Miktarı': `${minOrderQty} Adet`,
           'Fiyat': `${salePrice} ${currency}`,
@@ -756,76 +824,6 @@ export class TurkuazScraper implements ISupplierScraper {
       });
     }
 
-    // Fallback: If table rows didn't match (e.g. if site returned cards/box2), try box regex
-    if (products.length === 0) {
-      const boxRegex = /<div[^>]*class=["'][^"']*\bbox2\b[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
-      const matches = [...html.matchAll(boxRegex)];
-      for (const match of matches) {
-        const cardHtml = match[1];
-        const titleMatch = cardHtml.match(/<h[234][^>]*>[\s\S]*?<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i) ||
-                           cardHtml.match(/<a[^>]*class=["'](?:title|urun_baslik)[^"']*["'][^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
-        const name = titleMatch ? titleMatch[2].replace(/<[^>]+>/g, '').trim() : '';
-        if (!name) continue;
-        const skuMatch = cardHtml.match(/(?:Kod|Stok Kodu|OEM)\s*:\s*<[^>]+>([^<]+)<\/[^>]+>/i) ||
-                         cardHtml.match(/(?:Kod|Stok Kodu|OEM)\s*:\s*([^<\n&]+)/i);
-        const sku = skuMatch ? skuMatch[1].trim() : `TURKUAZ-${Math.abs(this.hashCode(name))}`;
-        const priceMatch = cardHtml.match(/class=["'][^"']*(?:fiyat|price)[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i) ||
-                           cardHtml.match(/(\d[\d.,]*\d|\d)\s*(?:TL|₺|USD|\$|EUR|€)/i);
-        let salePrice = 0;
-        let currency = 'TRY';
-        if (priceMatch) {
-          const rawPStr = priceMatch[0];
-          if (/EUR|€/i.test(rawPStr)) currency = 'EUR';
-          else if (/USD|\$/i.test(rawPStr)) currency = 'USD';
-          let clean = (priceMatch[1] || priceMatch[0]).replace(/<[^>]+>/g, '').replace(/[^\d.,]/g, '').trim();
-          if (clean.includes('.') && clean.includes(',')) clean = clean.replace(/\./g, '').replace(',', '.');
-          else if (clean.includes(',')) clean = clean.replace(',', '.');
-          const p = parseFloat(clean);
-          if (!isNaN(p)) salePrice = p;
-        }
-
-        const hasStock = !cardHtml.includes('Tükendi') && !cardHtml.includes('Stokta Yok');
-        const imgMatch = cardHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
-        const images: { url: string; sortOrder: number }[] = [];
-        if (imgMatch) {
-          try {
-            images.push({ url: new URL(imgMatch[1], this.baseUrl).href, sortOrder: 0 });
-          } catch {}
-        }
-
-        products.push({
-          externalId: sku,
-          name,
-          slug: slugify(name),
-          sku,
-          description: `${name} - Turkuaz Teknik Yedek Parça`,
-          brandName: 'Turkuaz',
-          categoryName: 'Klima & Soğutma Yedek Parçaları',
-          costPrice: salePrice,
-          salePrice,
-          currency,
-          stockStatus: hasStock ? 'IN_STOCK' : 'OUT_OF_STOCK',
-          stockQty: hasStock ? 50 : 0,
-          images,
-          sourceSupplier: 'turkuaz',
-          sourceUrl: sourceUrl,
-          specsJson: {
-            'Ürün Kodu': sku,
-            'Tedarikçi': 'Turkuaz Teknik (bayi.turkuazteknik.com.tr)'
-          }
-        });
-      }
-    }
-
     return products;
-  }
-
-  private hashCode(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return hash;
   }
 }
