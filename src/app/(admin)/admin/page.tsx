@@ -1342,17 +1342,17 @@ export default function AdminControlPanel() {
                         setMobileSidebarOpen(false);
                       }}
                       className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition group cursor-pointer ${isActive
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
                         }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
                         <Icon
                           className={`w-4 h-4 shrink-0 transition-colors ${isActive
-                              ? 'text-white'
-                              : item.alert
-                                ? 'text-amber-500'
-                                : 'text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                            ? 'text-white'
+                            : item.alert
+                              ? 'text-amber-500'
+                              : 'text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
                             }`}
                         />
                         <span className="truncate">{item.label}</span>
@@ -1368,8 +1368,8 @@ export default function AdminControlPanel() {
                         {item.badge !== null && item.badge !== undefined && (
                           <span
                             className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${isActive
-                                ? 'bg-white/20 text-white'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'
+                              ? 'bg-white/20 text-white'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'
                               }`}
                           >
                             {item.badge}
@@ -1672,12 +1672,12 @@ export default function AdminControlPanel() {
                             <button
                               type="button"
                               onClick={() => {
-                                setScrapeTargetUrl('https://bayi.turkuazteknik.com.tr/Login.ASP');
+                                setScrapeTargetUrl('https://bayi.turkuazteknik.com.tr/index.asp?p=15&bul=&aramahedefi=tumu');
                                 setSelectedProvider('turkuaz');
                               }}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'turkuaz'
-                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
                                 }`}
                             >
                               Turkuaz Teknik (bayi.turkuazteknik.com.tr)
@@ -1689,8 +1689,8 @@ export default function AdminControlPanel() {
                                 setSelectedProvider('ersaticaret');
                               }}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'ersaticaret'
-                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
                                 }`}
                             >
                               ersaticaret.com (2.375 Ürün)
@@ -1702,8 +1702,8 @@ export default function AdminControlPanel() {
                                 setSelectedProvider('girdap');
                               }}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'girdap'
-                                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                                : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
                                 }`}
                             >
                               girdap.com.tr
@@ -1790,8 +1790,8 @@ export default function AdminControlPanel() {
                           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Canlı Bot Durumu & İlerleme</h3>
                         </div>
                         <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${scraperProgress?.status === 'running' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
-                            scraperProgress?.status === 'completed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
-                              'bg-slate-800 text-slate-400'
+                          scraperProgress?.status === 'completed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
+                            'bg-slate-800 text-slate-400'
                           }`}>
                           {scraperProgress?.status === 'running' ? 'Çalışıyor' :
                             scraperProgress?.status === 'completed' ? 'Tamamlandı' :
@@ -1899,8 +1899,8 @@ export default function AdminControlPanel() {
                       type="button"
                       onClick={() => setAdminMissingPriceFilter(!adminMissingPriceFilter)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition ${adminMissingPriceFilter
-                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                          : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                     >
                       <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
@@ -2014,8 +2014,8 @@ export default function AdminControlPanel() {
                                         }
                                       }}
                                       className={`w-24 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white px-2 py-1 font-mono font-bold text-xs focus:outline-none ${!p.salePrice || Number(p.salePrice) <= 0
-                                          ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
-                                          : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                                        ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
+                                        : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
                                         }`}
                                     />
                                     {(!p.salePrice || Number(p.salePrice) <= 0) && (
@@ -2210,8 +2210,8 @@ export default function AdminControlPanel() {
                             setNewCatParent('');
                           }}
                           className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${newCatType === 'main'
-                              ? 'bg-sky-600 text-white shadow-xs'
-                              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-sky-600 text-white shadow-xs'
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                             }`}
                         >
                           📁 Ana Kategori
@@ -2225,8 +2225,8 @@ export default function AdminControlPanel() {
                             }
                           }}
                           className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${newCatType === 'sub'
-                              ? 'bg-purple-600 text-white shadow-xs'
-                              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-purple-600 text-white shadow-xs'
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                             }`}
                         >
                           ↳ Alt Kategori
@@ -2298,8 +2298,8 @@ export default function AdminControlPanel() {
                         <button
                           type="submit"
                           className={`w-full text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 cursor-pointer ${newCatType === 'main'
-                              ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
-                              : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
+                            ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
+                            : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
                             }`}
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -2826,12 +2826,12 @@ export default function AdminControlPanel() {
                               <div className="flex items-center gap-2">
                                 <span className="text-[11px] text-slate-400 font-semibold">Mevcut Durum:</span>
                                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${order.status === 'APPROVED' || order.status === 'DELIVERED'
-                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                    : order.status === 'SHIPPED' || order.status === 'PREPARING'
-                                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                                      : order.status === 'CANCELLED'
-                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                  : order.status === 'SHIPPED' || order.status === 'PREPARING'
+                                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                                    : order.status === 'CANCELLED'
+                                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                                   }`}>
                                   {order.status}
                                 </span>
@@ -3799,10 +3799,10 @@ export default function AdminControlPanel() {
                               <td className="py-3.5 px-4">
                                 <div className="text-slate-400 text-[11px]">{app.appliedAt}</div>
                                 <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1 ${app.status === 'PENDING'
-                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                                    : app.status === 'APPROVED'
-                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                      : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                  : app.status === 'APPROVED'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-red-500/20 text-red-300 border border-red-500/40'
                                   }`}>
                                   {app.status === 'PENDING' ? 'İnceleme Bekliyor' : app.status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}
                                 </span>
@@ -3970,8 +3970,8 @@ export default function AdminControlPanel() {
                               </td>
                               <td className="py-3.5 px-4">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${dealer.status === 'ACTIVE'
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                                   }`}>
                                   {dealer.status === 'ACTIVE' ? 'Aktif' : 'Askıda'}
                                 </span>
@@ -4042,8 +4042,8 @@ export default function AdminControlPanel() {
                                 }
                               }}
                               className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${isActive
-                                  ? 'border-sky-500 text-sky-400'
-                                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                                ? 'border-sky-500 text-sky-400'
+                                : 'border-transparent text-slate-400 hover:text-slate-200'
                                 }`}
                             >
                               <Icon className="w-4 h-4" />
@@ -4245,8 +4245,8 @@ export default function AdminControlPanel() {
                                     {selectedDealerDetail.user?.username || 'Tanımsız'}
                                   </span>
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${(selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE'
-                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                      : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-red-500/20 text-red-300 border border-red-500/40'
                                     }`}>
                                     {(selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE' ? 'Aktif Hesap' : 'Askıda (Kilitli)'}
                                   </span>
@@ -4650,8 +4650,8 @@ export default function AdminControlPanel() {
                                       </td>
                                       <td className="py-2 px-3">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT'
-                                            ? 'bg-rose-500/20 text-rose-300'
-                                            : 'bg-emerald-500/20 text-emerald-300'
+                                          ? 'bg-rose-500/20 text-rose-300'
+                                          : 'bg-emerald-500/20 text-emerald-300'
                                           }`}>
                                           {t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'BORÇ' : 'TAHSİLAT/ALACAK'}
                                         </span>
@@ -5045,10 +5045,10 @@ export default function AdminControlPanel() {
                                       <div className="flex items-center gap-3">
                                         <span className="font-mono font-bold text-emerald-400">{formatCurrency(order.grandTotal)}</span>
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${order.status === 'DELIVERED'
-                                            ? 'bg-emerald-500/20 text-emerald-300'
-                                            : order.status === 'PENDING_LIMIT_APPROVAL'
-                                              ? 'bg-rose-500/20 text-rose-300'
-                                              : 'bg-amber-500/20 text-amber-300'
+                                          ? 'bg-emerald-500/20 text-emerald-300'
+                                          : order.status === 'PENDING_LIMIT_APPROVAL'
+                                            ? 'bg-rose-500/20 text-rose-300'
+                                            : 'bg-amber-500/20 text-amber-300'
                                           }`}>
                                           {order.status}
                                         </span>
@@ -5271,10 +5271,10 @@ export default function AdminControlPanel() {
                             </td>
                             <td className="py-3.5 px-4">
                               <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${log.action.includes('CLEAN') || log.action.includes('DELETE')
-                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                                  : log.action.includes('CREATE') || log.action.includes('START')
-                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                : log.action.includes('CREATE') || log.action.includes('START')
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                                 }`}>
                                 {log.action}
                               </span>
@@ -5791,8 +5791,8 @@ export default function AdminControlPanel() {
                             type="button"
                             onClick={() => setBulkFilterType('unlinked')}
                             className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'unlinked'
-                                ? 'bg-purple-600 text-white'
-                                : 'text-slate-500 hover:text-white'
+                              ? 'bg-purple-600 text-white'
+                              : 'text-slate-500 hover:text-white'
                               }`}
                           >
                             Boştaki Kategoriler ({dbCategories.filter((c) => !c.parentId && c.id !== bulkTargetParent).length})
@@ -5801,8 +5801,8 @@ export default function AdminControlPanel() {
                             type="button"
                             onClick={() => setBulkFilterType('all')}
                             className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'all'
-                                ? 'bg-purple-600 text-white'
-                                : 'text-slate-500 hover:text-white'
+                              ? 'bg-purple-600 text-white'
+                              : 'text-slate-500 hover:text-white'
                               }`}
                           >
                             Tümü ({dbCategories.filter((c) => c.id !== bulkTargetParent).length})
@@ -5811,8 +5811,8 @@ export default function AdminControlPanel() {
                             type="button"
                             onClick={() => setBulkFilterType('linked')}
                             className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'linked'
-                                ? 'bg-purple-600 text-white'
-                                : 'text-slate-500 hover:text-white'
+                              ? 'bg-purple-600 text-white'
+                              : 'text-slate-500 hover:text-white'
                               }`}
                           >
                             Bağlı Olanlar ({dbCategories.filter((c) => !!c.parentId).length})
@@ -6033,8 +6033,8 @@ export default function AdminControlPanel() {
                         await onConf();
                       }}
                       className={`px-4 py-2 text-white font-bold rounded-xl text-xs transition shadow cursor-pointer ${confirmModal.isDanger
-                          ? 'bg-rose-600 hover:bg-rose-500'
-                          : 'bg-sky-600 hover:bg-sky-500'
+                        ? 'bg-rose-600 hover:bg-rose-500'
+                        : 'bg-sky-600 hover:bg-sky-500'
                         }`}
                     >
                       {confirmModal.confirmText || 'Onayla'}

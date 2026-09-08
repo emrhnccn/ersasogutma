@@ -274,6 +274,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     async function loadDbCart() {
       try {
         const res = await fetch('/api/b2b/cart');
+        if (!res.ok) return;
         const json = await res.json();
         if (json.success && json.data?.items && Array.isArray(json.data.items)) {
           const dbItems: CartItem[] = json.data.items.map((i: any) => ({

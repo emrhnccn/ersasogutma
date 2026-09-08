@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDealer } from '@/lib/auth-guard';
+import { requireDealer, requireDealerOrAdmin } from '@/lib/auth-guard';
 import { prisma } from '@/lib/prisma';
 import { calculateServerPriceBatch } from '@/lib/pricingEngine';
 
@@ -7,10 +7,26 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/b2b/cart - Get dealer company's cart items from DB
 export async function GET() {
-  const guard = await requireDealer();
+  const guard = await requireDealerOrAdmin();
   if (guard instanceof NextResponse) return guard;
 
   const { user, companyId } = guard;
+
+  if (!companyId) {
+    return NextResponse.json({
+      success: true,
+      data: {
+        items: [],
+        totals: {
+          itemCount: 0,
+          subtotalTRY: 0,
+          discountTRY: 0,
+          vatTRY: 0,
+          grandTotalTRY: 0
+        }
+      }
+    });
+  }
 
   try {
     let cart = await prisma.cart.findFirst({
