@@ -50,7 +50,7 @@ export const CleanDbSchema = z.object({
 
 export const ScrapeJobSchema = z.object({
   action: z.enum(['start', 'stop', 'preview']).default('start'),
-  providerId: z.enum(['ersaticaret', 'girdap']).default('ersaticaret'),
+  providerId: z.enum(['ersaticaret', 'girdap', 'turkuaz']).default('ersaticaret'),
   options: z.object({
     targetUrl: z.string().url().optional(),
     maxProducts: z.number().int().positive().optional(),

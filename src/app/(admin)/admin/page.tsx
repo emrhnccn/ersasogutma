@@ -1286,4925 +1286,4916 @@ export default function AdminControlPanel() {
   return (
     <>
       <div className={`flex min-h-screen bg-slate-50 dark:bg-[#070B14] text-slate-900 dark:text-slate-100 ${adminPrintingOrder ? 'no-print print:hidden' : ''}`}>
-      {/* Mobile Drawer Backdrop */}
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs lg:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* LEFT SIDEBAR (STICKY & RESPONSIVE) */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 lg:z-30 w-72 bg-white dark:bg-[#0D1322] border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${
-          mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
-        }`}
-      >
-        {/* Brand Header */}
-        <div className="h-16 border-b border-slate-200 dark:border-slate-800/80 px-5 flex items-center justify-between shrink-0">
-          <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm">ERSA SOĞUTMA</span>
-                <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-bold rounded">
-                  ADMİN
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 font-medium">B2B Yönetim Portalı</p>
-            </div>
-          </Link>
-
-          <button
+        {/* Mobile Drawer Backdrop */}
+        {mobileSidebarOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs lg:hidden"
             onClick={() => setMobileSidebarOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg lg:hidden cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation Categories */}
-        <div className="flex-1 overflow-y-auto min-h-0 px-3.5 py-4 space-y-6 scrollbar-thin">
-          {navigationGroups.map((group) => (
-            <div key={group.title} className="space-y-1">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
-                {group.title}
-              </div>
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id as any);
-                      setMobileSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition group cursor-pointer ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <Icon
-                        className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive
-                            ? 'text-white'
-                            : item.alert
-                            ? 'text-amber-500'
-                            : 'text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
-                        }`}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {item.alert && !isActive && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                        </span>
-                      )}
-                      {item.badge !== null && item.badge !== undefined && (
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
-                            isActive
-                              ? 'bg-white/20 text-white'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className="p-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 space-y-3 shrink-0">
-          {/* TCMB Live Currency Rates */}
-          <div className="p-2.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-2 font-mono font-bold">
-              <span className="text-emerald-500 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                ${exchangeRates?.USD_TRY || '38.45'}
-              </span>
-              <span className="text-slate-300 dark:text-slate-700">|</span>
-              <span className="text-sky-500">€{exchangeRates?.EUR_TRY || '42.10'}</span>
-            </div>
-            <button
-              onClick={() => fetchLiveRates(true)}
-              disabled={isFetchingRates}
-              className="p-1 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer"
-              title="Kurları Yenile"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-blue-500' : ''}`} />
-            </button>
-          </div>
-
-          {/* Quick Actions & Profile */}
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <div className="flex items-center gap-1.5">
-              <Link
-                href="/"
-                target="_blank"
-                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 transition"
-                title="Vitrin Anasayfası"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
-              <Link
-                href="/bayi"
-                target="_blank"
-                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-500 rounded-xl border border-slate-200 dark:border-slate-800 transition"
-                title="Bayi Portalı"
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-              </Link>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-500 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer"
-                title="Temayı Değiştir"
-              >
-                {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-600" />}
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => logoutAction()}
-              className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition cursor-pointer"
-              title="Güvenli Çıkış Yap"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN WORKSPACE CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Workspace Top Header Bar */}
-        <header className="h-16 bg-white dark:bg-[#0D1322] border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sticky top-0 z-20">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileSidebarOpen(true)}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 lg:hidden cursor-pointer"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-slate-400 font-medium">Yönetici Paneli</span>
-                <ChevronRight className="w-3 h-3 text-slate-400" />
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {navigationGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.label || 'Genel Bakış'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-500">
-              <Database className="w-3.5 h-3.5 text-blue-500" />
-              <span>PostgreSQL Canlı</span>
-            </div>
-
-            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200 dark:border-slate-800">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow">
-                E
-              </div>
-              <div className="hidden md:block text-left leading-tight">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">ersaticaret</div>
-                <div className="text-[10px] text-blue-500 font-medium">Süper Yönetici</div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
-
-      {/* TAB 1: DASHBOARD */}
-      {activeTab === 'dashboard' && (
-        <div className="space-y-6">
-          {/* Operational Alert Banner: Bank Accounts */}
-          {bankAccounts.length === 0 && !loadingBanks && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300 text-xs shadow-lg">
-              <div className="flex items-center gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-                <div>
-                  <strong className="block text-white font-bold">Operasyonel Uyarı: Sistemde aktif banka hesabı tanımlı değil!</strong>
-                  <span>Bayileriniz havale/EFT seçeneğiyle sipariş veremez. Lütfen şirket IBAN bilgilerinizi ekleyiniz.</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setActiveTab('bank_accounts')}
-                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl transition shrink-0 text-xs shadow-xs"
-              >
-                Hesap Ekle
-              </button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Veritabanındaki Ürün</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">
-                  {adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length} Adet
-                </h3>
-                <span className="text-[10px] text-emerald-600 font-medium">Aktif B2B Kataloğu</span>
-              </div>
-              <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                <Package className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Tanımlı Kategori</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">{dbCategories.length} Grup</h3>
-                <span className="text-[10px] text-blue-600 font-medium">Hiyerarşik Ağaç</span>
-              </div>
-              <div className="w-12 h-12 bg-purple-50 border border-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
-                <FolderTree className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">TCMB Dolar Kuru</span>
-                <h3 className="text-2xl font-black text-slate-900 font-mono mt-1">
-                  {exchangeRates.USD_TRY ? `${exchangeRates.USD_TRY.toFixed(4)} ₺` : '...'}
-                </h3>
-                <span className="text-[10px] text-slate-500 font-mono">EUR: {exchangeRates.EUR_TRY?.toFixed(4)} ₺</span>
-              </div>
-              <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-              <div>
-                <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Bekleyen Sipariş</span>
-                <h3 className="text-2xl font-black text-amber-600 mt-1">
-                  {adminOrders.filter((o) => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING').length} Sipariş
-                </h3>
-                <span className="text-[10px] text-slate-500">Toplam {adminOrders.length} Sipariş</span>
-              </div>
-              <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
-                <ShoppingBag className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-gradient-to-br from-amber-950/40 to-slate-900 border border-amber-500/30 p-5 rounded-2xl shadow-xl space-y-3">
-              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                <Bot className="w-5 h-5" />
-                <span>Girdap.com.tr Ürün Botu</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Girdap B2B sisteminden en güncel yedek parça ve soğutma ürünlerini kategorileriyle çekin.
-              </p>
-              <button
-                onClick={() => setActiveTab('scraper')}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-              >
-                <span>Botu Başlat & Yapılandır</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-3">
-              <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
-                <Package className="w-5 h-5" />
-                <span>Ürün ve Stok Yönetimi</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Ürünlerin fiyatlarını, kâr marjlarını ve stok durumlarını canlı olarak yönetin.
-              </p>
-              <button
-                onClick={() => setActiveTab('products')}
-                className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-              >
-                <span>Kataloğa Git ({dbProducts.length} Ürün)</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-rose-950/30 border border-rose-800/40 p-5 rounded-2xl shadow-xl space-y-3">
-              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
-                <Database className="w-5 h-5" />
-                <span>Veritabanı Sıfırlama</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Eski veya sahte verileri temizleyip sıfırdan temiz veri çekmek için kullanılır.
-              </p>
-              <button
-                onClick={handleCleanDatabase}
-                disabled={isCleaningDb}
-                className="w-full bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isCleaningDb ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                <span>Veritabanını Temizle</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB: OPERASYON ANALİZİ (CCNCORE) */}
-      {activeTab === 'analytics' && (
-        <div className="space-y-6">
-          <AdminAnalyticsDashboard
-            orders={adminOrders}
-            dealersCount={dealersList.length}
-            dealers={dealersList}
-            products={dbProducts}
-            categories={dbCategories}
           />
-        </div>
-      )}
+        )}
 
-      {/* TAB 2: SCRAPER HUB */}
-      {activeTab === 'scraper' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5">
-              <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <Bot className="w-5 h-5 text-amber-400" />
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 dark:text-white">Tedarikçi Botu & Ürün Çekme</h2>
-                  <span className="text-[11px] text-slate-400">Modüler tedarikçi entegrasyonu</span>
-                </div>
+        {/* LEFT SIDEBAR (STICKY & RESPONSIVE) */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 lg:z-30 w-72 bg-white dark:bg-[#0D1322] border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+            }`}
+        >
+          {/* Brand Header */}
+          <div className="h-16 border-b border-slate-200 dark:border-slate-800/80 px-5 flex items-center justify-between shrink-0">
+            <Link href="/admin" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
+                <ShieldAlert className="w-5 h-5" />
               </div>
-
-              <form onSubmit={handleStartScraper} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı (URL):</label>
-                  <div className="space-y-2">
-                    <input
-                      type="url"
-                      required
-                      placeholder="https://www.ersaticaret.com"
-                      value={scrapeTargetUrl}
-                      onChange={(e) => setScrapeTargetUrl(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setScrapeTargetUrl('https://www.ersaticaret.com');
-                          setSelectedProvider('ersaticaret');
-                        }}
-                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
-                          scrapeTargetUrl.includes('ersaticaret')
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                            : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
-                        }`}
-                      >
-                        ersaticaret.com (2.375 Ürün)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setScrapeTargetUrl('https://girdap.com.tr');
-                          setSelectedProvider('girdap');
-                        }}
-                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${
-                          scrapeTargetUrl.includes('girdap')
-                            ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                            : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
-                        }`}
-                      >
-                        girdap.com.tr
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
-                    <input
-                      type="text"
-                      value={scrapeUsername}
-                      onChange={(e) => setScrapeUsername(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şifre:</label>
-                    <input
-                      type="password"
-                      value={scrapePassword}
-                      onChange={(e) => setScrapePassword(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Maksimum Çekilecek Ürün Limiti:</label>
-                  <input
-                    type="number"
-                    value={scrapeMaxLimit}
-                    onChange={(e) => setScrapeMaxLimit(e.target.value)}
-                    placeholder="Boş Bırakılırsa Tüm 2.375 Ürün Çekilir"
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
-                  />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    * Tüm ürünleri almak için bu alanı boş bırakabilirsiniz.
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm">ERSA SOĞUTMA</span>
+                  <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-bold rounded">
+                    ADMİN
                   </span>
                 </div>
-
-                <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
-                  <div className="flex items-center gap-1.5 text-amber-400 font-bold">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Otomatik İşlem Kuralları:</span>
-                  </div>
-                  <ul className="list-disc list-inside space-y-0.5 text-slate-300">
-                    <li>Ürünler doğrudan <strong>birebir net fiyatıyla (kâr marjı eklenmeden)</strong> aktarılır.</li>
-                    <li>Kategoriler, markalar (Vestel, Embraco, Bosch vb.) otomatik eşleştirilir.</li>
-                    <li>Ürün resimleri ve teknik özellikleri veritabanına bağlanır.</li>
-                  </ul>
-                </div>
-
-                <div className="pt-2 flex gap-3">
-                  {!isScrapingActive ? (
-                    <button
-                      type="submit"
-                      className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
-                    >
-                      <Play className="w-4 h-4 fill-slate-950" />
-                      <span>Ürünleri Şimdi Çek</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleStopScraper}
-                      className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
-                    >
-                      <Square className="w-4 h-4 fill-white" />
-                      <span>Botu Durdur</span>
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${isScrapingActive ? 'bg-emerald-400 animate-ping' : 'bg-slate-600'}`} />
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Canlı Bot Durumu & İlerleme</h3>
-                  </div>
-                  <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${
-                    scraperProgress?.status === 'running' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
-                    scraperProgress?.status === 'completed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
-                    'bg-slate-800 text-slate-400'
-                  }`}>
-                    {scraperProgress?.status === 'running' ? 'Çalışıyor' :
-                     scraperProgress?.status === 'completed' ? 'Tamamlandı' :
-                     scraperProgress?.status === 'stopped' ? 'Durduruldu' : 'Hazır'}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium">{scraperProgress?.currentStep || 'Beklemede'}</span>
-                    <span className="font-mono font-bold text-amber-400">%{scraperProgress?.percent || 0}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-3 p-0.5 border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full rounded-full transition-all duration-300"
-                      style={{ width: `${scraperProgress?.percent || 0}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Taranan Kategori</span>
-                    <span className="text-base font-black text-slate-900 dark:text-white font-mono">{scraperProgress?.processedCategories || 0} / {scraperProgress?.totalCategories || 0}</span>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Aktarılan Ürün</span>
-                    <span className="text-base font-black text-emerald-400 font-mono">{scraperProgress?.importedProducts || 0}</span>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Hatalı/Atlanan</span>
-                    <span className="text-base font-black text-slate-400 font-mono">{scraperProgress?.failedProducts || 0}</span>
-                  </div>
-                </div>
+                <p className="text-[11px] text-slate-400 font-medium">B2B Yönetim Portalı</p>
               </div>
+            </Link>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold">
-                  <span>Terminal / Canlı Log Akışı:</span>
-                  <span className="font-mono">{scraperProgress?.logs?.length || 0} satır</span>
-                </div>
-                <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 h-52 overflow-y-auto font-mono text-[11px] space-y-1.5 text-slate-300">
-                  {(!scraperProgress?.logs || scraperProgress.logs.length === 0) ? (
-                    <div className="text-slate-600 italic">Henüz bir log kaydı yok. Botu başlattığınızda canlı işlem logları burada akacaktır.</div>
-                  ) : (
-                    scraperProgress.logs.map((l, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <span className="text-slate-600 flex-shrink-0">[{l.timestamp}]</span>
-                        <span className={
-                          l.level === 'success' ? 'text-emerald-400 font-bold' :
-                          l.level === 'error' ? 'text-rose-400 font-bold' :
-                          l.level === 'warn' ? 'text-amber-300' : 'text-slate-300'
-                        }>
-                          {l.message}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: PRODUCTS (Paginated Database Infinite Scroll) */}
-      {activeTab === 'products' && (
-        <div className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-4 rounded-2xl shadow-lg">
-            <div className="flex flex-wrap items-center gap-3 flex-1">
-              <div className="relative flex-1 min-w-[200px] max-w-sm">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Ürün adı, SKU veya barkod ile ara..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                />
-              </div>
-
-              <select
-                value={productCategoryFilter}
-                onChange={(e) => setProductCategoryFilter(e.target.value)}
-                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
-              >
-                <option value="ALL">Tüm Kategoriler</option>
-                {dbCategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-
-              <select
-                value={productBrandFilter}
-                onChange={(e) => setProductBrandFilter(e.target.value)}
-                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
-              >
-                <option value="ALL">Tüm Markalar ({adminBrandsList.length})</option>
-                {adminBrandsList.map((b) => (
-                  <option key={b.id || b.name} value={b.name}>{b.name} ({b.productCount})</option>
-                ))}
-              </select>
-
-              <button
-                type="button"
-                onClick={() => setAdminMissingPriceFilter(!adminMissingPriceFilter)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition ${
-                  adminMissingPriceFilter
-                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-                <span>Fiyatı Eksik Ürünler</span>
-              </button>
-
-              <select
-                value={productSort}
-                onChange={(e) => setProductSort(e.target.value)}
-                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
-              >
-                <option value="newest">En Yeniler</option>
-                <option value="price_asc">Fiyat: Düşükten Yükseğe</option>
-                <option value="price_desc">Fiyat: Yüksekten Düşüğe</option>
-                <option value="name_asc">İsim: A - Z</option>
-                <option value="stock_desc">Stok: Çoktan Aza</option>
-              </select>
-
-              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                Toplam: <strong className="text-sky-400">{adminTotalProducts.toLocaleString('tr-TR')}</strong> Ürün
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => loadAdminProducts(1, true)}
-                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition"
-                title="Yenile"
-              >
-                <RefreshCw className={`w-4 h-4 ${loadingProducts ? 'animate-spin text-sky-400' : ''}`} />
-              </button>
-              <button
-                onClick={() => setIsNewProductModalOpen(true)}
-                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg transition"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Yeni Ürün Ekle</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setMobileSidebarOpen(false)}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg lg:hidden cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-xl overflow-hidden">
-            {loadingProducts && dbProducts.length === 0 ? (
-              <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
-                <span>Ürünler veritabanından çekiliyor...</span>
-              </div>
-            ) : dbProducts.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 space-y-3">
-                <Package className="w-12 h-12 text-slate-600 mx-auto" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Ürün Bulunamadı</h3>
-                <p className="text-xs text-slate-400">
-                  {productSearch ? 'Arama kriterlerinize uygun ürün yok.' : 'Henüz ürün eklenmemiş. Tedarikçi botu ile ürünleri içeri aktarabilirsiniz.'}
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left text-slate-300">
-                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="p-3.5">Görsel</th>
-                      <th className="p-3.5">Ürün Adı & Kategori</th>
-                      <th className="p-3.5">SKU / Barkod</th>
-                      <th className="p-3.5">Alış Fiyatı</th>
-                      <th className="p-3.5">Satış Fiyatı (TL)</th>
-                      <th className="p-3.5">İskonto (%)</th>
-                      <th className="p-3.5">Stok Adedi</th>
-                      <th className="p-3.5 text-center">Durum</th>
-                      <th className="p-3.5 text-right">İşlemler</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
-                    {dbProducts.map((p) => {
-                      const imgUrl = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder.svg';
-                      return (
-                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                          <td className="p-3.5">
-                            <img
-                              src={imgUrl}
-                              alt={p.name}
-                              loading="lazy"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/placeholder.svg';
-                              }}
-                              className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 border border-slate-700"
-                            />
-                          </td>
-                          <td className="p-3.5 max-w-sm">
-                            <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">
-                              {p.category?.name || 'Kategorisiz'} {p.brand?.name ? `• ${p.brand.name}` : ''}
-                            </div>
-                          </td>
-                          <td className="p-3.5 font-mono text-sky-300">
-                            <div>{p.sku}</div>
-                            {p.barcode && <div className="text-[10px] text-slate-500">{p.barcode}</div>}
-                          </td>
-                          <td className="p-3.5 font-mono text-slate-400">
-                            {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
-                          </td>
-                          <td className="p-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                step="0.1"
-                                defaultValue={p.salePrice || 0}
-                                onBlur={(e) => {
-                                  const val = parseFloat(e.target.value);
-                                  if (!isNaN(val) && val !== Number(p.salePrice)) {
-                                    handleUpdateProductInline(p.id, { salePrice: val });
-                                  }
-                                }}
-                                className={`w-24 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white px-2 py-1 font-mono font-bold text-xs focus:outline-none ${
-                                  !p.salePrice || Number(p.salePrice) <= 0
-                                    ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
-                                    : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
-                                }`}
-                              />
-                              {(!p.salePrice || Number(p.salePrice) <= 0) && (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[9px] border border-amber-500/30 whitespace-nowrap">
-                                  Fiyat Yok
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-3.5">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                step="1"
-                                min="0"
-                                max="100"
-                                defaultValue={p.discountPercent || 0}
-                                onBlur={(e) => {
-                                  const val = parseFloat(e.target.value);
-                                  if (!isNaN(val) && val !== Number(p.discountPercent)) {
-                                    handleUpdateProductInline(p.id, { discountPercent: val });
-                                  }
-                                }}
-                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
-                              />
-                              <span className="text-slate-500 text-[10px]">%</span>
-                            </div>
-                          </td>
-                          <td className="p-3.5">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                defaultValue={p.stockQty}
-                                onBlur={(e) => {
-                                  const val = parseInt(e.target.value, 10);
-                                  if (!isNaN(val) && val !== p.stockQty) {
-                                    handleUpdateProductInline(p.id, { stockQty: val });
-                                  }
-                                }}
-                                className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-slate-900 dark:text-white text-xs focus:outline-none"
-                              />
-                              <StockBadge stock={p.stockQty} size="sm" showIcon={false} />
-                            </div>
-                          </td>
-                          <td className="p-3.5 text-center">
-                            <button
-                              onClick={() => handleUpdateProductInline(p.id, { status: p.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE' })}
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
-                                p.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'
-                              }`}
-                            >
-                              {p.status === 'ACTIVE' ? 'Aktif' : 'Taslak'}
-                            </button>
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => openEditProductModal(p)}
-                                className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition"
-                                title="Ürünü Düzenle (İsim, Görsel, SKU, İskonto)"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(p.id, p.name)}
-                                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
-                                title="Ürünü Sil"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                {/* Infinite Scroll Sentinel for Admin */}
-                <div ref={adminProductObserverTarget} className="py-6 text-center border-t border-slate-200 dark:border-slate-800/40">
-                  {loadingMoreProducts && (
-                    <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg animate-pulse">
-                      <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
-                      <span>Daha fazla ürün yükleniyor...</span>
-                    </div>
-                  )}
-                  {!adminHasMoreProducts && dbProducts.length > 0 && (
-                    <div className="text-xs text-slate-500 font-medium">
-                      Tüm ürünler listelendi ({dbProducts.length} / {adminTotalProducts})
-                    </div>
-                  )}
+          {/* Navigation Categories */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-3.5 py-4 space-y-6 scrollbar-thin">
+            {navigationGroups.map((group) => (
+              <div key={group.title} className="space-y-1">
+                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                  {group.title}
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: CATEGORIES (Hiyerarşik Ana & Alt Kategori Yönetimi) */}
-      {activeTab === 'categories' && (() => {
-        const mainCategories = dbCategories.filter((c) => !c.parentId);
-        const subCategories = dbCategories.filter((c) => !!c.parentId);
-
-        const filteredMainCategories = mainCategories.filter((mainCat) => {
-          if (!categoryHierarchySearch.trim()) return true;
-          const q = categoryHierarchySearch.toLowerCase();
-          const matchMain = mainCat.name.toLowerCase().includes(q);
-          const matchSub = dbCategories.some(
-            (sub) => sub.parentId === mainCat.id && sub.name.toLowerCase().includes(q)
-          );
-          return matchMain || matchSub;
-        });
-
-        // Any orphan subcategories (whose parentId is not in dbCategories)
-        const mainCatIds = new Set(mainCategories.map((m) => m.id));
-        const orphanSubCategories = subCategories.filter(
-          (sub) => sub.parentId && !mainCatIds.has(sub.parentId)
-        );
-
-        const toggleMainCategory = (catId: string) => {
-          setExpandedMainCategories((prev) => ({
-            ...prev,
-            [catId]: !prev[catId]
-          }));
-        };
-
-        const expandAll = () => {
-          const allTrue: Record<string, boolean> = {};
-          mainCategories.forEach((m) => {
-            allTrue[m.id] = true;
-          });
-          setExpandedMainCategories(allTrue);
-        };
-
-        const collapseAll = () => {
-          setExpandedMainCategories({});
-        };
-
-        return (
-          <div className="space-y-5">
-            {/* Top KPI Summary Banner */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
-                  <FolderTree className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 block font-medium">Toplam Kategori</span>
-                  <span className="text-xl font-black text-slate-900 dark:text-white font-mono">{dbCategories.length}</span>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold">
-                  <FolderPlus className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 block font-medium">Ana Kategoriler</span>
-                  <span className="text-xl font-black text-sky-400 font-mono">{mainCategories.length}</span>
-                </div>
-              </div>
-
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 block font-medium">Bağlı Alt Kategoriler</span>
-                  <span className="text-xl font-black text-emerald-400 font-mono">{subCategories.length}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: Create Category Form */}
-              <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4 h-fit">
-                <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-emerald-400" />
-                    <span>Yeni Kategori Tanımla</span>
-                  </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    Kataloğunuzu zenginleştirmek için ana veya alt kategori ekleyin.
-                  </p>
-                </div>
-
-                {/* Type Selector (Ana Kategori / Alt Kategori) */}
-                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-[#0B1120] rounded-xl border border-slate-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewCatType('main');
-                      setNewCatParent('');
-                    }}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                      newCatType === 'main'
-                        ? 'bg-sky-600 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    📁 Ana Kategori
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewCatType('sub');
-                      if (!newCatParent && mainCategories.length > 0) {
-                        setNewCatParent(mainCategories[0].id);
-                      }
-                    }}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                      newCatType === 'sub'
-                        ? 'bg-purple-600 text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    ↳ Alt Kategori
-                  </button>
-                </div>
-
-                <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
-                  {newCatType === 'sub' && (
-                    <div>
-                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                        Bağlanacağı Ana Kategori: <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        required
-                        value={newCatParent}
-                        onChange={(e) => setNewCatParent(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
-                      >
-                        <option value="" disabled>-- Ana Kategori Seçiniz --</option>
-                        {mainCategories.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                      {newCatType === 'main' ? 'Ana Kategori Adı:' : 'Alt Kategori Adı:'} <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={newCatType === 'main' ? 'Örn: Soğutma Kompresörleri' : 'Örn: Hermetik Kompresörler'}
-                      value={newCatName}
-                      onChange={(e) => setNewCatName(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Sıra Numarası:</label>
-                      <input
-                        type="number"
-                        placeholder="1, 2, 3..."
-                        value={newCatSortOrder}
-                        onChange={(e) => setNewCatSortOrder(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">İskonto Oranı (%):</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        placeholder="Örn: 15"
-                        value={newCatDiscount}
-                        onChange={(e) => setNewCatDiscount(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-500 font-bold focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className={`w-full text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 cursor-pointer ${
-                      newCatType === 'main'
-                        ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
-                        : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
-                    }`}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{newCatType === 'main' ? 'Ana Kategori Oluştur' : 'Alt Kategori Oluştur'}</span>
-                  </button>
-                </form>
-              </div>
-
-              {/* Right Column: Hierarchical Category Tree */}
-              <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <FolderTree className="w-4 h-4 text-purple-400" />
-                      <span>Kategori Hiyerarşisi ({mainCategories.length} Ana / {subCategories.length} Alt)</span>
-                    </h3>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Ana kategorileri genişleterek alt kategorileri yönetebilir, sıralamayı düzenleyebilirsiniz.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!bulkTargetParent && mainCategories.length > 0) {
-                          setBulkTargetParent(mainCategories[0].id);
-                        }
-                        setBulkLinkModalOpen(true);
-                      }}
-                      className="px-3 py-1 text-[11px] font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                      title="Mevcut kategorileri seçtiğiniz ana kategoriye bağlayın"
-                    >
-                      <Link2 className="w-3.5 h-3.5" />
-                      <span>Toplu Kategori Bağla</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={expandAll}
-                      className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-                    >
-                      Tümünü Aç
-                    </button>
-                    <button
-                      type="button"
-                      onClick={collapseAll}
-                      className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-                    >
-                      Kapat
-                    </button>
-                    <button
-                      onClick={loadCategories}
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
-                      title="Yenile"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 ${loadingCategories ? 'animate-spin' : ''}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Search Input for Categories */}
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Ana veya alt kategori adına göre ara..."
-                    value={categoryHierarchySearch}
-                    onChange={(e) => setCategoryHierarchySearch(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
-                  />
-                  {categoryHierarchySearch && (
-                    <button
-                      onClick={() => setCategoryHierarchySearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {loadingCategories ? (
-                  <div className="py-12 text-center text-slate-400 flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                    <span>Kategoriler yükleniyor...</span>
-                  </div>
-                ) : mainCategories.length === 0 ? (
-                  <div className="py-12 text-center text-slate-500 text-xs space-y-1">
-                    <FolderTree className="w-8 h-8 mx-auto text-slate-600" />
-                    <p>Henüz kategori kaydı bulunmuyor.</p>
-                  </div>
-                ) : filteredMainCategories.length === 0 ? (
-                  <div className="py-8 text-center text-slate-400 text-xs">
-                    Arama kriterine uygun kategori bulunamadı.
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                    {filteredMainCategories.map((mainCat, mainIdx) => {
-                      const subs = dbCategories
-                        .filter((c) => c.parentId === mainCat.id)
-                        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-                      const isExpanded = categoryHierarchySearch.trim() !== '' ? true : Boolean(expandedMainCategories[mainCat.id]);
-
-                      return (
-                        <div
-                          key={mainCat.id}
-                          className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition shadow-sm"
-                        >
-                          {/* Main Category Header Bar */}
-                          <div
-                            className="p-3.5 flex items-center justify-between gap-2 border-b border-transparent data-[expanded=true]:border-slate-200 dark:data-[expanded=true]:border-slate-800/80 bg-white dark:bg-[#111827]/60"
-                            data-expanded={isExpanded}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              {/* Move Up / Down Buttons for Main Categories */}
-                              <div className="flex flex-col gap-0.5 flex-shrink-0">
-                                <button
-                                  type="button"
-                                  disabled={mainIdx === 0}
-                                  onClick={() => handleMoveCategory(mainCat.id, 'up')}
-                                  className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
-                                  title="Yukarı Taşı"
-                                >
-                                  <ArrowUp className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={mainIdx === filteredMainCategories.length - 1}
-                                  onClick={() => handleMoveCategory(mainCat.id, 'down')}
-                                  className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
-                                  title="Aşağı Taşı"
-                                >
-                                  <ArrowDown className="w-3 h-3" />
-                                </button>
-                              </div>
-
-                              <div className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                <FolderPlus className="w-3.5 h-3.5" />
-                              </div>
-
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-mono text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
-                                    #{mainCat.sortOrder && mainCat.sortOrder > 0 ? mainCat.sortOrder : mainIdx + 1}
-                                  </span>
-                                  <span className="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                    {mainCat.name}
-                                  </span>
-
-                                  {mainCat.discountPercent !== undefined && Number(mainCat.discountPercent) > 0 && (
-                                    <span className="text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded-full font-bold">
-                                      %{mainCat.discountPercent} İskonto
-                                    </span>
-                                  )}
-
-                                  <span className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.2 rounded-full font-mono font-bold">
-                                    {subs.length} Alt Kategori
-                                  </span>
-
-                                  {mainCat._count?.products !== undefined && (
-                                    <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
-                                      {mainCat._count.products} Ürün
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                              {/* Quick Move into another Main Category */}
-                              {mainCategories.length > 1 && (
-                                <select
-                                  value=""
-                                  onChange={(e) => {
-                                    if (e.target.value) {
-                                      handleQuickChangeParent(mainCat.id, e.target.value);
-                                    }
-                                  }}
-                                  className="text-[10px] bg-slate-100 dark:bg-[#070b14] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-2 py-1 font-medium cursor-pointer max-w-[140px] truncate"
-                                  title="Bu kategoriyi başka bir ana kategoriye bağla"
-                                >
-                                  <option value="">↳ Şuraya Bağla...</option>
-                                  {mainCategories
-                                    .filter((m) => m.id !== mainCat.id)
-                                    .map((m) => (
-                                      <option key={m.id} value={m.id}>
-                                        📁 {m.name}
-                                      </option>
-                                    ))}
-                                </select>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCatType('sub');
-                                  setNewCatParent(mainCat.id);
-                                  showToast(`"${mainCat.name}" için alt kategori ekleme modu seçildi.`);
-                                }}
-                                className="px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
-                                title="Bu Ana Kategoriye Alt Kategori Ekle"
-                              >
-                                <Plus className="w-3 h-3" />
-                                <span className="hidden sm:inline">Alt Kategori Ekle</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => openEditCategoryModal(mainCat)}
-                                className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                                title="Düzenle"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteCategory(mainCat.id, mainCat.name)}
-                                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                                title="Sil"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => toggleMainCategory(mainCat.id)}
-                                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer ml-1"
-                                title={isExpanded ? 'Gizle' : 'Genişlet'}
-                              >
-                                {isExpanded ? (
-                                  <ChevronDown className="w-4 h-4 text-purple-400" />
-                                ) : (
-                                  <ChevronRight className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Subcategories Accordion Content */}
-                          {isExpanded && (
-                            <div className="p-3 bg-slate-50/50 dark:bg-[#070b14]/60 space-y-1.5">
-                              {subs.length === 0 ? (
-                                <div className="py-3 px-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                                  Bu ana kategoriye bağlı alt kategori bulunmuyor.{' '}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setNewCatType('sub');
-                                      setNewCatParent(mainCat.id);
-                                    }}
-                                    className="text-purple-400 font-bold hover:underline"
-                                  >
-                                    Hemen bir alt kategori ekleyin.
-                                  </button>
-                                </div>
-                              ) : (
-                                subs.map((sub, subIdx) => (
-                                  <div
-                                    key={sub.id}
-                                    className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#0E1526] border border-slate-200 dark:border-slate-800/80 hover:border-purple-500/30 transition text-xs group"
-                                  >
-                                    <div className="flex items-center gap-2.5 min-w-0">
-                                      {/* Subcategory Reorder Buttons */}
-                                      <div className="flex flex-col gap-0.5 flex-shrink-0">
-                                        <button
-                                          type="button"
-                                          disabled={subIdx === 0}
-                                          onClick={() => handleMoveCategory(sub.id, 'up')}
-                                          className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
-                                          title="Yukarı Taşı"
-                                        >
-                                          <ArrowUp className="w-2.5 h-2.5" />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          disabled={subIdx === subs.length - 1}
-                                          onClick={() => handleMoveCategory(sub.id, 'down')}
-                                          className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
-                                          title="Aşağı Taşı"
-                                        >
-                                          <ArrowDown className="w-2.5 h-2.5" />
-                                        </button>
-                                      </div>
-
-                                      <span className="text-purple-400 font-bold font-mono">↳</span>
-                                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                                        {sub.name}
-                                      </span>
-
-                                      {sub.discountPercent !== undefined && Number(sub.discountPercent) > 0 && (
-                                        <span className="text-[9px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded font-bold">
-                                          %{sub.discountPercent} İskonto
-                                        </span>
-                                      )}
-
-                                      {sub._count?.products !== undefined && (
-                                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-800">
-                                          {sub._count.products} Ürün
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                      {/* Quick Change Parent for Subcategory */}
-                                      <select
-                                        value={sub.parentId || ''}
-                                        onChange={(e) => handleQuickChangeParent(sub.id, e.target.value)}
-                                        className="text-[10px] bg-slate-100 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-md px-1.5 py-0.5 font-medium cursor-pointer max-w-[130px] truncate"
-                                        title="Bağlı olduğu ana kategoriyi değiştir veya bağımsız ana kategori yap"
-                                      >
-                                        <option value="">📁 Ana Kategori Yap</option>
-                                        {mainCategories.map((m) => (
-                                          <option key={m.id} value={m.id}>
-                                            ↳ {m.name}
-                                          </option>
-                                        ))}
-                                      </select>
-
-                                      <button
-                                        type="button"
-                                        onClick={() => openEditCategoryModal(sub)}
-                                        className="p-1.5 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                                        title="Alt Kategoriyi Düzenle / Başka Ana Kategoriye Taşı"
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteCategory(sub.id, sub.name)}
-                                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                                        title="Alt Kategoriyi Sil"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* Orphan Subcategories if any */}
-                    {orphanSubCategories.length > 0 && (
-                      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
-                        <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
-                          <AlertTriangle className="w-4 h-4" />
-                          <span>Eşleşmeyen / Üst Kategorisi Bulunmayan Alt Kategoriler ({orphanSubCategories.length})</span>
-                        </div>
-                        <div className="space-y-1">
-                          {orphanSubCategories.map((orphan) => (
-                            <div key={orphan.id} className="flex items-center justify-between text-xs bg-slate-900 p-2 rounded-lg border border-amber-500/20">
-                              <span className="text-white font-medium">{orphan.name}</span>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => openEditCategoryModal(orphan)}
-                                  className="px-2 py-1 bg-amber-500 text-slate-950 rounded text-[10px] font-bold"
-                                >
-                                  Ana Kategori Ata
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* TAB 5: ORDERS (Live PostgreSQL Database Orders) */}
-      {activeTab === 'orders' && (
-        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-sky-400" />
-                <span>Bayi Sipariş Onay & Sevkiyat Yönetimi</span>
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Veritabanından canlı bayi siparişleri, ödeme türleri ve kargo sevkiyat durumları
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <select
-                value={adminOrderFilter}
-                onChange={(e) => setAdminOrderFilter(e.target.value)}
-                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
-              >
-                <option value="ALL">Tüm Durumlar ({adminOrders.length})</option>
-                <option value="PENDING_APPROVAL">⏳ Onay Bekleyenler</option>
-                <option value="APPROVED">✅ Onaylananlar</option>
-                <option value="SHIPPED">🚚 Sevkiyatta / Kargoda</option>
-                <option value="DELIVERED">📦 Teslim Edilenler</option>
-                <option value="CANCELLED">❌ İptal Edilenler</option>
-              </select>
-
-              <button
-                onClick={loadAdminOrders}
-                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-                title="Yenile"
-              >
-                <RefreshCw className={`w-4 h-4 ${loadingAdminOrders ? 'animate-spin text-sky-400' : ''}`} />
-              </button>
-
-              <button
-                onClick={() => {
-                  const filtered = adminOrders.filter(
-                    (o) => adminOrderFilter === 'ALL' || o.status === adminOrderFilter
-                  );
-                  if (filtered.length === 0) {
-                    showToast('Dışa aktarılacak sipariş bulunamadı.', 'warning');
-                    return;
-                  }
-                  try {
-                    exportOrdersToExcel(
-                      filtered,
-                      `ersa-sogutma-tum-siparisler-${new Date().toISOString().split('T')[0]}.xlsx`
-                    );
-                    showToast(`${filtered.length} adet sipariş Excel (.xlsx) olarak başarıyla indirildi!`, 'success');
-                  } catch {
-                    showToast('Excel dışa aktarılırken hata oluştu.', 'error');
-                  }
-                }}
-                disabled={loadingAdminOrders || adminOrders.length === 0}
-                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
-                title="Siparişleri Excel (.xlsx) Olarak Dışa Aktar"
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Excel&apos;e Aktar</span>
-              </button>
-            </div>
-          </div>
-
-          {loadingAdminOrders && adminOrders.length === 0 ? (
-            <div className="py-16 text-center text-slate-400 flex items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
-              <span>Siparişler yükleniyor...</span>
-            </div>
-          ) : adminOrders.filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter).length === 0 ? (
-            <div className="py-12 text-center text-slate-500 text-xs space-y-2">
-              <ShoppingBag className="w-10 h-10 text-slate-700 mx-auto" />
-              <p>Kriterlere uygun sipariş kaydı bulunmamaktadır.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {adminOrders
-                .filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter)
-                .map((order) => {
-                  const isCari = order.paymentMethod === 'CARI';
-                  const formattedDate = new Date(order.createdAt).toLocaleString('tr-TR');
-
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
                   return (
-                    <div
-                      key={order.id}
-                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 text-xs hover:border-slate-700 transition shadow-lg"
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id as any);
+                        setMobileSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition group cursor-pointer ${isActive
+                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25 font-bold'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        }`}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono font-bold text-sky-400 text-sm">#{order.orderNumber}</span>
-                            <span className="text-slate-400 text-[11px]">({formattedDate})</span>
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-                              isCari ? 'bg-sky-500/10 text-sky-300 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
-                            }`}>
-                              {isCari ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Sanal POS (Peşin)'}
-                            </span>
-                          </div>
-                          <div className="text-slate-300 font-semibold text-xs">
-                            Bayi: <strong className="text-slate-900 dark:text-white">{order.companyName}</strong> ({order.userName})
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2.5 truncate">
+                        <Icon
+                          className={`w-4 h-4 shrink-0 transition-colors ${isActive
+                              ? 'text-white'
+                              : item.alert
+                                ? 'text-amber-500'
+                                : 'text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                            }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </div>
 
-                        <div className="text-right">
-                          <span className="text-slate-400 block text-[10px]">Genel Toplam (KDV Dahil):</span>
-                          <span className="font-mono font-black text-emerald-400 text-base">
-                            {formatCurrency(order.grandTotal)}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {item.alert && !isActive && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                           </span>
-                        </div>
-                      </div>
-
-                      {/* Items */}
-                      <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800/60 space-y-2">
-                        <span className="text-[11px] font-bold text-slate-400 block">Sipariş Kalemleri ({order.items?.length || 0} Ürün):</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {order.items?.map((item: any) => (
-                            <div key={item.id} className="flex items-center gap-2.5 bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px]">
-                              <img
-                                src={item.image || '/placeholder.svg'}
-                                alt=""
-                                className="w-8 h-8 object-cover rounded bg-white p-0.5 border border-slate-700 flex-shrink-0"
-                                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-slate-900 dark:text-white truncate">{item.name}</div>
-                                <div className="text-[10px] text-slate-400 font-mono">
-                                  {item.sku} • {item.quantity} {item.unit || 'ADET'} × {formatCurrency(item.unitNetExVat)}
-                                </div>
-                              </div>
-                              <div className="font-mono font-bold text-emerald-400 text-right">
-                                {formatCurrency(item.lineGross)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {order.orderNote && (
-                        <div className="bg-amber-50/50 dark:bg-slate-900 p-2.5 rounded-xl border border-amber-200 dark:border-slate-800 text-[11px] text-amber-800 dark:text-amber-300">
-                          <strong>Bayi Sipariş Notu:</strong> {order.orderNote}
-                        </div>
-                      )}
-
-                      {/* Actions & Status Bar */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t border-slate-900 gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-slate-400 font-semibold">Mevcut Durum:</span>
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                            order.status === 'APPROVED' || order.status === 'DELIVERED'
-                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                              : order.status === 'SHIPPED' || order.status === 'PREPARING'
-                              ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                              : order.status === 'CANCELLED'
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                              : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                          }`}>
-                            {order.status}
+                        )}
+                        {item.badge !== null && item.badge !== undefined && (
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${isActive
+                                ? 'bg-white/20 text-white'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60'
+                              }`}
+                          >
+                            {item.badge}
                           </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedAdminOrder(order);
-                              setOrderProductSearch('');
-                              setAddOrderProductId('');
-                              setAddOrderQty(1);
-                            }}
-                            className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
-                            title="Sipariş Kalemlerini Canlı Düzenle (Ürün Ekle, Çıkar, Adet Değiştir)"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                            <span>Siparişi Düzenle</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setAdminPrintingOrder(order)}
-                            className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-                            title="Sipariş Formunu A4 Yazdır / PDF"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>Yazdır</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, 'APPROVED')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                              order.status === 'APPROVED' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            Onayla
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, 'SHIPPED')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                              order.status === 'SHIPPED' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            Sevkiyata Ver
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                              order.status === 'DELIVERED' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            Teslim Edildi
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                              order.status === 'CANCELLED' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-rose-400 hover:bg-rose-950'
-                            }`}
-                          >
-                            İptal Et
-                          </button>
-                        </div>
+                        )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
-            </div>
-          )}
-
-          {/* MODAL: LIVE ORDER INTERVENTION (BAYİ SİPARİŞİNE CANLI MÜDAHALE) */}
-          {selectedAdminOrder && (
-            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
-                {/* Modal Header */}
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/70">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
-                      <ShoppingBag className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white">
-                          Sipariş #{selectedAdminOrder.orderNumber}
-                        </h3>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                          {selectedAdminOrder.status}
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                          {selectedAdminOrder.paymentMethod === 'CARI' ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Peşin'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Bayi: <strong className="text-slate-900 dark:text-white">{selectedAdminOrder.companyName}</strong> ({selectedAdminOrder.userName})
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAdminOrder(null)}
-                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
-                    title="Kapat"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Modal Body */}
-                <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                  {/* Add Product from Catalog to Order */}
-                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5 text-purple-400" />
-                        <span>Siparişe Katalogdan Ürün Ekle</span>
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="Ürün adı veya SKU ile katalogdan arayın..."
-                          value={orderProductSearch}
-                          onChange={(e) => {
-                            setOrderProductSearch(e.target.value);
-                            setOrderProductDropdownOpen(true);
-                          }}
-                          onFocus={() => setOrderProductDropdownOpen(true)}
-                          className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-                        />
-
-                        {orderProductDropdownOpen && orderProductSearch.trim().length > 1 && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
-                            {dbProducts
-                              .filter((p) =>
-                                p.name.toLowerCase().includes(orderProductSearch.toLowerCase()) ||
-                                p.sku.toLowerCase().includes(orderProductSearch.toLowerCase())
-                              )
-                              .slice(0, 10)
-                              .map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setAddOrderProductId(p.id);
-                                    setOrderProductSearch(`${p.name} (${p.sku})`);
-                                    setOrderProductDropdownOpen(false);
-                                    setAddOrderQty(1);
-                                  }}
-                                  className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition cursor-pointer"
-                                >
-                                  <div>
-                                    <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
-                                    <div className="text-[10px] text-sky-400 font-mono">
-                                      SKU: {p.sku} • Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
-                                    </div>
-                                  </div>
-                                  <div className="font-mono font-bold text-emerald-400 text-xs">
-                                    {formatCurrency(p.salePrice || 0)}
-                                  </div>
-                                </button>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Quantity & Custom Price Inputs */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="relative" title="Siparişe eklenecek miktar">
-                          <input
-                            type="number"
-                            min={1}
-                            value={addOrderQty}
-                            onChange={(e) => {
-                              const raw = parseInt(e.target.value, 10);
-                              let val = isNaN(raw) ? 1 : raw;
-                              if (val < 1) val = 1;
-                              const prod = dbProducts.find((p) => p.id === addOrderProductId);
-                              if (prod && prod.stockQty > 0 && val > prod.stockQty) {
-                                val = prod.stockQty;
-                              }
-                              setAddOrderQty(val);
-                            }}
-                            className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-                            placeholder="Adet"
-                          />
-                        </div>
-
-                        {/* Optional Custom Unit Price (KDV Hariç) */}
-                        <div className="relative" title="İsteğe bağlı: Özel KDV Hariç Birim Fiyat (Boş bırakılırsa bayinin iskonto fiyatı kullanılır)">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min={0}
-                            value={addOrderCustomPrice}
-                            onChange={(e) => setAddOrderCustomPrice(e.target.value)}
-                            className="w-28 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-400"
-                            placeholder="Özel Fiyat (₺)"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={orderModifying || !addOrderProductId}
-                          onClick={() => {
-                            if (!addOrderProductId) {
-                              showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
-                              return;
-                            }
-                            handleAdminOrderAction({
-                              action: 'add_item',
-                              productId: addOrderProductId,
-                              quantity: addOrderQty,
-                              customPrice: addOrderCustomPrice ? parseFloat(addOrderCustomPrice) : undefined
-                            });
-                          }}
-                          className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
-                        >
-                          {orderModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                          <span>Siparişe Ekle</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Items List in Order */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-400 block">
-                        Sipariş Kalemleri ({selectedAdminOrder.items?.length || 0} Ürün):
-                      </span>
-                      <span className="text-[11px] text-slate-500">
-                        💡 <strong>Birim Fiyatı</strong> doğrudan kutudan değiştirebilir veya <strong>% İndirim</strong> butonunu kullanabilirsiniz.
-                      </span>
-                    </div>
-
-                    {selectedAdminOrder.items?.length === 0 ? (
-                      <div className="py-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                        Siparişte ürün bulunmuyor. Yukarıdaki alandan ürün ekleyebilirsiniz.
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-[#111827]">
-                        {selectedAdminOrder.items?.map((item: any) => {
-                          const itemStock = item.stockQty || 0;
-                          return (
-                            <div
-                              key={item.id}
-                              className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
-                            >
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <img
-                                  src={item.image || '/placeholder.svg'}
-                                  alt=""
-                                  className="w-10 h-10 object-cover rounded-xl bg-white p-0.5 border border-slate-200 dark:border-slate-700 flex-shrink-0"
-                                  onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
-                                />
-                                <div className="min-w-0">
-                                  <div className="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                    {item.name}
-                                  </div>
-                                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                                    SKU: {item.sku} • %{item.vatRate || 20} KDV
-                                    {itemStock > 0 && (
-                                      <span className="ml-2 text-sky-400 font-semibold">• Mevcut Depo Stoğu: {itemStock}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Price Editing, Quick Discount, Quantity Stepper, Line Total, Delete */}
-                              <div className="flex items-center justify-between sm:justify-end gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
-                                {/* Editable Unit Price (KDV Hariç) */}
-                                <div
-                                  className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 focus-within:border-purple-500 transition"
-                                  title="KDV Hariç Birim Fiyat (Değiştirip Enter'a basın veya kutudan çıkın)"
-                                >
-                                  <span className="text-[10px] text-slate-400 font-semibold">Birim:</span>
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    min={0}
-                                    disabled={orderModifying}
-                                    defaultValue={item.unitNetExVat}
-                                    key={`price-${item.id}-${item.unitNetExVat}`}
-                                    onBlur={(e) => {
-                                      const newPrice = parseFloat(e.target.value);
-                                      if (!isNaN(newPrice) && newPrice >= 0 && newPrice !== Number(item.unitNetExVat)) {
-                                        handleAdminOrderAction({
-                                          action: 'update_price',
-                                          itemId: item.id,
-                                          unitNetExVat: newPrice
-                                        });
-                                      }
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        (e.target as HTMLInputElement).blur();
-                                      }
-                                    }}
-                                    className="w-20 bg-transparent font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none text-right"
-                                  />
-                                  <span className="text-[10px] font-mono text-slate-400">₺</span>
-                                </div>
-
-                                {/* Quick Discount Menu per Item */}
-                                <div className="relative group">
-                                  <button
-                                    type="button"
-                                    className="px-2 py-1.5 text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition cursor-pointer flex items-center gap-1"
-                                    title="Bu kaleme hızlı indirim uygula"
-                                  >
-                                    <span>% İndirim</span>
-                                    <ChevronDown className="w-2.5 h-2.5" />
-                                  </button>
-                                  <div className="hidden group-hover:flex absolute right-0 bottom-full mb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl z-30 gap-1 flex-row">
-                                    {[5, 10, 15, 20, 25].map((pct) => (
-                                      <button
-                                        key={pct}
-                                        type="button"
-                                        disabled={orderModifying}
-                                        onClick={() => {
-                                          const currentNet = Number(item.unitNetExVat);
-                                          const discounted = Number((currentNet * (1 - pct / 100)).toFixed(2));
-                                          handleAdminOrderAction({
-                                            action: 'update_price',
-                                            itemId: item.id,
-                                            unitNetExVat: discounted
-                                          });
-                                        }}
-                                        className="px-2 py-1 text-[10px] font-bold text-slate-900 dark:text-white hover:bg-purple-600 hover:text-white rounded-lg transition font-mono cursor-pointer"
-                                        title={`Birim fiyata %${pct} indirim uygula`}
-                                      >
-                                        -%{pct}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {/* Quantity Stepper */}
-                                <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5">
-                                  <button
-                                    type="button"
-                                    disabled={orderModifying}
-                                    onClick={() => {
-                                      const newQty = item.quantity - 1;
-                                      if (newQty <= 0) {
-                                        if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
-                                          handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
-                                        }
-                                      } else {
-                                        handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
-                                      }
-                                    }}
-                                    className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
-                                  >
-                                    -
-                                  </button>
-
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    disabled={orderModifying}
-                                    value={item.quantity}
-                                    onChange={(e) => {
-                                      const raw = parseInt(e.target.value, 10);
-                                      let val = isNaN(raw) ? 1 : raw;
-                                      if (val < 1) val = 1;
-                                      // Max allowed includes what this item already has plus current stock
-                                      const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
-                                      if (maxAllowed > 0 && val > maxAllowed) {
-                                        val = maxAllowed;
-                                      }
-                                      handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: val });
-                                    }}
-                                    className="w-12 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
-                                  />
-
-                                  <button
-                                    type="button"
-                                    disabled={orderModifying}
-                                    onClick={() => {
-                                      const newQty = item.quantity + 1;
-                                      const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
-                                      if (maxAllowed > 0 && newQty > maxAllowed) {
-                                        showToast(`Maksimum depo stoğuna (${maxAllowed}) ulaşıldı.`, 'warning');
-                                        return;
-                                      }
-                                      handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
-                                    }}
-                                    className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-
-                                <div className="font-mono font-bold text-emerald-400 text-xs w-24 text-right">
-                                  {formatCurrency(item.lineGross)}
-                                </div>
-
-                                <button
-                                  type="button"
-                                  disabled={orderModifying}
-                                  onClick={() => {
-                                    if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
-                                      handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
-                                    }
-                                  }}
-                                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                                  title="Kalemi Sil"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Financial Summary & Order-wide Discount & CARI Notice */}
-                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                    {/* Bulk Order Discount Toolbar */}
-                    {selectedAdminOrder.items?.length > 0 && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
-                        <div className="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
-                          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                          <span>Tüm Siparişe Genel İskonto Uygula:</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {[5, 10, 15, 20].map((pct) => (
-                            <button
-                              key={pct}
-                              type="button"
-                              disabled={orderModifying}
-                              onClick={() => {
-                                if (window.confirm(`Tüm sipariş kalemlerine genel %${pct} indirim uygulamak istediğinize emin misiniz?`)) {
-                                  handleAdminOrderAction({ action: 'apply_discount', discountPercent: pct });
-                                }
-                              }}
-                              className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-600 hover:text-white text-purple-400 border border-purple-500/30 rounded-lg text-xs font-bold transition font-mono cursor-pointer"
-                              title={`Tüm kalemlere %${pct} iskonto uygula`}
-                            >
-                              Tümüne -%{pct}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Ara Toplam (KDV Hariç)</span>
-                        <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                          {formatCurrency(selectedAdminOrder.subtotalExVat || 0)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Toplam KDV</span>
-                        <span className="font-mono font-bold text-sky-400 text-sm">
-                          {formatCurrency(selectedAdminOrder.vatTotal || 0)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-medium">Genel Toplam (KDV Dahil)</span>
-                        <span className="font-mono font-black text-emerald-400 text-base">
-                          {formatCurrency(selectedAdminOrder.grandTotal || 0)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {selectedAdminOrder.paymentMethod === 'CARI' && (
-                      <div className="bg-sky-500/10 border border-sky-500/20 rounded-xl p-2.5 text-[11px] text-sky-300 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 flex-shrink-0 text-sky-400" />
-                        <span>
-                          Bu sipariş <strong>Cari Hesap (Açık Hesap)</strong> ile oluşturulduğu için sipariş tutarındaki her artış veya azalış bayinin cari ekstresine anında otomatik borç/alacak kaydı olarak yansıtılmaktadır.
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-950/60">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAdminOrder(null)}
-                    className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-lg cursor-pointer"
-                  >
-                    Değişiklikleri Kaydet & Kapat
-                  </button>
-                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB: LIVE CARTS (CANLI SEPETLER) */}
-      {activeTab === 'carts' && (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-                  <ShoppingBag className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>Aktif Bayi Canlı Sepetleri</span>
-                    <span className="text-xs bg-cyan-500/20 text-cyan-400 font-mono px-2 py-0.5 rounded-full border border-cyan-500/30">
-                      {adminCarts.length} Aktif Sepet
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Bayilerin veritabanındaki canlı sepetleri, anlık adetler, bayiye özel hesaplanmış tutarlar ve stok uyarıları
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-64">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Bayi adı, kullanıcı veya ürün ara..."
-                    value={cartSearchQuery}
-                    onChange={(e) => setCartSearchQuery(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
-                  />
-                </div>
-                <button
-                  onClick={loadAdminCarts}
-                  disabled={loadingAdminCarts}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${loadingAdminCarts ? 'animate-spin text-cyan-400' : ''}`} />
-                  <span>Yenile</span>
-                </button>
-              </div>
-            </div>
-
-            {loadingAdminCarts ? (
-              <div className="p-12 text-center text-xs text-slate-400">
-                <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto mb-2" />
-                <span>Canlı sepet verileri yükleniyor...</span>
-              </div>
-            ) : adminCarts.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
-                Şu anda sistemde ürün eklenmiş aktif bir bayi sepeti bulunmuyor.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="py-3 px-4">Bayi Bilgisi</th>
-                      <th className="py-3 px-4">İletişim</th>
-                      <th className="py-3 px-4 text-center">Özel İskonto</th>
-                      <th className="py-3 px-4 text-center">Ürün / Adet</th>
-                      <th className="py-3 px-4 text-right">Sepet Toplamı</th>
-                      <th className="py-3 px-4 text-center">Stok Durumu</th>
-                      <th className="py-3 px-4 text-center">Son Güncelleme</th>
-                      <th className="py-3 px-4 text-right">İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
-                    {adminCarts
-                      .filter((c) => {
-                        if (!cartSearchQuery.trim()) return true;
-                        const q = cartSearchQuery.toLowerCase();
-                        return (
-                          c.dealer.companyName.toLowerCase().includes(q) ||
-                          c.dealer.username.toLowerCase().includes(q) ||
-                          c.items.some((i: any) => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q))
-                        );
-                      })
-                      .map((cart) => (
-                        <tr key={cart.cartId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition group">
-                          <td className="py-3.5 px-4">
-                            <div className="font-mono font-bold text-sky-400">{cart.dealer.username}</div>
-                            <div className="font-bold text-slate-900 dark:text-white text-sm">{cart.dealer.companyName}</div>
-                            <div className="text-[10px] text-slate-500">VN: {cart.dealer.taxNo}</div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="text-slate-300 font-semibold">{cart.dealer.contactName}</div>
-                            <div className="text-slate-500 text-[11px] font-mono">{cart.dealer.phone}</div>
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                              %{cart.dealer.customDiscountPercent || 0}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-mono">
-                            <span className="font-bold text-slate-900 dark:text-white">{cart.summary.distinctItemCount} Çeşit</span>
-                            <span className="text-slate-500 block text-[10px]">Toplam {cart.summary.totalQuantity} Adet</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="font-mono font-black text-emerald-400 text-sm">
-                              {formatCurrency(cart.summary.totalAmountTRY)}
-                            </div>
-                            <span className="text-[10px] text-slate-500">+ KDV Dahil</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            {cart.summary.hasOverStock ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                                <AlertTriangle className="w-3 h-3" />
-                                <span>Stok Yetersiz</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                <CheckCircle2 className="w-3 h-3" />
-                                <span>Stoklar Uygun</span>
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-mono text-[11px] text-slate-400">
-                            {new Date(cart.updatedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => setSelectedAdminCart(cart)}
-                              className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow cursor-pointer"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>Sepet Detayı</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ))}
           </div>
 
-          {/* Interactive Modal for Cart Details */}
-          {selectedAdminCart && (
-            <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-sm">
-                      <ShoppingBag className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-slate-900 dark:text-white">{selectedAdminCart.dealer.companyName}</h3>
-                      <p className="text-xs text-slate-400 font-mono">
-                        {selectedAdminCart.dealer.username} • Özel İskonto: %{selectedAdminCart.dealer.customDiscountPercent || 0} • Tel: {selectedAdminCart.dealer.phone}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={cartModifying}
-                      onClick={() => {
-                        if (window.confirm(`"${selectedAdminCart.dealer.companyName}" bayisinin sepetindeki TÜM ürünleri temizlemek istediğinize emin misiniz?`)) {
-                          handleAdminCartAction({ action: 'clear_cart' });
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Sepeti Boşalt</span>
-                    </button>
-                    <button
-                      onClick={() => setSelectedAdminCart(null)}
-                      className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                  <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <div>
-                      <span className="text-xs text-slate-400">Toplam Sepet Kalem / Adet:</span>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
-                        {selectedAdminCart.summary.distinctItemCount} Çeşit • {selectedAdminCart.summary.totalQuantity} Adet
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-slate-400">Bayiye Özel Sepet Toplamı:</span>
-                      <div className="text-xl font-black font-mono text-emerald-400">
-                        {formatCurrency(selectedAdminCart.summary.totalAmountTRY)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Add Product Section for Admin */}
-                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>Bayi Sepetine Ürün Ekle</span>
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="Ürün adı veya SKU ile katalogdan arayın..."
-                          value={cartProductSearch}
-                          onChange={(e) => {
-                            setCartProductSearch(e.target.value);
-                            setCartProductDropdownOpen(true);
-                          }}
-                          onFocus={() => setCartProductDropdownOpen(true)}
-                          className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
-                        />
-                        {cartProductDropdownOpen && cartProductSearch.trim().length > 1 && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
-                            {dbProducts
-                              .filter((p) => p.name.toLowerCase().includes(cartProductSearch.toLowerCase()) || p.sku.toLowerCase().includes(cartProductSearch.toLowerCase()))
-                              .slice(0, 10)
-                              .map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setAddCartProductId(p.id);
-                                    setCartProductSearch(`${p.name} (${p.sku})`);
-                                    setCartProductDropdownOpen(false);
-                                  }}
-                                  className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition"
-                                >
-                                  <div>
-                                    <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
-                                    <div className="text-[10px] text-sky-400 font-mono">SKU: {p.sku} • Stok: {p.stockQty}</div>
-                                  </div>
-                                  <div className="font-mono font-bold text-emerald-400 text-xs">
-                                    {formatCurrency(p.salePrice || 0)}
-                                  </div>
-                                </button>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={addCartQty}
-                          onChange={(e) => setAddCartQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                          className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none"
-                          placeholder="Adet"
-                        />
-                        <button
-                          type="button"
-                          disabled={cartModifying || !addCartProductId}
-                          onClick={() => {
-                            if (!addCartProductId) {
-                              showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
-                              return;
-                            }
-                            handleAdminCartAction({
-                              action: 'add_item',
-                              productId: addCartProductId,
-                              quantity: addCartQty
-                            });
-                          }}
-                          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer whitespace-nowrap"
-                        >
-                          {cartModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                          <span>Sepete Ekle</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cart Items List */}
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-800/80">
-                    {selectedAdminCart.items.map((item: any) => (
-                      <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-12 h-12 rounded-xl object-cover bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 shrink-0"
-                            onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
-                          />
-                          <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-xs">{item.name}</div>
-                            <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">
-                              Liste: {formatCurrency(item.basePriceTRY)} • Bayi Fiyatı: <strong className="text-emerald-400">{formatCurrency(item.unitPriceTRY)}</strong>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                          <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block mb-0.5">Stok</span>
-                            <StockBadge stock={item.stockQty} unit={item.unit} />
-                          </div>
-
-                          {/* Stepper for Quantity Intervention */}
-                          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1">
-                            <button
-                              type="button"
-                              disabled={cartModifying}
-                              onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity - 1 })}
-                              className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
-                              title="Adeti Azalt"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </button>
-
-                            <input
-                              type="number"
-                              min={1}
-                              max={item.stockQty}
-                              defaultValue={item.quantity}
-                              key={`${item.id}-${item.quantity}`}
-                              disabled={cartModifying}
-                              onBlur={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                if (!isNaN(val) && val !== item.quantity && val > 0) {
-                                  handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  const val = parseInt((e.target as HTMLInputElement).value, 10);
-                                  if (!isNaN(val) && val !== item.quantity && val > 0) {
-                                    handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
-                                  }
-                                }
-                              }}
-                              className="w-12 text-center font-mono font-bold text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                            />
-
-                            <button
-                              type="button"
-                              disabled={cartModifying || item.quantity >= item.stockQty}
-                              onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity + 1 })}
-                              className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
-                              title="Adeti Artır"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-
-                          <div className="text-right min-w-[90px]">
-                            <span className="text-[10px] text-slate-400 block mb-0.5">Satır Tutarı</span>
-                            <div className="font-mono font-black text-emerald-400 text-xs">
-                              {formatCurrency(item.totalTRY)}
-                            </div>
-                          </div>
-
-                          {/* Delete Item Button */}
-                          <button
-                            type="button"
-                            disabled={cartModifying}
-                            onClick={() => {
-                              if (window.confirm(`"${item.name}" ürününü bayinin sepetinden silmek istediğinize emin misiniz?`)) {
-                                handleAdminCartAction({ action: 'remove_item', itemId: item.id });
-                              }
-                            }}
-                            className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition cursor-pointer disabled:opacity-50"
-                            title="Ürünü Sepetten Kaldır"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex justify-end">
-                  <button
-                    onClick={() => setSelectedAdminCart(null)}
-                    className="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
-                  >
-                    Kapat
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 7: DEALERS & APPLICATIONS */}
-      {activeTab === 'dealers' && (
-        <div className="space-y-8">
-          
-          {/* Section 1: Dealer Applications (Bayilik Başvuruları) */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>Gelen Bayilik Başvuruları</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                      {dealerApplications.filter(a => a.status === 'PENDING').length} Bekleyen Başvuru
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-400">Web sitesi üzerinden gelen yeni B2B bayi onay talepleri</p>
-                </div>
-              </div>
-            </div>
-
-            {dealerApplications.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 text-xs">
-                Bekleyen yeni bayilik başvurusu bulunmuyor.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="py-3 px-4">Firma Ünvanı & Yetkili</th>
-                      <th className="py-3 px-4">İletişim & Konum</th>
-                      <th className="py-3 px-4">Vergi & T.C. Kimlik</th>
-                      <th className="py-3 px-4">Açık Adres & Not</th>
-                      <th className="py-3 px-4">Tarih / Durum</th>
-                      <th className="py-3 px-4 text-right">İşlemler</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
-                    {dealerApplications.map((app) => (
-                      <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900 dark:text-white">{app.companyName}</div>
-                          <div className="text-slate-400 text-[11px]">{app.contactPerson}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-mono text-sky-400 font-semibold">{app.phone}</div>
-                          <div className="text-slate-400 text-[11px]">
-                            {app.city} {app.email ? `• ${app.email}` : ''}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="text-slate-300 font-medium">{app.taxOffice || '—'}</div>
-                          <div className="font-mono text-slate-400 text-[11px]">VN: {app.taxNumber}</div>
-                          {app.idNumber && (
-                            <div className="font-mono text-amber-400 text-[10px] mt-0.5">TC: {app.idNumber}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 max-w-xs text-slate-300">
-                          {app.address ? (
-                            <div className="text-[11px] text-slate-200 font-medium truncate" title={app.address}>
-                              {app.address}
-                            </div>
-                          ) : null}
-                          <div className="truncate text-[10px] text-slate-400 mt-0.5">
-                            {app.notes ? `Not: ${app.notes}` : '—'}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="text-slate-400 text-[11px]">{app.appliedAt}</div>
-                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1 ${
-                            app.status === 'PENDING'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : app.status === 'APPROVED'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                              : 'bg-red-500/20 text-red-300 border border-red-500/40'
-                          }`}>
-                            {app.status === 'PENDING' ? 'İnceleme Bekliyor' : app.status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() => setViewingAppDetail(app)}
-                              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white font-bold rounded-lg text-xs transition border border-slate-700 flex items-center gap-1 cursor-pointer shadow-xs"
-                              title="Tüm Başvuru Detaylarını Gör"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>İncele</span>
-                            </button>
-                            {app.status === 'PENDING' && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={async () => {
-                                    try {
-                                      const res = await fetch('/api/dealer-applications', {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ id: app.id, status: 'APPROVED', assignedTier: 'Silver' })
-                                      });
-                                      const data = await res.json();
-                                      if (data.success) {
-                                        showToast(`"${app.companyName}" başvurusu onaylandı ve veritabanına işlendi!`, 'success');
-                                        loadDealerApplications();
-                                        loadDealers();
-                                        if (data.credentials) {
-                                          setCreatedCredentialsModal({
-                                            username: data.credentials.username,
-                                            tempPassword: data.credentials.tempPassword,
-                                            companyName: app.companyName,
-                                            title: 'Yeni Bayi Hesabı Açıldı'
-                                          });
-                                        }
-                                      } else {
-                                        showToast(data.error || 'Onaylama başarısız oldu.', 'error');
-                                      }
-                                    } catch {
-                                      showToast('İşlem sırasında hata oluştu.', 'error');
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow cursor-pointer"
-                                >
-                                  <Check className="w-3.5 h-3.5" />
-                                  <span>Onayla</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={async () => {
-                                    try {
-                                      const res = await fetch('/api/dealer-applications', {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ id: app.id, status: 'REJECTED' })
-                                      });
-                                      const data = await res.json();
-                                      if (data.success) {
-                                        showToast('Başvuru reddedildi.', 'info');
-                                        loadDealerApplications();
-                                      } else {
-                                        showToast(data.error || 'Reddetme başarısız oldu.', 'error');
-                                      }
-                                    } catch {
-                                      showToast('İşlem sırasında hata oluştu.', 'error');
-                                    }
-                                  }}
-                                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 font-bold rounded-lg text-xs transition border border-slate-700 cursor-pointer"
-                                >
-                                  Reddet
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Section 2: Registered Dealers Table & Management */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-sky-400" />
-                  <span>Kayıtlı Bayiler & Cari Yönetimi ({dealersList.length})</span>
-                </h2>
-                <p className="text-xs text-slate-400">Veritabanındaki gerçek bayileri, cari bakiyelerini, kredi limitlerini ve canlı sepetlerini yönetin</p>
+          {/* Sidebar Footer */}
+          <div className="p-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 space-y-3 shrink-0">
+            {/* TCMB Live Currency Rates */}
+            <div className="p-2.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px]">
+              <div className="flex items-center gap-2 font-mono font-bold">
+                <span className="text-emerald-500 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  ${exchangeRates?.USD_TRY || '38.45'}
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">|</span>
+                <span className="text-sky-500">€{exchangeRates?.EUR_TRY || '42.10'}</span>
               </div>
               <button
-                onClick={loadDealers}
-                disabled={loadingDealers}
-                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+                onClick={() => fetchLiveRates(true)}
+                disabled={isFetchingRates}
+                className="p-1 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition cursor-pointer"
+                title="Kurları Yenile"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingDealers ? 'animate-spin text-sky-400' : ''}`} />
-                <span>Listeyi Yenile</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${isFetchingRates ? 'animate-spin text-blue-500' : ''}`} />
               </button>
             </div>
 
-            {loadingDealers ? (
-              <div className="p-8 text-center text-xs text-slate-400">
-                <Loader2 className="w-6 h-6 animate-spin text-sky-400 mx-auto mb-2" />
-                <span>Bayiler yükleniyor...</span>
+            {/* Quick Actions & Profile */}
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 transition"
+                  title="Vitrin Anasayfası"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href="/bayi"
+                  target="_blank"
+                  className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-500 rounded-xl border border-slate-200 dark:border-slate-800 transition"
+                  title="Bayi Portalı"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="p-2 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-500 rounded-xl border border-slate-200 dark:border-slate-800 transition cursor-pointer"
+                  title="Temayı Değiştir"
+                >
+                  {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-600" />}
+                </button>
               </div>
-            ) : dealersList.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
-                Kayıtlı bayi bulunamadı. Yukarıdaki başvurulardan bayilik onaylayarak yeni bayi oluşturabilirsiniz.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
-                      <th className="py-3 px-4">Yetkili & İletişim</th>
-                      <th className="py-3 px-4">Özel İskonto</th>
-                      <th className="py-3 px-4">Kredi Limiti</th>
-                      <th className="py-3 px-4">Cari Bakiye</th>
-                      <th className="py-3 px-4">Kullanılabilir Limit</th>
-                      <th className="py-3 px-4">Siparişler</th>
-                      <th className="py-3 px-4">Durum</th>
-                      <th className="py-3 px-4 text-right">İşlemler</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
-                    {dealersList.map((dealer) => (
-                      <tr key={dealer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                        <td className="py-3.5 px-4">
-                          <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
-                          <div className="font-bold text-slate-900 dark:text-white text-sm">{dealer.companyName}</div>
-                          <div className="text-[10px] text-slate-500">Kayıt: {dealer.registeredAt}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="text-slate-300 font-semibold">{dealer.contactPerson}</div>
-                          <div className="text-slate-500 text-[11px]">{dealer.phone}</div>
-                          <div className="text-slate-500 text-[10px]">{dealer.email}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                            %{dealer.customDiscountPercent || 0}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
-                          {formatCurrency(dealer.creditLimit)}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-bold">
-                          <span className={dealer.currentBalance > 0 ? 'text-rose-400' : 'text-slate-200'}>
-                            {formatCurrency(dealer.currentBalance)}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
-                          {formatCurrency(dealer.availableCredit)}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900 dark:text-white">{dealer.totalOrders} Sipariş</div>
-                          <div className="text-[10px] text-slate-500">Son: {dealer.lastOrderDate}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            dealer.status === 'ACTIVE'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                          }`}>
-                            {dealer.status === 'ACTIVE' ? 'Aktif' : 'Askıda'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => openDealerDrawer(dealer.id)}
-                            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Yönet & Cari</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
 
-          {/* Section 3: Interactive Dealer Details & Live Cart & Cari Modal */}
-          {selectedDealerId && selectedDealerDetail && (
-            <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                {/* Modal Header */}
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-sm">
-                      {selectedDealerDetail.legalName?.slice(0, 2).toUpperCase() || 'ER'}
+              <button
+                type="button"
+                onClick={() => logoutAction()}
+                className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition cursor-pointer"
+                title="Güvenli Çıkış Yap"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN WORKSPACE CONTENT */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Workspace Top Header Bar */}
+          <header className="h-16 bg-white dark:bg-[#0D1322] border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sticky top-0 z-20">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-800 lg:hidden cursor-pointer"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
+              <div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-400 font-medium">Yönetici Paneli</span>
+                  <ChevronRight className="w-3 h-3 text-slate-400" />
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {navigationGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.label || 'Genel Bakış'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-500">
+                <Database className="w-3.5 h-3.5 text-blue-500" />
+                <span>PostgreSQL Canlı</span>
+              </div>
+
+              <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200 dark:border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow">
+                  E
+                </div>
+                <div className="hidden md:block text-left leading-tight">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">ersaticaret</div>
+                  <div className="text-[10px] text-blue-500 font-medium">Süper Yönetici</div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Content Area */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
+
+            {/* TAB 1: DASHBOARD */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Operational Alert Banner: Bank Accounts */}
+                {bankAccounts.length === 0 && !loadingBanks && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300 text-xs shadow-lg">
+                    <div className="flex items-center gap-2.5">
+                      <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                      <div>
+                        <strong className="block text-white font-bold">Operasyonel Uyarı: Sistemde aktif banka hesabı tanımlı değil!</strong>
+                        <span>Bayileriniz havale/EFT seçeneğiyle sipariş veremez. Lütfen şirket IBAN bilgilerinizi ekleyiniz.</span>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setActiveTab('bank_accounts')}
+                      className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl transition shrink-0 text-xs shadow-xs"
+                    >
+                      Hesap Ekle
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-black text-slate-900 dark:text-white">{selectedDealerDetail.legalName}</h2>
-                      <p className="text-xs text-slate-400 font-mono">
-                        {selectedDealerDetail.user?.username} • Özel İskonto: %{selectedDealerDetail.customDiscountPercent || 0} • {selectedDealerDetail.phone}
-                      </p>
+                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Veritabanındaki Ürün</span>
+                      <h3 className="text-2xl font-black text-slate-900 mt-1">
+                        {adminTotalProducts > 0 ? adminTotalProducts.toLocaleString('tr-TR') : dbProducts.length} Adet
+                      </h3>
+                      <span className="text-[10px] text-emerald-600 font-medium">Aktif B2B Kataloğu</span>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                      <Package className="w-6 h-6" />
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setSelectedDealerId(null);
-                      setSelectedDealerDetail(null);
-                    }}
-                    className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Tanımlı Kategori</span>
+                      <h3 className="text-2xl font-black text-slate-900 mt-1">{dbCategories.length} Grup</h3>
+                      <span className="text-[10px] text-blue-600 font-medium">Hiyerarşik Ağaç</span>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-50 border border-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                      <FolderTree className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">TCMB Dolar Kuru</span>
+                      <h3 className="text-2xl font-black text-slate-900 font-mono mt-1">
+                        {exchangeRates.USD_TRY ? `${exchangeRates.USD_TRY.toFixed(4)} ₺` : '...'}
+                      </h3>
+                      <span className="text-[10px] text-slate-500 font-mono">EUR: {exchangeRates.EUR_TRY?.toFixed(4)} ₺</span>
+                    </div>
+                    <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                      <TrendingUp className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Bekleyen Sipariş</span>
+                      <h3 className="text-2xl font-black text-amber-600 mt-1">
+                        {adminOrders.filter((o) => o.status === 'PENDING_APPROVAL' || o.status === 'PENDING').length} Sipariş
+                      </h3>
+                      <span className="text-[10px] text-slate-500">Toplam {adminOrders.length} Sipariş</span>
+                    </div>
+                    <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+                      <ShoppingBag className="w-6 h-6" />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Modal Tabs Bar */}
-                <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 px-5 gap-2 overflow-x-auto">
-                  {[
-                    { id: 'info', label: 'Genel & Limit', icon: Building2 },
-                    { id: 'account', label: 'Kullanıcı & Şifre', icon: Key },
-                    { id: 'finance', label: `Cari & Hareketler (${selectedDealerDetail.finance?.transactions?.length || 0})`, icon: CreditCard },
-                    { id: 'cart', label: `Canlı Sepet (${selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0})`, icon: ShoppingBag },
-                    { id: 'orders', label: `Sipariş Geçmişi (${selectedDealerDetail.orders?.length || 0})`, icon: FileText }
-                  ].map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = dealerDrawerTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setDealerDrawerTab(tab.id as any);
-                          if (tab.id === 'cart' && selectedDealerDetail?.id) {
-                            loadDealerCart(selectedDealerDetail.id);
-                          }
-                        }}
-                        className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${
-                          isActive
-                            ? 'border-sky-500 text-sky-400'
-                            : 'border-transparent text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Modal Body */}
-                <div className="p-6 overflow-y-auto flex-1 space-y-6">
-                  
-                  {/* TAB 1: INFO & LIMIT */}
-                  {dealerDrawerTab === 'info' && (
-                    <form
-                      onSubmit={async (e) => {
-                        e.preventDefault();
-                        try {
-                          const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              legalName: editLegalName,
-                              taxNo: editTaxNo,
-                              taxOffice: editTaxOffice,
-                              phone: editPhone,
-                              email: editEmail,
-                              status: editStatus,
-                              customDiscountPercent: parseFloat(editCustomDiscount) || 0,
-                              creditLimit: parseFloat(editCreditLimit) || 0
-                            })
-                          });
-                          const json = await res.json();
-                          if (json.success) {
-                            showToast('Bayi bilgileri, iskonto ve limit başarıyla güncellendi!', 'success');
-                            loadDealers();
-                            openDealerDrawer(selectedDealerDetail.id);
-                          } else {
-                            showToast(json.error || 'Güncelleme başarısız', 'error');
-                          }
-                        } catch {
-                          showToast('Hata oluştu', 'error');
-                        }
-                      }}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="bg-gradient-to-br from-amber-950/40 to-slate-900 border border-amber-500/30 p-5 rounded-2xl shadow-xl space-y-3">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                      <Bot className="w-5 h-5" />
+                      <span>Girdap.com.tr Ürün Botu</span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      Girdap B2B sisteminden en güncel yedek parça ve soğutma ürünlerini kategorileriyle çekin.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('scraper')}
+                      className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
                     >
-                      <div className="md:col-span-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div>
-                          <span className="text-slate-400 block text-[11px] font-semibold">Bayi Giriş Kullanıcı Adı:</span>
-                          <span className="text-sm font-mono font-bold text-sky-400">
-                            {selectedDealerDetail.user?.username || selectedDealerDetail.dealerCode}
-                          </span>
-                          <span className="text-[10px] text-slate-500 block mt-0.5">
-                            Giriş Rolü: {selectedDealerDetail.user?.role || 'B2B_DEALER'} • Son Giriş: {selectedDealerDetail.user?.lastLoginAt ? new Date(selectedDealerDetail.user.lastLoginAt).toLocaleString('tr-TR') : 'Henüz Giriş Yapılmadı'}
-                          </span>
-                        </div>
+                      <span>Botu Başlat & Yapılandır</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/reset-password`, {
-                                method: 'POST'
-                              });
-                              const json = await res.json();
-                              if (json.success) {
-                                setCreatedCredentialsModal({
-                                  username: json.username,
-                                  tempPassword: json.tempPassword,
-                                  companyName: selectedDealerDetail.legalName,
-                                  title: 'Yeni Geçici Şifre Oluşturuldu'
-                                });
-                              } else {
-                                showToast(json.error || 'Şifre sıfırlanamadı', 'error');
-                              }
-                            } catch {
-                              showToast('İşlem sırasında hata oluştu', 'error');
-                            }
-                          }}
-                          className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
-                        >
-                          <Key className="w-3.5 h-3.5" />
-                          <span>Yeni Geçici Şifre Üret</span>
-                        </button>
-                      </div>
+                  <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-3">
+                    <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
+                      <Package className="w-5 h-5" />
+                      <span>Ürün ve Stok Yönetimi</span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Ürünlerin fiyatlarını, kâr marjlarını ve stok durumlarını canlı olarak yönetin.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('products')}
+                      className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2"
+                    >
+                      <span>Kataloğa Git ({dbProducts.length} Ürün)</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
 
+                  <div className="bg-rose-950/30 border border-rose-800/40 p-5 rounded-2xl shadow-xl space-y-3">
+                    <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+                      <Database className="w-5 h-5" />
+                      <span>Veritabanı Sıfırlama</span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Eski veya sahte verileri temizleyip sıfırdan temiz veri çekmek için kullanılır.
+                    </p>
+                    <button
+                      onClick={handleCleanDatabase}
+                      disabled={isCleaningDb}
+                      className="w-full bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {isCleaningDb ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                      <span>Veritabanını Temizle</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: OPERASYON ANALİZİ (CCNCORE) */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-6">
+                <AdminAnalyticsDashboard
+                  orders={adminOrders}
+                  dealersCount={dealersList.length}
+                  dealers={dealersList}
+                  products={dbProducts}
+                  categories={dbCategories}
+                />
+              </div>
+            )}
+
+            {/* TAB 2: SCRAPER HUB */}
+            {activeTab === 'scraper' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-5">
+                    <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                      <Bot className="w-5 h-5 text-amber-400" />
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
-                        <input
-                          type="text"
-                          required
-                          value={editLegalName}
-                          onChange={(e) => setEditLegalName(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                        />
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-white">Tedarikçi Botu & Ürün Çekme</h2>
+                        <span className="text-[11px] text-slate-400">Modüler tedarikçi entegrasyonu</span>
                       </div>
+                    </div>
 
+                    <form onSubmit={handleStartScraper} className="space-y-4 text-xs">
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Bayi Özel İskonto Oranı (%):</label>
-                        <div className="relative">
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Tedarikçi Kaynağı (URL):</label>
+                        <div className="space-y-2">
                           <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            placeholder="0.00"
-                            value={editCustomDiscount}
-                            onChange={(e) => setEditCustomDiscount(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-8 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
+                            type="url"
+                            required
+                            placeholder="https://bayi.turkuazteknik.com.tr/Login.ASP"
+                            value={scrapeTargetUrl}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setScrapeTargetUrl(val);
+                              if (val.includes('turkuaz')) {
+                                setSelectedProvider('turkuaz');
+                              } else if (val.includes('girdap')) {
+                                setSelectedProvider('girdap');
+                              } else if (val.includes('ersaticaret')) {
+                                setSelectedProvider('ersaticaret');
+                              }
+                            }}
+                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-amber-500"
                           />
-                          <span className="absolute right-3 top-2 text-slate-500 font-bold">%</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-1">Bayiye özel uygulanacak net indirim yüzdesi (0.00 - 100.00)</p>
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi Dairesi:</label>
-                        <input
-                          type="text"
-                          value={editTaxOffice}
-                          onChange={(e) => setEditTaxOffice(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi No / T.C. Kimlik:</label>
-                        <input
-                          type="text"
-                          value={editTaxNo}
-                          onChange={(e) => setEditTaxNo(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Telefon Numarası:</label>
-                        <input
-                          type="text"
-                          value={editPhone}
-                          onChange={(e) => setEditPhone(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">E-posta Adresi:</label>
-                        <input
-                          type="email"
-                          value={editEmail}
-                          onChange={(e) => setEditEmail(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Tanımlı Kredi Limiti (TL):</label>
-                        <input
-                          type="number"
-                          value={editCreditLimit}
-                          onChange={(e) => setEditCreditLimit(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Hesap Durumu:</label>
-                        <select
-                          value={editStatus}
-                          onChange={(e) => setEditStatus(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                        >
-                          <option value="ACTIVE">Aktif (Sipariş Verebilir)</option>
-                          <option value="SUSPENDED">Askıda (Geçici Olarak Kapalı)</option>
-                        </select>
-                      </div>
-
-                      <div className="md:col-span-2 pt-3 flex justify-end">
-                        <button
-                          type="submit"
-                          className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2"
-                        >
-                          <Save className="w-4 h-4" />
-                          <span>Değişiklikleri Kaydet</span>
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* TAB 1.5: ACCOUNT & SECURITY */}
-                  {dealerDrawerTab === 'account' && (
-                    <div className="space-y-6 text-xs">
-                      {/* User Account Overview */}
-                      <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400 text-xs">Giriş Kullanıcı Adı:</span>
-                            <span className="font-mono font-bold text-sky-400 text-sm">
-                              {selectedDealerDetail.user?.username || 'Tanımsız'}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              (selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE'
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                                : 'bg-red-500/20 text-red-300 border border-red-500/40'
-                            }`}>
-                              {(selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE' ? 'Aktif Hesap' : 'Askıda (Kilitli)'}
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-slate-400">
-                            Firma: <strong className="text-slate-900 dark:text-slate-200">{selectedDealerDetail.legalName}</strong> • Yetkili: {selectedDealerDetail.user?.name || '—'}
-                          </div>
-                          <div className="text-[10px] text-slate-500">
-                            Rol: {selectedDealerDetail.user?.role || 'B2B_DEALER'} • Son Giriş: {selectedDealerDetail.user?.lastLoginAt ? new Date(selectedDealerDetail.user.lastLoginAt).toLocaleString('tr-TR') : 'Henüz Giriş Yapılmadı'}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/reset-password`, {
-                                method: 'POST'
-                              });
-                              const json = await res.json();
-                              if (json.success) {
-                                setCreatedCredentialsModal({
-                                  username: json.username,
-                                  tempPassword: json.tempPassword,
-                                  companyName: selectedDealerDetail.legalName,
-                                  title: 'Yeni Geçici Şifre Üretildi'
-                                });
-                              } else {
-                                showToast(json.error || 'Şifre sıfırlanamadı', 'error');
-                              }
-                            } catch {
-                              showToast('İşlem sırasında hata oluştu', 'error');
-                            }
-                          }}
-                          className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
-                        >
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Rastgele Geçici Şifre Üret</span>
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Section 1: Change Username */}
-                        <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-4">
-                          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <UserCheck className="w-4 h-4 text-sky-400" />
-                            <h3 className="font-bold text-slate-900 dark:text-white text-xs">Kullanıcı Adı Değiştir</h3>
-                          </div>
-
-                          <form
-                            onSubmit={async (e) => {
-                              e.preventDefault();
-                              if (!editUsername || editUsername.trim().length < 3) {
-                                showToast('Kullanıcı adı en az 3 karakter olmalıdır.', 'warning');
-                                return;
-                              }
-                              setSavingAccount(true);
-                              try {
-                                const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ username: editUsername.trim() })
-                                });
-                                const json = await res.json();
-                                if (json.success) {
-                                  showToast(json.message || 'Kullanıcı adı başarıyla güncellendi!', 'success');
-                                  loadDealers();
-                                  openDealerDrawer(selectedDealerDetail.id);
-                                } else {
-                                  showToast(json.error || 'Kullanıcı adı güncellenemedi', 'error');
-                                }
-                              } catch {
-                                showToast('İşlem sırasında hata oluştu', 'error');
-                              } finally {
-                                setSavingAccount(false);
-                              }
-                            }}
-                            className="space-y-3"
-                          >
-                            <div>
-                              <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Kullanıcı Adı:</label>
-                              <input
-                                type="text"
-                                required
-                                value={editUsername}
-                                onChange={(e) => setEditUsername(e.target.value)}
-                                placeholder="Örn: bayikodu veya firma_adi"
-                                className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-sky-500"
-                              />
-                              <p className="text-[10px] text-slate-500 mt-1">
-                                Benzersiz olmalıdır. Aynı kullanıcı adı başka bir hesapta varsa sistem hata verir.
-                              </p>
-                            </div>
-
-                            <button
-                              type="submit"
-                              disabled={savingAccount}
-                              className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
-                            >
-                              <Save className="w-3.5 h-3.5" />
-                              <span>{savingAccount ? 'Kaydediliyor...' : 'Kullanıcı Adını Güncelle'}</span>
-                            </button>
-                          </form>
-                        </div>
-
-                        {/* Section 2: Change Password */}
-                        <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-4">
-                          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                            <Key className="w-4 h-4 text-emerald-400" />
-                            <h3 className="font-bold text-slate-900 dark:text-white text-xs">Güvenli Şifre Değiştir</h3>
-                          </div>
-
-                          <form
-                            onSubmit={async (e) => {
-                              e.preventDefault();
-                              if (!editNewPassword || editNewPassword.length < 6) {
-                                showToast('Yeni şifre en az 6 karakter olmalıdır.', 'warning');
-                                return;
-                              }
-                              if (editNewPassword !== editNewPasswordConfirm) {
-                                showToast('Girdiğiniz şifreler birbiriyle uyuşmuyor.', 'error');
-                                return;
-                              }
-                              setSavingAccount(true);
-                              try {
-                                const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    newPassword: editNewPassword,
-                                    newPasswordConfirm: editNewPasswordConfirm,
-                                    confirmPassword: editNewPasswordConfirm
-                                  })
-                                });
-                                const json = await res.json();
-                                if (json.success) {
-                                  showToast(json.message || 'Şifre başarıyla güncellendi ve hashlenerek kaydedildi!', 'success');
-                                  setEditNewPassword('');
-                                  setEditNewPasswordConfirm('');
-                                } else {
-                                  showToast(json.error || 'Şifre güncellenemedi', 'error');
-                                }
-                              } catch {
-                                showToast('İşlem sırasında hata oluştu', 'error');
-                              } finally {
-                                setSavingAccount(false);
-                              }
-                            }}
-                            className="space-y-3"
-                          >
-                            <div>
-                              <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Şifre:</label>
-                              <input
-                                type="password"
-                                required
-                                minLength={6}
-                                value={editNewPassword}
-                                onChange={(e) => setEditNewPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Şifre Tekrar:</label>
-                              <input
-                                type="password"
-                                required
-                                minLength={6}
-                                value={editNewPasswordConfirm}
-                                onChange={(e) => setEditNewPasswordConfirm(e.target.value)}
-                                placeholder="••••••••"
-                                className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
-                              />
-                            </div>
-
-                            <div className="text-[10px] text-slate-500">
-                              Şifre güvenli bcrypt hash algoritması ile kaydedilir. Plaintext olarak gösterilmez.
-                            </div>
-
-                            <button
-                              type="submit"
-                              disabled={savingAccount}
-                              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>{savingAccount ? 'İşleniyor...' : 'Şifreyi Değiştir ve Kaydet'}</span>
-                            </button>
-                          </form>
-                        </div>
-
-                        {/* Section 3: Account Status */}
-                        <div className="md:col-span-2 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div>
-                              <h4 className="font-bold text-slate-900 dark:text-white text-xs mb-1">Hesap Durumu & Giriş Yetkisi</h4>
-                              <p className="text-[11px] text-slate-400">
-                                Askıya alınan bayiler panele giriş yapamaz ve sipariş veremez.
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                              <select
-                                value={editAccountStatus}
-                                onChange={(e) => setEditAccountStatus(e.target.value)}
-                                className="bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold focus:outline-none"
-                              >
-                                <option value="ACTIVE">Aktif (Giriş Yapabilir)</option>
-                                <option value="SUSPENDED">Askıda (Giriş Kilitli)</option>
-                              </select>
-
-                              <button
-                                type="button"
-                                disabled={savingAccount}
-                                onClick={async () => {
-                                  setSavingAccount(true);
-                                  try {
-                                    const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: editAccountStatus })
-                                    });
-                                    const json = await res.json();
-                                    if (json.success) {
-                                      showToast('Hesap durumu başarıyla güncellendi!', 'success');
-                                      loadDealers();
-                                      openDealerDrawer(selectedDealerDetail.id);
-                                    } else {
-                                      showToast(json.error || 'Durum güncellenemedi', 'error');
-                                    }
-                                  } catch {
-                                    showToast('İşlem sırasında hata oluştu', 'error');
-                                  } finally {
-                                    setSavingAccount(false);
-                                  }
-                                }}
-                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white font-bold rounded-xl transition border border-slate-700 cursor-pointer whitespace-nowrap"
-                              >
-                                Durumu Kaydet
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 2: FINANCE & CARI */}
-                  {dealerDrawerTab === 'finance' && (
-                    <div className="space-y-6">
-                      {/* Financial KPI Cards */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                          <span className="text-slate-400 block mb-1">Cari Bakiye (Borç)</span>
-                          <span className="text-base font-black text-rose-400 font-mono">
-                            {formatCurrency(selectedDealerDetail.finance?.currentBalance || 0)}
-                          </span>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                          <span className="text-slate-400 block mb-1">Kredi Limiti</span>
-                          <span className="text-base font-black text-emerald-400 font-mono">
-                            {formatCurrency(selectedDealerDetail.finance?.creditLimit || 0)}
-                          </span>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                          <span className="text-slate-400 block mb-1">Kullanılabilir Limit</span>
-                          <span className="text-base font-black text-cyan-400 font-mono">
-                            {formatCurrency(selectedDealerDetail.finance?.availableCredit || 0)}
-                          </span>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
-                          <span className="text-slate-400 block mb-1">Toplam İşlem Adedi</span>
-                          <span className="text-base font-black text-slate-200 font-mono">
-                            {selectedDealerDetail.finance?.transactions?.length || 0}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Add Transaction Form */}
-                      <div className="bg-slate-50 dark:bg-[#0B1120]/60 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
-                        <h4 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-                          <Plus className="w-4 h-4 text-emerald-400" />
-                          <span>Yeni Cari Hareket Ekle (Borç / Tahsilat)</span>
-                        </h4>
-
-                        <form
-                          onSubmit={async (e) => {
-                            e.preventDefault();
-                            if (!drawerAmount || parseFloat(drawerAmount) <= 0) {
-                              showToast('Geçerli bir tutar giriniz', 'warning');
-                              return;
-                            }
-                            setSubmittingCari(true);
-                            try {
-                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cari-transaction`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  type: drawerDocType,
-                                  amount: parseFloat(drawerAmount),
-                                  docNo: drawerDocNo,
-                                  note: drawerNote
-                                })
-                              });
-                              const json = await res.json();
-                              if (json.success) {
-                                showToast(json.message, 'success');
-                                setDrawerAmount('');
-                                setDrawerDocNo('');
-                                setDrawerNote('');
-                                loadDealers();
-                                openDealerDrawer(selectedDealerDetail.id);
-                              } else {
-                                showToast(json.error || 'İşlem başarısız', 'error');
-                              }
-                            } catch {
-                              showToast('Hata oluştu', 'error');
-                            } finally {
-                              setSubmittingCari(false);
-                            }
-                          }}
-                          className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
-                        >
-                          <div>
-                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">İşlem Türü:</label>
-                            <select
-                              value={drawerDocType}
-                              onChange={(e) => setDrawerDocType(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                            >
-                              <option value="MANUAL_DEBIT">Manuel Borç (Fatura / Satış)</option>
-                              <option value="MANUAL_CREDIT">Tahsilat / Ödeme (Alacak)</option>
-                              <option value="CORRECTION">Bakiye Düzeltme</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Tutar (TL):</label>
-                            <input
-                              type="number"
-                              required
-                              placeholder="0.00"
-                              value={drawerAmount}
-                              onChange={(e) => setDrawerAmount(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Evrak / Dekont No:</label>
-                            <input
-                              type="text"
-                              placeholder="Örn: DEK-2026-001"
-                              value={drawerDocNo}
-                              onChange={(e) => setDrawerDocNo(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Açıklama / Not:</label>
-                            <input
-                              type="text"
-                              placeholder="Örn: Havale ile tahsilat"
-                              value={drawerNote}
-                              onChange={(e) => setDrawerNote(e.target.value)}
-                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                            />
-                          </div>
-
-                          <div className="sm:col-span-4 flex justify-end">
-                            <button
-                              type="submit"
-                              disabled={submittingCari}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
-                            >
-                              <Check className="w-4 h-4" />
-                              <span>{submittingCari ? 'İşleniyor...' : 'Cari Hareketi Kaydet'}</span>
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-
-                      {/* Transactions Table */}
-                      <div className="overflow-x-auto border border-slate-800 rounded-2xl">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
-                            <tr>
-                              <th className="py-2.5 px-3">Tarih</th>
-                              <th className="py-2.5 px-3">Tür</th>
-                              <th className="py-2.5 px-3">Evrak / Açıklama</th>
-                              <th className="py-2.5 px-3 text-right">Tutar</th>
-                              <th className="py-2.5 px-3 text-right">Son Bakiye</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
-                            {selectedDealerDetail.finance?.transactions?.map((t: any) => (
-                              <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
-                                  {new Date(t.createdAt).toLocaleDateString('tr-TR')} {new Date(t.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                </td>
-                                <td className="py-2 px-3">
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT'
-                                      ? 'bg-rose-500/20 text-rose-300'
-                                      : 'bg-emerald-500/20 text-emerald-300'
-                                  }`}>
-                                    {t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'BORÇ' : 'TAHSİLAT/ALACAK'}
-                                  </span>
-                                </td>
-                                <td className="py-2 px-3 text-slate-300 max-w-sm truncate">{t.note}</td>
-                                <td className="py-2 px-3 text-right font-mono font-bold">
-                                  <span className={t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'text-rose-400' : 'text-emerald-400'}>
-                                    {formatCurrency(t.amount)}
-                                  </span>
-                                </td>
-                                <td className="py-2 px-3 text-right font-mono font-bold text-slate-200">
-                                  {formatCurrency(t.balanceAfter)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: LIVE CART */}
-                  {dealerDrawerTab === 'cart' && (
-                    <div className="space-y-6 text-xs">
-                      {/* Cart Header & Actions */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-                        <div className="flex items-center gap-2">
-                          <ShoppingBag className="w-4 h-4 text-sky-400" />
-                          <span className="font-bold text-slate-900 dark:text-white">
-                            Bayinin Aktif Veritabanı Sepeti ({selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0} Kalem)
-                          </span>
-                          {loadingDealerCart && (
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400 ml-1" />
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => loadDealerCart(selectedDealerDetail.id)}
-                            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
-                            title="Sepeti Yenile"
-                          >
-                            <RefreshCw className={`w-3.5 h-3.5 ${loadingDealerCart ? 'animate-spin' : ''}`} />
-                            <span>Yenile</span>
-                          </button>
-
-                          {((selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0) > 0) && (
+                          <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
                               onClick={() => {
-                                setConfirmModal({
-                                  isOpen: true,
-                                  title: 'Sepeti Tamamen Temizle',
-                                  message: `"${selectedDealerDetail.legalName}" bayisinin sepetindeki TÜM ürünler silinecektir. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`,
-                                  confirmText: 'Evet, Sepeti Temizle',
-                                  isDanger: true,
-                                  onConfirm: async () => {
-                                    try {
-                                      const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ action: 'clear_cart' })
-                                      });
-                                      const json = await res.json();
-                                      if (json.success) {
-                                        showToast('Bayinin sepeti tamamen temizlendi.', 'success');
-                                        await loadDealerCart(selectedDealerDetail.id);
-                                        openDealerDrawer(selectedDealerDetail.id);
-                                      } else {
-                                        showToast(json.error || 'Sepet temizlenemedi', 'error');
-                                      }
-                                    } catch {
-                                      showToast('Bağlantı hatası', 'error');
-                                    }
-                                  }
-                                });
+                                setScrapeTargetUrl('https://bayi.turkuazteknik.com.tr/Login.ASP');
+                                setSelectedProvider('turkuaz');
                               }}
-                              className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'turkuaz'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                }`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Sepeti Temizle</span>
+                              Turkuaz Teknik (bayi.turkuazteknik.com.tr)
                             </button>
-                          )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setScrapeTargetUrl('https://www.ersaticaret.com');
+                                setSelectedProvider('ersaticaret');
+                              }}
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'ersaticaret'
+                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                }`}
+                            >
+                              ersaticaret.com (2.375 Ürün)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setScrapeTargetUrl('https://girdap.com.tr');
+                                setSelectedProvider('girdap');
+                              }}
+                              className={`text-[11px] px-2.5 py-1 rounded-lg border font-bold transition ${selectedProvider === 'girdap'
+                                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                                  : 'bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 border-slate-800 hover:text-white'
+                                }`}
+                            >
+                              girdap.com.tr
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Add Product to Dealer's Cart Form */}
-                      <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Plus className="w-4 h-4 text-emerald-400" />
-                          <h4 className="font-bold text-slate-900 dark:text-white text-xs">Bayinin Sepetine Ürün Ekle</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
+                          <input
+                            type="text"
+                            value={scrapeUsername}
+                            onChange={(e) => setScrapeUsername(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
+                          />
                         </div>
+                        <div>
+                          <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şifre:</label>
+                          <input
+                            type="password"
+                            value={scrapePassword}
+                            onChange={(e) => setScrapePassword(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                          <div className="sm:col-span-7">
-                            <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Ürün Seçin:</label>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Maksimum Çekilecek Ürün Limiti:</label>
+                        <input
+                          type="number"
+                          value={scrapeMaxLimit}
+                          onChange={(e) => setScrapeMaxLimit(e.target.value)}
+                          placeholder="Boş Bırakılırsa Tüm 2.375 Ürün Çekilir"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
+                        />
+                        <span className="text-[10px] text-slate-500 block mt-1">
+                          * Tüm ürünleri almak için bu alanı boş bırakabilirsiniz.
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
+                        <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Otomatik İşlem Kuralları:</span>
+                        </div>
+                        <ul className="list-disc list-inside space-y-0.5 text-slate-300">
+                          <li>Ürünler doğrudan <strong>birebir net fiyatıyla (kâr marjı eklenmeden)</strong> aktarılır.</li>
+                          <li>Kategoriler, markalar (Vestel, Embraco, Bosch vb.) otomatik eşleştirilir.</li>
+                          <li>Ürün resimleri ve teknik özellikleri veritabanına bağlanır.</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-2 flex gap-3">
+                        {!isScrapingActive ? (
+                          <button
+                            type="submit"
+                            className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+                          >
+                            <Play className="w-4 h-4 fill-slate-950" />
+                            <span>Ürünleri Şimdi Çek</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleStopScraper}
+                            className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+                          >
+                            <Square className="w-4 h-4 fill-white" />
+                            <span>Botu Durdur</span>
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+
+                  <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2.5 h-2.5 rounded-full ${isScrapingActive ? 'bg-emerald-400 animate-ping' : 'bg-slate-600'}`} />
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Canlı Bot Durumu & İlerleme</h3>
+                        </div>
+                        <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full ${scraperProgress?.status === 'running' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                            scraperProgress?.status === 'completed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
+                              'bg-slate-800 text-slate-400'
+                          }`}>
+                          {scraperProgress?.status === 'running' ? 'Çalışıyor' :
+                            scraperProgress?.status === 'completed' ? 'Tamamlandı' :
+                              scraperProgress?.status === 'stopped' ? 'Durduruldu' : 'Hazır'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-300 font-medium">{scraperProgress?.currentStep || 'Beklemede'}</span>
+                          <span className="font-mono font-bold text-amber-400">%{scraperProgress?.percent || 0}</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-3 p-0.5 border border-slate-200 dark:border-slate-800 overflow-hidden">
+                          <div
+                            className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full rounded-full transition-all duration-300"
+                            style={{ width: `${scraperProgress?.percent || 0}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Taranan Kategori</span>
+                          <span className="text-base font-black text-slate-900 dark:text-white font-mono">{scraperProgress?.processedCategories || 0} / {scraperProgress?.totalCategories || 0}</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Aktarılan Ürün</span>
+                          <span className="text-base font-black text-emerald-400 font-mono">{scraperProgress?.importedProducts || 0}</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-xl text-center">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Hatalı/Atlanan</span>
+                          <span className="text-base font-black text-slate-400 font-mono">{scraperProgress?.failedProducts || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+                        <span>Terminal / Canlı Log Akışı:</span>
+                        <span className="font-mono">{scraperProgress?.logs?.length || 0} satır</span>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl p-3 h-52 overflow-y-auto font-mono text-[11px] space-y-1.5 text-slate-300">
+                        {(!scraperProgress?.logs || scraperProgress.logs.length === 0) ? (
+                          <div className="text-slate-600 italic">Henüz bir log kaydı yok. Botu başlattığınızda canlı işlem logları burada akacaktır.</div>
+                        ) : (
+                          scraperProgress.logs.map((l, idx) => (
+                            <div key={idx} className="flex items-start gap-2">
+                              <span className="text-slate-600 flex-shrink-0">[{l.timestamp}]</span>
+                              <span className={
+                                l.level === 'success' ? 'text-emerald-400 font-bold' :
+                                  l.level === 'error' ? 'text-rose-400 font-bold' :
+                                    l.level === 'warn' ? 'text-amber-300' : 'text-slate-300'
+                              }>
+                                {l.message}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: PRODUCTS (Paginated Database Infinite Scroll) */}
+            {activeTab === 'products' && (
+              <div className="space-y-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-4 rounded-2xl shadow-lg">
+                  <div className="flex flex-wrap items-center gap-3 flex-1">
+                    <div className="relative flex-1 min-w-[200px] max-w-sm">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="Ürün adı, SKU veya barkod ile ara..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <select
+                      value={productCategoryFilter}
+                      onChange={(e) => setProductCategoryFilter(e.target.value)}
+                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    >
+                      <option value="ALL">Tüm Kategoriler</option>
+                      {dbCategories.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={productBrandFilter}
+                      onChange={(e) => setProductBrandFilter(e.target.value)}
+                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    >
+                      <option value="ALL">Tüm Markalar ({adminBrandsList.length})</option>
+                      {adminBrandsList.map((b) => (
+                        <option key={b.id || b.name} value={b.name}>{b.name} ({b.productCount})</option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => setAdminMissingPriceFilter(!adminMissingPriceFilter)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition ${adminMissingPriceFilter
+                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                          : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Fiyatı Eksik Ürünler</span>
+                    </button>
+
+                    <select
+                      value={productSort}
+                      onChange={(e) => setProductSort(e.target.value)}
+                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    >
+                      <option value="newest">En Yeniler</option>
+                      <option value="price_asc">Fiyat: Düşükten Yükseğe</option>
+                      <option value="price_desc">Fiyat: Yüksekten Düşüğe</option>
+                      <option value="name_asc">İsim: A - Z</option>
+                      <option value="stock_desc">Stok: Çoktan Aza</option>
+                    </select>
+
+                    <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                      Toplam: <strong className="text-sky-400">{adminTotalProducts.toLocaleString('tr-TR')}</strong> Ürün
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => loadAdminProducts(1, true)}
+                      className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition"
+                      title="Yenile"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingProducts ? 'animate-spin text-sky-400' : ''}`} />
+                    </button>
+                    <button
+                      onClick={() => setIsNewProductModalOpen(true)}
+                      className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Yeni Ürün Ekle</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl shadow-xl overflow-hidden">
+                  {loadingProducts && dbProducts.length === 0 ? (
+                    <div className="py-20 text-center text-slate-400 flex items-center justify-center gap-2">
+                      <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+                      <span>Ürünler veritabanından çekiliyor...</span>
+                    </div>
+                  ) : dbProducts.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 space-y-3">
+                      <Package className="w-12 h-12 text-slate-600 mx-auto" />
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">Ürün Bulunamadı</h3>
+                      <p className="text-xs text-slate-400">
+                        {productSearch ? 'Arama kriterlerinize uygun ürün yok.' : 'Henüz ürün eklenmemiş. Tedarikçi botu ile ürünleri içeri aktarabilirsiniz.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left text-slate-300">
+                        <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 uppercase font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="p-3.5">Görsel</th>
+                            <th className="p-3.5">Ürün Adı & Kategori</th>
+                            <th className="p-3.5">SKU / Barkod</th>
+                            <th className="p-3.5">Alış Fiyatı</th>
+                            <th className="p-3.5">Satış Fiyatı (TL)</th>
+                            <th className="p-3.5">İskonto (%)</th>
+                            <th className="p-3.5">Stok Adedi</th>
+                            <th className="p-3.5 text-center">Durum</th>
+                            <th className="p-3.5 text-right">İşlemler</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60 font-medium">
+                          {dbProducts.map((p) => {
+                            const imgUrl = p.images && p.images.length > 0 ? p.images[0].url : '/placeholder.svg';
+                            return (
+                              <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                <td className="p-3.5">
+                                  <img
+                                    src={imgUrl}
+                                    alt={p.name}
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                                    }}
+                                    className="w-10 h-10 object-cover rounded-lg bg-white p-0.5 border border-slate-700"
+                                  />
+                                </td>
+                                <td className="p-3.5 max-w-sm">
+                                  <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
+                                  <div className="text-[10px] text-slate-400 mt-0.5">
+                                    {p.category?.name || 'Kategorisiz'} {p.brand?.name ? `• ${p.brand.name}` : ''}
+                                  </div>
+                                </td>
+                                <td className="p-3.5 font-mono text-sky-300">
+                                  <div>{p.sku}</div>
+                                  {p.barcode && <div className="text-[10px] text-slate-500">{p.barcode}</div>}
+                                </td>
+                                <td className="p-3.5 font-mono text-slate-400">
+                                  {p.costPrice ? `${Number(p.costPrice).toFixed(2)} ₺` : '-'}
+                                </td>
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      defaultValue={p.salePrice || 0}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val !== Number(p.salePrice)) {
+                                          handleUpdateProductInline(p.id, { salePrice: val });
+                                        }
+                                      }}
+                                      className={`w-24 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white px-2 py-1 font-mono font-bold text-xs focus:outline-none ${!p.salePrice || Number(p.salePrice) <= 0
+                                          ? 'border-amber-500/60 text-amber-400 focus:border-amber-400'
+                                          : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                                        }`}
+                                    />
+                                    {(!p.salePrice || Number(p.salePrice) <= 0) && (
+                                      <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[9px] border border-amber-500/30 whitespace-nowrap">
+                                        Fiyat Yok
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      min="0"
+                                      max="100"
+                                      defaultValue={p.discountPercent || 0}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val !== Number(p.discountPercent)) {
+                                          handleUpdateProductInline(p.id, { discountPercent: val });
+                                        }
+                                      }}
+                                      className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
+                                    />
+                                    <span className="text-slate-500 text-[10px]">%</span>
+                                  </div>
+                                </td>
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      defaultValue={p.stockQty}
+                                      onBlur={(e) => {
+                                        const val = parseInt(e.target.value, 10);
+                                        if (!isNaN(val) && val !== p.stockQty) {
+                                          handleUpdateProductInline(p.id, { stockQty: val });
+                                        }
+                                      }}
+                                      className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono text-slate-900 dark:text-white text-xs focus:outline-none"
+                                    />
+                                    <StockBadge stock={p.stockQty} size="sm" showIcon={false} />
+                                  </div>
+                                </td>
+                                <td className="p-3.5 text-center">
+                                  <button
+                                    onClick={() => handleUpdateProductInline(p.id, { status: p.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE' })}
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition ${p.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'
+                                      }`}
+                                  >
+                                    {p.status === 'ACTIVE' ? 'Aktif' : 'Taslak'}
+                                  </button>
+                                </td>
+                                <td className="p-3.5 text-right">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <button
+                                      onClick={() => openEditProductModal(p)}
+                                      className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition"
+                                      title="Ürünü Düzenle (İsim, Görsel, SKU, İskonto)"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteProduct(p.id, p.name)}
+                                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition"
+                                      title="Ürünü Sil"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+
+                      {/* Infinite Scroll Sentinel for Admin */}
+                      <div ref={adminProductObserverTarget} className="py-6 text-center border-t border-slate-200 dark:border-slate-800/40">
+                        {loadingMoreProducts && (
+                          <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 text-sky-400 text-xs font-bold px-4 py-2 rounded-xl shadow-lg animate-pulse">
+                            <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+                            <span>Daha fazla ürün yükleniyor...</span>
+                          </div>
+                        )}
+                        {!adminHasMoreProducts && dbProducts.length > 0 && (
+                          <div className="text-xs text-slate-500 font-medium">
+                            Tüm ürünler listelendi ({dbProducts.length} / {adminTotalProducts})
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: CATEGORIES (Hiyerarşik Ana & Alt Kategori Yönetimi) */}
+            {activeTab === 'categories' && (() => {
+              const mainCategories = dbCategories.filter((c) => !c.parentId);
+              const subCategories = dbCategories.filter((c) => !!c.parentId);
+
+              const filteredMainCategories = mainCategories.filter((mainCat) => {
+                if (!categoryHierarchySearch.trim()) return true;
+                const q = categoryHierarchySearch.toLowerCase();
+                const matchMain = mainCat.name.toLowerCase().includes(q);
+                const matchSub = dbCategories.some(
+                  (sub) => sub.parentId === mainCat.id && sub.name.toLowerCase().includes(q)
+                );
+                return matchMain || matchSub;
+              });
+
+              // Any orphan subcategories (whose parentId is not in dbCategories)
+              const mainCatIds = new Set(mainCategories.map((m) => m.id));
+              const orphanSubCategories = subCategories.filter(
+                (sub) => sub.parentId && !mainCatIds.has(sub.parentId)
+              );
+
+              const toggleMainCategory = (catId: string) => {
+                setExpandedMainCategories((prev) => ({
+                  ...prev,
+                  [catId]: !prev[catId]
+                }));
+              };
+
+              const expandAll = () => {
+                const allTrue: Record<string, boolean> = {};
+                mainCategories.forEach((m) => {
+                  allTrue[m.id] = true;
+                });
+                setExpandedMainCategories(allTrue);
+              };
+
+              const collapseAll = () => {
+                setExpandedMainCategories({});
+              };
+
+              return (
+                <div className="space-y-5">
+                  {/* Top KPI Summary Banner */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                        <FolderTree className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-[11px] text-slate-400 block font-medium">Toplam Kategori</span>
+                        <span className="text-xl font-black text-slate-900 dark:text-white font-mono">{dbCategories.length}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold">
+                        <FolderPlus className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-[11px] text-slate-400 block font-medium">Ana Kategoriler</span>
+                        <span className="text-xl font-black text-sky-400 font-mono">{mainCategories.length}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-[11px] text-slate-400 block font-medium">Bağlı Alt Kategoriler</span>
+                        <span className="text-xl font-black text-emerald-400 font-mono">{subCategories.length}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Column: Create Category Form */}
+                    <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4 h-fit">
+                      <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <Plus className="w-4 h-4 text-emerald-400" />
+                          <span>Yeni Kategori Tanımla</span>
+                        </h3>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          Kataloğunuzu zenginleştirmek için ana veya alt kategori ekleyin.
+                        </p>
+                      </div>
+
+                      {/* Type Selector (Ana Kategori / Alt Kategori) */}
+                      <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-[#0B1120] rounded-xl border border-slate-200 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCatType('main');
+                            setNewCatParent('');
+                          }}
+                          className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${newCatType === 'main'
+                              ? 'bg-sky-600 text-white shadow-xs'
+                              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            }`}
+                        >
+                          📁 Ana Kategori
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCatType('sub');
+                            if (!newCatParent && mainCategories.length > 0) {
+                              setNewCatParent(mainCategories[0].id);
+                            }
+                          }}
+                          className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${newCatType === 'sub'
+                              ? 'bg-purple-600 text-white shadow-xs'
+                              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            }`}
+                        >
+                          ↳ Alt Kategori
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
+                        {newCatType === 'sub' && (
+                          <div>
+                            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                              Bağlanacağı Ana Kategori: <span className="text-rose-500">*</span>
+                            </label>
                             <select
-                              value={cartAddProductId}
-                              onChange={(e) => {
-                                setCartAddProductId(e.target.value);
-                                setCartAddQty(1);
-                              }}
-                              className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 text-xs"
+                              required
+                              value={newCatParent}
+                              onChange={(e) => setNewCatParent(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
                             >
-                              <option value="">-- Listeden Ürün Seçiniz --</option>
-                              {dbProducts.map((p) => (
-                                <option key={p.id} value={p.id} disabled={p.stockQty <= 0}>
-                                  {p.name} ({p.sku}) — Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
+                              <option value="" disabled>-- Ana Kategori Seçiniz --</option>
+                              {mainCategories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
                                 </option>
                               ))}
                             </select>
                           </div>
+                        )}
 
-                          <div className="sm:col-span-2">
-                            <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Miktar:</label>
+                        <div>
+                          <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                            {newCatType === 'main' ? 'Ana Kategori Adı:' : 'Alt Kategori Adı:'} <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder={newCatType === 'main' ? 'Örn: Soğutma Kompresörleri' : 'Örn: Hermetik Kompresörler'}
+                            value={newCatName}
+                            onChange={(e) => setNewCatName(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Sıra Numarası:</label>
                             <input
                               type="number"
-                              min={1}
-                              value={cartAddQty}
-                              onChange={(e) => setCartAddQty(Math.max(1, parseInt(e.target.value) || 1))}
-                              className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono font-bold text-xs focus:outline-none focus:border-sky-500"
+                              placeholder="1, 2, 3..."
+                              value={newCatSortOrder}
+                              onChange={(e) => setNewCatSortOrder(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                             />
                           </div>
-
-                          <div className="sm:col-span-3 flex items-end">
-                            <button
-                              type="button"
-                              disabled={!cartAddProductId || isAddingCartItem}
-                              onClick={async () => {
-                                if (!cartAddProductId) {
-                                  showToast('Lütfen eklenecek bir ürün seçin.', 'warning');
-                                  return;
-                                }
-                                setIsAddingCartItem(true);
-                                try {
-                                  const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      action: 'add_item',
-                                      productId: cartAddProductId,
-                                      quantity: cartAddQty
-                                    })
-                                  });
-                                  const json = await res.json();
-                                  if (json.success) {
-                                    showToast(json.message || 'Ürün sepete başarıyla eklendi!', 'success');
-                                    setCartAddProductId('');
-                                    setCartAddQty(1);
-                                    await loadDealerCart(selectedDealerDetail.id);
-                                    openDealerDrawer(selectedDealerDetail.id);
-                                  } else {
-                                    showToast(json.error || 'Ürün sepete eklenemedi.', 'error');
-                                  }
-                                } catch {
-                                  showToast('İşlem sırasında hata oluştu.', 'error');
-                                } finally {
-                                  setIsAddingCartItem(false);
-                                }
-                              }}
-                              className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer text-xs"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              <span>{isAddingCartItem ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
-                            </button>
+                          <div>
+                            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">İskonto Oranı (%):</label>
+                            <input
+                              type="number"
+                              step="1"
+                              min="0"
+                              max="100"
+                              placeholder="Örn: 15"
+                              value={newCatDiscount}
+                              onChange={(e) => setNewCatDiscount(e.target.value)}
+                              className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-500 font-bold focus:outline-none"
+                            />
                           </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className={`w-full text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-1.5 cursor-pointer ${newCatType === 'main'
+                              ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
+                              : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
+                            }`}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>{newCatType === 'main' ? 'Ana Kategori Oluştur' : 'Alt Kategori Oluştur'}</span>
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* Right Column: Hierarchical Category Tree */}
+                    <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <FolderTree className="w-4 h-4 text-purple-400" />
+                            <span>Kategori Hiyerarşisi ({mainCategories.length} Ana / {subCategories.length} Alt)</span>
+                          </h3>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            Ana kategorileri genişleterek alt kategorileri yönetebilir, sıralamayı düzenleyebilirsiniz.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!bulkTargetParent && mainCategories.length > 0) {
+                                setBulkTargetParent(mainCategories[0].id);
+                              }
+                              setBulkLinkModalOpen(true);
+                            }}
+                            className="px-3 py-1 text-[11px] font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            title="Mevcut kategorileri seçtiğiniz ana kategoriye bağlayın"
+                          >
+                            <Link2 className="w-3.5 h-3.5" />
+                            <span>Toplu Kategori Bağla</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={expandAll}
+                            className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                          >
+                            Tümünü Aç
+                          </button>
+                          <button
+                            type="button"
+                            onClick={collapseAll}
+                            className="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                          >
+                            Kapat
+                          </button>
+                          <button
+                            onClick={loadCategories}
+                            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                            title="Yenile"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${loadingCategories ? 'animate-spin' : ''}`} />
+                          </button>
                         </div>
                       </div>
 
-                      {/* Cart Items List */}
-                      {(!selectedDealerCart?.items || selectedDealerCart.items.length === 0) &&
-                       (!selectedDealerDetail.cart || selectedDealerDetail.cart.items.length === 0) ? (
-                        <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800">
-                          Bayinin sepeti şu anda boş. Yukarıdaki alandan ürün ekleyebilirsiniz.
+                      {/* Search Input for Categories */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Ana veya alt kategori adına göre ara..."
+                          value={categoryHierarchySearch}
+                          onChange={(e) => setCategoryHierarchySearch(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                        />
+                        {categoryHierarchySearch && (
+                          <button
+                            onClick={() => setCategoryHierarchySearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {loadingCategories ? (
+                        <div className="py-12 text-center text-slate-400 flex items-center justify-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                          <span>Kategoriler yükleniyor...</span>
+                        </div>
+                      ) : mainCategories.length === 0 ? (
+                        <div className="py-12 text-center text-slate-500 text-xs space-y-1">
+                          <FolderTree className="w-8 h-8 mx-auto text-slate-600" />
+                          <p>Henüz kategori kaydı bulunmuyor.</p>
+                        </div>
+                      ) : filteredMainCategories.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 text-xs">
+                          Arama kriterine uygun kategori bulunamadı.
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-[#0B1120]">
-                            {(selectedDealerCart?.items || selectedDealerDetail.cart.items).map((item: any) => {
-                              const qty = item.quantity;
-                              const unitPrice = item.unitPriceTRY ?? item.salePrice;
-                              const basePrice = item.basePriceTRY ?? item.salePrice;
-                              const discountPercent = item.discountPercent ?? 0;
-                              const vatAmount = item.vatAmount ?? ((unitPrice * qty * 0.20));
-                              const lineGross = item.lineGross ?? ((unitPrice * qty) + vatAmount);
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                          {filteredMainCategories.map((mainCat, mainIdx) => {
+                            const subs = dbCategories
+                              .filter((c) => c.parentId === mainCat.id)
+                              .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+                            const isExpanded = categoryHierarchySearch.trim() !== '' ? true : Boolean(expandedMainCategories[mainCat.id]);
 
-                              return (
-                                <div key={item.id} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                  {/* Product info */}
-                                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shrink-0 overflow-hidden">
-                                      <img
-                                        src={item.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover rounded-lg"
-                                        onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
-                                      />
+                            return (
+                              <div
+                                key={mainCat.id}
+                                className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden transition shadow-sm"
+                              >
+                                {/* Main Category Header Bar */}
+                                <div
+                                  className="p-3.5 flex items-center justify-between gap-2 border-b border-transparent data-[expanded=true]:border-slate-200 dark:data-[expanded=true]:border-slate-800/80 bg-white dark:bg-[#111827]/60"
+                                  data-expanded={isExpanded}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    {/* Move Up / Down Buttons for Main Categories */}
+                                    <div className="flex flex-col gap-0.5 flex-shrink-0">
+                                      <button
+                                        type="button"
+                                        disabled={mainIdx === 0}
+                                        onClick={() => handleMoveCategory(mainCat.id, 'up')}
+                                        className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
+                                        title="Yukarı Taşı"
+                                      >
+                                        <ArrowUp className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={mainIdx === filteredMainCategories.length - 1}
+                                        onClick={() => handleMoveCategory(mainCat.id, 'down')}
+                                        className="p-1 text-slate-400 hover:text-sky-400 hover:bg-slate-800 disabled:opacity-30 rounded transition"
+                                        title="Aşağı Taşı"
+                                      >
+                                        <ArrowDown className="w-3 h-3" />
+                                      </button>
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                      <div className="font-bold text-slate-900 dark:text-white text-xs truncate">{item.name}</div>
-                                      <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
-                                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                        <StockBadge stock={item.stockQty ?? 999} unit={item.unit || 'Adet'} size="sm" />
-                                        {item.isOverStock && (
-                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                            Yetersiz Stok! (Mevcut: {item.stockQty})
+
+                                    <div className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                      <FolderPlus className="w-3.5 h-3.5" />
+                                    </div>
+
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-mono text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                                          #{mainCat.sortOrder && mainCat.sortOrder > 0 ? mainCat.sortOrder : mainIdx + 1}
+                                        </span>
+                                        <span className="font-bold text-slate-900 dark:text-white text-xs truncate">
+                                          {mainCat.name}
+                                        </span>
+
+                                        {mainCat.discountPercent !== undefined && Number(mainCat.discountPercent) > 0 && (
+                                          <span className="text-[10px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded-full font-bold">
+                                            %{mainCat.discountPercent} İskonto
+                                          </span>
+                                        )}
+
+                                        <span className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.2 rounded-full font-mono font-bold">
+                                          {subs.length} Alt Kategori
+                                        </span>
+
+                                        {mainCat._count?.products !== undefined && (
+                                          <span className="text-[10px] bg-slate-800 text-sky-400 px-2 py-0.2 rounded-full font-mono">
+                                            {mainCat._count.products} Ürün
                                           </span>
                                         )}
                                       </div>
                                     </div>
                                   </div>
 
-                                  {/* Price breakdown */}
-                                  <div className="flex items-center gap-4 flex-wrap text-right">
-                                    <div>
-                                      <div className="text-[10px] text-slate-400">Liste Fiyatı</div>
-                                      <div className="font-mono text-slate-400 text-xs">
-                                        {formatCurrency(basePrice)}
-                                      </div>
-                                    </div>
-
-                                    {discountPercent > 0 && (
-                                      <div>
-                                        <div className="text-[10px] text-emerald-400 font-bold">İskonto (%{discountPercent})</div>
-                                        <div className="font-mono text-emerald-400 text-xs font-semibold">
-                                          -{formatCurrency(item.unitDiscountAmt ?? (basePrice - unitPrice))}
-                                        </div>
-                                      </div>
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    {/* Quick Move into another Main Category */}
+                                    {mainCategories.length > 1 && (
+                                      <select
+                                        value=""
+                                        onChange={(e) => {
+                                          if (e.target.value) {
+                                            handleQuickChangeParent(mainCat.id, e.target.value);
+                                          }
+                                        }}
+                                        className="text-[10px] bg-slate-100 dark:bg-[#070b14] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-2 py-1 font-medium cursor-pointer max-w-[140px] truncate"
+                                        title="Bu kategoriyi başka bir ana kategoriye bağla"
+                                      >
+                                        <option value="">↳ Şuraya Bağla...</option>
+                                        {mainCategories
+                                          .filter((m) => m.id !== mainCat.id)
+                                          .map((m) => (
+                                            <option key={m.id} value={m.id}>
+                                              📁 {m.name}
+                                            </option>
+                                          ))}
+                                      </select>
                                     )}
 
-                                    <div>
-                                      <div className="text-[10px] text-slate-400">Net Birim</div>
-                                      <div className="font-mono font-bold text-slate-900 dark:text-white text-xs">
-                                        {formatCurrency(unitPrice)}
-                                      </div>
-                                    </div>
-
-                                    {/* Quantity Controls */}
-                                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
-                                      <button
-                                        type="button"
-                                        onClick={async () => {
-                                          try {
-                                            const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
-                                              method: 'PUT',
-                                              headers: { 'Content-Type': 'application/json' },
-                                              body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: qty - 1 })
-                                            });
-                                            const json = await res.json();
-                                            if (json.success) {
-                                              await loadDealerCart(selectedDealerDetail.id);
-                                              openDealerDrawer(selectedDealerDetail.id);
-                                            } else {
-                                              showToast(json.error || 'Miktar güncellenemedi', 'error');
-                                            }
-                                          } catch {
-                                            showToast('Bağlantı hatası', 'error');
-                                          }
-                                        }}
-                                        className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold cursor-pointer"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="w-8 text-center font-mono font-bold text-slate-900 dark:text-white">{qty}</span>
-                                      <button
-                                        type="button"
-                                        onClick={async () => {
-                                          try {
-                                            const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
-                                              method: 'PUT',
-                                              headers: { 'Content-Type': 'application/json' },
-                                              body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: qty + 1 })
-                                            });
-                                            const json = await res.json();
-                                            if (json.success) {
-                                              await loadDealerCart(selectedDealerDetail.id);
-                                              openDealerDrawer(selectedDealerDetail.id);
-                                            } else {
-                                              showToast(json.error || 'Miktar güncellenemedi', 'error');
-                                            }
-                                          } catch {
-                                            showToast('Bağlantı hatası', 'error');
-                                          }
-                                        }}
-                                        className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold cursor-pointer"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-
-                                    {/* Line Total */}
-                                    <div className="min-w-[100px]">
-                                      <div className="text-[10px] text-slate-400">Toplam (KDV Dahil)</div>
-                                      <div className="font-mono font-bold text-emerald-400 text-sm">
-                                        {formatCurrency(lineGross)}
-                                      </div>
-                                    </div>
-
-                                    {/* Delete Button */}
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        setConfirmModal({
-                                          isOpen: true,
-                                          title: 'Ürünü Sepetten Kaldır',
-                                          message: `"${item.name}" ürününü sepetten kaldırmak istediğinize emin misiniz?`,
-                                          confirmText: 'Ürünü Kaldır',
-                                          isDanger: true,
-                                          onConfirm: async () => {
-                                            try {
-                                              const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
-                                                method: 'PUT',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ action: 'remove_item', itemId: item.id })
-                                              });
-                                              const json = await res.json();
-                                              if (json.success) {
-                                                showToast('Ürün sepetten kaldırıldı.', 'info');
-                                                await loadDealerCart(selectedDealerDetail.id);
-                                                openDealerDrawer(selectedDealerDetail.id);
-                                              } else {
-                                                showToast(json.error || 'İşlem başarısız', 'error');
-                                              }
-                                            } catch {
-                                              showToast('Bağlantı hatası', 'error');
-                                            }
-                                          }
-                                        });
+                                        setNewCatType('sub');
+                                        setNewCatParent(mainCat.id);
+                                        showToast(`"${mainCat.name}" için alt kategori ekleme modu seçildi.`);
                                       }}
-                                      className="p-2 text-slate-400 hover:text-rose-400 rounded-xl hover:bg-rose-500/10 transition cursor-pointer"
-                                      title="Ürünü Sepetten Kaldır"
+                                      className="px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                      title="Bu Ana Kategoriye Alt Kategori Ekle"
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Plus className="w-3 h-3" />
+                                      <span className="hidden sm:inline">Alt Kategori Ekle</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditCategoryModal(mainCat)}
+                                      className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                      title="Düzenle"
+                                    >
+                                      <Edit className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCategory(mainCat.id, mainCat.name)}
+                                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                      title="Sil"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleMainCategory(mainCat.id)}
+                                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer ml-1"
+                                      title={isExpanded ? 'Gizle' : 'Genişlet'}
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronDown className="w-4 h-4 text-purple-400" />
+                                      ) : (
+                                        <ChevronRight className="w-4 h-4" />
+                                      )}
                                     </button>
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
 
-                          {/* Cart Financial Summary Card */}
-                          <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                              <span className="text-slate-400 block text-[11px]">Ara Toplam (KDV Hariç)</span>
-                              <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                                {formatCurrency(selectedDealerCart?.subtotalExVat ?? selectedDealerDetail.cart?.items?.reduce((s: number, i: any) => s + (i.quantity * i.salePrice), 0) ?? 0)}
-                              </span>
+                                {/* Subcategories Accordion Content */}
+                                {isExpanded && (
+                                  <div className="p-3 bg-slate-50/50 dark:bg-[#070b14]/60 space-y-1.5">
+                                    {subs.length === 0 ? (
+                                      <div className="py-3 px-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                                        Bu ana kategoriye bağlı alt kategori bulunmuyor.{' '}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setNewCatType('sub');
+                                            setNewCatParent(mainCat.id);
+                                          }}
+                                          className="text-purple-400 font-bold hover:underline"
+                                        >
+                                          Hemen bir alt kategori ekleyin.
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      subs.map((sub, subIdx) => (
+                                        <div
+                                          key={sub.id}
+                                          className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-[#0E1526] border border-slate-200 dark:border-slate-800/80 hover:border-purple-500/30 transition text-xs group"
+                                        >
+                                          <div className="flex items-center gap-2.5 min-w-0">
+                                            {/* Subcategory Reorder Buttons */}
+                                            <div className="flex flex-col gap-0.5 flex-shrink-0">
+                                              <button
+                                                type="button"
+                                                disabled={subIdx === 0}
+                                                onClick={() => handleMoveCategory(sub.id, 'up')}
+                                                className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
+                                                title="Yukarı Taşı"
+                                              >
+                                                <ArrowUp className="w-2.5 h-2.5" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={subIdx === subs.length - 1}
+                                                onClick={() => handleMoveCategory(sub.id, 'down')}
+                                                className="p-0.5 text-slate-500 hover:text-purple-400 disabled:opacity-30 rounded"
+                                                title="Aşağı Taşı"
+                                              >
+                                                <ArrowDown className="w-2.5 h-2.5" />
+                                              </button>
+                                            </div>
+
+                                            <span className="text-purple-400 font-bold font-mono">↳</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                              {sub.name}
+                                            </span>
+
+                                            {sub.discountPercent !== undefined && Number(sub.discountPercent) > 0 && (
+                                              <span className="text-[9px] bg-rose-500/15 text-rose-400 border border-rose-500/30 px-1.5 py-0.2 rounded font-bold">
+                                                %{sub.discountPercent} İskonto
+                                              </span>
+                                            )}
+
+                                            {sub._count?.products !== undefined && (
+                                              <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-800">
+                                                {sub._count.products} Ürün
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                                            {/* Quick Change Parent for Subcategory */}
+                                            <select
+                                              value={sub.parentId || ''}
+                                              onChange={(e) => handleQuickChangeParent(sub.id, e.target.value)}
+                                              className="text-[10px] bg-slate-100 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-md px-1.5 py-0.5 font-medium cursor-pointer max-w-[130px] truncate"
+                                              title="Bağlı olduğu ana kategoriyi değiştir veya bağımsız ana kategori yap"
+                                            >
+                                              <option value="">📁 Ana Kategori Yap</option>
+                                              {mainCategories.map((m) => (
+                                                <option key={m.id} value={m.id}>
+                                                  ↳ {m.name}
+                                                </option>
+                                              ))}
+                                            </select>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => openEditCategoryModal(sub)}
+                                              className="p-1.5 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                                              title="Alt Kategoriyi Düzenle / Başka Ana Kategoriye Taşı"
+                                            >
+                                              <Edit className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleDeleteCategory(sub.id, sub.name)}
+                                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                              title="Alt Kategoriyi Sil"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Orphan Subcategories if any */}
+                          {orphanSubCategories.length > 0 && (
+                            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
+                              <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>Eşleşmeyen / Üst Kategorisi Bulunmayan Alt Kategoriler ({orphanSubCategories.length})</span>
+                              </div>
+                              <div className="space-y-1">
+                                {orphanSubCategories.map((orphan) => (
+                                  <div key={orphan.id} className="flex items-center justify-between text-xs bg-slate-900 p-2 rounded-lg border border-amber-500/20">
+                                    <span className="text-white font-medium">{orphan.name}</span>
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => openEditCategoryModal(orphan)}
+                                        className="px-2 py-1 bg-amber-500 text-slate-950 rounded text-[10px] font-bold"
+                                      >
+                                        Ana Kategori Ata
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-slate-400 block text-[11px]">Toplam İskonto</span>
-                              <span className="font-mono font-bold text-emerald-400 text-sm">
-                                -{formatCurrency(selectedDealerCart?.totalDiscount ?? 0)}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block text-[11px]">KDV (%20)</span>
-                              <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                                {formatCurrency(selectedDealerCart?.vatTotal ?? ((selectedDealerCart?.subtotalExVat ?? 0) * 0.20))}
-                              </span>
-                            </div>
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
-                              <span className="text-emerald-400 block text-[11px] font-bold">Genel Toplam</span>
-                              <span className="font-mono font-black text-emerald-400 text-base">
-                                {formatCurrency(selectedDealerCart?.grandTotal ?? (((selectedDealerCart?.subtotalExVat ?? 0) * 1.20)))}
-                              </span>
-                            </div>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
+                  </div>
+                </div>
+              );
+            })()}
 
-                  {/* TAB 4: ORDERS */}
-                  {dealerDrawerTab === 'orders' && (
-                    <div className="space-y-3 text-xs">
-                      {selectedDealerDetail.orders.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-800">
-                          Bu bayiye ait henüz sipariş kaydı bulunmuyor.
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
-                          {selectedDealerDetail.orders.map((order: any) => (
-                            <div key={order.id} className="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono font-bold text-sky-400">{order.orderNo}</span>
-                                  <span className="text-slate-500">•</span>
-                                  <span className="text-slate-400">{new Date(order.createdAt).toLocaleDateString('tr-TR')}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="font-mono font-bold text-emerald-400">{formatCurrency(order.grandTotal)}</span>
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    order.status === 'DELIVERED'
-                                      ? 'bg-emerald-500/20 text-emerald-300'
-                                      : order.status === 'PENDING_LIMIT_APPROVAL'
-                                      ? 'bg-rose-500/20 text-rose-300'
-                                      : 'bg-amber-500/20 text-amber-300'
-                                  }`}>
-                                    {order.status}
+            {/* TAB 5: ORDERS (Live PostgreSQL Database Orders) */}
+            {activeTab === 'orders' && (
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-sky-400" />
+                      <span>Bayi Sipariş Onay & Sevkiyat Yönetimi</span>
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Veritabanından canlı bayi siparişleri, ödeme türleri ve kargo sevkiyat durumları
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={adminOrderFilter}
+                      onChange={(e) => setAdminOrderFilter(e.target.value)}
+                      className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                    >
+                      <option value="ALL">Tüm Durumlar ({adminOrders.length})</option>
+                      <option value="PENDING_APPROVAL">⏳ Onay Bekleyenler</option>
+                      <option value="APPROVED">✅ Onaylananlar</option>
+                      <option value="SHIPPED">🚚 Sevkiyatta / Kargoda</option>
+                      <option value="DELIVERED">📦 Teslim Edilenler</option>
+                      <option value="CANCELLED">❌ İptal Edilenler</option>
+                    </select>
+
+                    <button
+                      onClick={loadAdminOrders}
+                      className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                      title="Yenile"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingAdminOrders ? 'animate-spin text-sky-400' : ''}`} />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const filtered = adminOrders.filter(
+                          (o) => adminOrderFilter === 'ALL' || o.status === adminOrderFilter
+                        );
+                        if (filtered.length === 0) {
+                          showToast('Dışa aktarılacak sipariş bulunamadı.', 'warning');
+                          return;
+                        }
+                        try {
+                          exportOrdersToExcel(
+                            filtered,
+                            `ersa-sogutma-tum-siparisler-${new Date().toISOString().split('T')[0]}.xlsx`
+                          );
+                          showToast(`${filtered.length} adet sipariş Excel (.xlsx) olarak başarıyla indirildi!`, 'success');
+                        } catch {
+                          showToast('Excel dışa aktarılırken hata oluştu.', 'error');
+                        }
+                      }}
+                      disabled={loadingAdminOrders || adminOrders.length === 0}
+                      className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+                      title="Siparişleri Excel (.xlsx) Olarak Dışa Aktar"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>Excel&apos;e Aktar</span>
+                    </button>
+                  </div>
+                </div>
+
+                {loadingAdminOrders && adminOrders.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 flex items-center justify-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-sky-400" />
+                    <span>Siparişler yükleniyor...</span>
+                  </div>
+                ) : adminOrders.filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter).length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs space-y-2">
+                    <ShoppingBag className="w-10 h-10 text-slate-700 mx-auto" />
+                    <p>Kriterlere uygun sipariş kaydı bulunmamaktadır.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {adminOrders
+                      .filter(o => adminOrderFilter === 'ALL' || o.status === adminOrderFilter)
+                      .map((order) => {
+                        const isCari = order.paymentMethod === 'CARI';
+                        const formattedDate = new Date(order.createdAt).toLocaleString('tr-TR');
+
+                        return (
+                          <div
+                            key={order.id}
+                            className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 text-xs hover:border-slate-700 transition shadow-lg"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono font-bold text-sky-400 text-sm">#{order.orderNumber}</span>
+                                  <span className="text-slate-400 text-[11px]">({formattedDate})</span>
+                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${isCari ? 'bg-sky-500/10 text-sky-300 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                                    }`}>
+                                    {isCari ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Sanal POS (Peşin)'}
                                   </span>
                                 </div>
+                                <div className="text-slate-300 font-semibold text-xs">
+                                  Bayi: <strong className="text-slate-900 dark:text-white">{order.companyName}</strong> ({order.userName})
+                                </div>
                               </div>
-                              <div className="text-slate-400 text-[11px]">
-                                {order.items.map((i: any) => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}
+
+                              <div className="text-right">
+                                <span className="text-slate-400 block text-[10px]">Genel Toplam (KDV Dahil):</span>
+                                <span className="font-mono font-black text-emerald-400 text-base">
+                                  {formatCurrency(order.grandTotal)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Items */}
+                            <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800/60 space-y-2">
+                              <span className="text-[11px] font-bold text-slate-400 block">Sipariş Kalemleri ({order.items?.length || 0} Ürün):</span>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {order.items?.map((item: any) => (
+                                  <div key={item.id} className="flex items-center gap-2.5 bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px]">
+                                    <img
+                                      src={item.image || '/placeholder.svg'}
+                                      alt=""
+                                      className="w-8 h-8 object-cover rounded bg-white p-0.5 border border-slate-700 flex-shrink-0"
+                                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-semibold text-slate-900 dark:text-white truncate">{item.name}</div>
+                                      <div className="text-[10px] text-slate-400 font-mono">
+                                        {item.sku} • {item.quantity} {item.unit || 'ADET'} × {formatCurrency(item.unitNetExVat)}
+                                      </div>
+                                    </div>
+                                    <div className="font-mono font-bold text-emerald-400 text-right">
+                                      {formatCurrency(item.lineGross)}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {order.orderNote && (
+                              <div className="bg-amber-50/50 dark:bg-slate-900 p-2.5 rounded-xl border border-amber-200 dark:border-slate-800 text-[11px] text-amber-800 dark:text-amber-300">
+                                <strong>Bayi Sipariş Notu:</strong> {order.orderNote}
+                              </div>
+                            )}
+
+                            {/* Actions & Status Bar */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t border-slate-900 gap-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] text-slate-400 font-semibold">Mevcut Durum:</span>
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${order.status === 'APPROVED' || order.status === 'DELIVERED'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                    : order.status === 'SHIPPED' || order.status === 'PREPARING'
+                                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                                      : order.status === 'CANCELLED'
+                                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                  }`}>
+                                  {order.status}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedAdminOrder(order);
+                                    setOrderProductSearch('');
+                                    setAddOrderProductId('');
+                                    setAddOrderQty(1);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-600/20 cursor-pointer"
+                                  title="Sipariş Kalemlerini Canlı Düzenle (Ürün Ekle, Çıkar, Adet Değiştir)"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                  <span>Siparişi Düzenle</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setAdminPrintingOrder(order)}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                                  title="Sipariş Formunu A4 Yazdır / PDF"
+                                >
+                                  <Printer className="w-3.5 h-3.5" />
+                                  <span>Yazdır</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'APPROVED')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${order.status === 'APPROVED' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                  Onayla
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'SHIPPED')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${order.status === 'SHIPPED' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                  Sevkiyata Ver
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${order.status === 'DELIVERED' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                  Teslim Edildi
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${order.status === 'CANCELLED' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-rose-400 hover:bg-rose-950'
+                                    }`}
+                                >
+                                  İptal Et
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
+                {/* MODAL: LIVE ORDER INTERVENTION (BAYİ SİPARİŞİNE CANLI MÜDAHALE) */}
+                {selectedAdminOrder && (
+                  <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
+                      {/* Modal Header */}
+                      <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/70">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">
+                            <ShoppingBag className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                Sipariş #{selectedAdminOrder.orderNumber}
+                              </h3>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                                {selectedAdminOrder.status}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                {selectedAdminOrder.paymentMethod === 'CARI' ? 'Cari Hesap Açık Hesap' : 'Kredi Kartı / Peşin'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              Bayi: <strong className="text-slate-900 dark:text-white">{selectedAdminOrder.companyName}</strong> ({selectedAdminOrder.userName})
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAdminOrder(null)}
+                          className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                          title="Kapat"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* Modal Body */}
+                      <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                        {/* Add Product from Catalog to Order */}
+                        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <Plus className="w-3.5 h-3.5 text-purple-400" />
+                              <span>Siparişe Katalogdan Ürün Ekle</span>
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                placeholder="Ürün adı veya SKU ile katalogdan arayın..."
+                                value={orderProductSearch}
+                                onChange={(e) => {
+                                  setOrderProductSearch(e.target.value);
+                                  setOrderProductDropdownOpen(true);
+                                }}
+                                onFocus={() => setOrderProductDropdownOpen(true)}
+                                className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                              />
+
+                              {orderProductDropdownOpen && orderProductSearch.trim().length > 1 && (
+                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                                  {dbProducts
+                                    .filter((p) =>
+                                      p.name.toLowerCase().includes(orderProductSearch.toLowerCase()) ||
+                                      p.sku.toLowerCase().includes(orderProductSearch.toLowerCase())
+                                    )
+                                    .slice(0, 10)
+                                    .map((p) => (
+                                      <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setAddOrderProductId(p.id);
+                                          setOrderProductSearch(`${p.name} (${p.sku})`);
+                                          setOrderProductDropdownOpen(false);
+                                          setAddOrderQty(1);
+                                        }}
+                                        className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition cursor-pointer"
+                                      >
+                                        <div>
+                                          <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
+                                          <div className="text-[10px] text-sky-400 font-mono">
+                                            SKU: {p.sku} • Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
+                                          </div>
+                                        </div>
+                                        <div className="font-mono font-bold text-emerald-400 text-xs">
+                                          {formatCurrency(p.salePrice || 0)}
+                                        </div>
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Quantity & Custom Price Inputs */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="relative" title="Siparişe eklenecek miktar">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={addOrderQty}
+                                  onChange={(e) => {
+                                    const raw = parseInt(e.target.value, 10);
+                                    let val = isNaN(raw) ? 1 : raw;
+                                    if (val < 1) val = 1;
+                                    const prod = dbProducts.find((p) => p.id === addOrderProductId);
+                                    if (prod && prod.stockQty > 0 && val > prod.stockQty) {
+                                      val = prod.stockQty;
+                                    }
+                                    setAddOrderQty(val);
+                                  }}
+                                  className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                                  placeholder="Adet"
+                                />
+                              </div>
+
+                              {/* Optional Custom Unit Price (KDV Hariç) */}
+                              <div className="relative" title="İsteğe bağlı: Özel KDV Hariç Birim Fiyat (Boş bırakılırsa bayinin iskonto fiyatı kullanılır)">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  value={addOrderCustomPrice}
+                                  onChange={(e) => setAddOrderCustomPrice(e.target.value)}
+                                  className="w-28 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-400"
+                                  placeholder="Özel Fiyat (₺)"
+                                />
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={orderModifying || !addOrderProductId}
+                                onClick={() => {
+                                  if (!addOrderProductId) {
+                                    showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
+                                    return;
+                                  }
+                                  handleAdminOrderAction({
+                                    action: 'add_item',
+                                    productId: addOrderProductId,
+                                    quantity: addOrderQty,
+                                    customPrice: addOrderCustomPrice ? parseFloat(addOrderCustomPrice) : undefined
+                                  });
+                                }}
+                                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
+                              >
+                                {orderModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                                <span>Siparişe Ekle</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Items List in Order */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-bold text-slate-400 block">
+                              Sipariş Kalemleri ({selectedAdminOrder.items?.length || 0} Ürün):
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                              💡 <strong>Birim Fiyatı</strong> doğrudan kutudan değiştirebilir veya <strong>% İndirim</strong> butonunu kullanabilirsiniz.
+                            </span>
+                          </div>
+
+                          {selectedAdminOrder.items?.length === 0 ? (
+                            <div className="py-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                              Siparişte ürün bulunmuyor. Yukarıdaki alandan ürün ekleyebilirsiniz.
+                            </div>
+                          ) : (
+                            <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-[#111827]">
+                              {selectedAdminOrder.items?.map((item: any) => {
+                                const itemStock = item.stockQty || 0;
+                                return (
+                                  <div
+                                    key={item.id}
+                                    className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                      <img
+                                        src={item.image || '/placeholder.svg'}
+                                        alt=""
+                                        className="w-10 h-10 object-cover rounded-xl bg-white p-0.5 border border-slate-200 dark:border-slate-700 flex-shrink-0"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                                      />
+                                      <div className="min-w-0">
+                                        <div className="font-bold text-slate-900 dark:text-white text-xs truncate">
+                                          {item.name}
+                                        </div>
+                                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                          SKU: {item.sku} • %{item.vatRate || 20} KDV
+                                          {itemStock > 0 && (
+                                            <span className="ml-2 text-sky-400 font-semibold">• Mevcut Depo Stoğu: {itemStock}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Price Editing, Quick Discount, Quantity Stepper, Line Total, Delete */}
+                                    <div className="flex items-center justify-between sm:justify-end gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+                                      {/* Editable Unit Price (KDV Hariç) */}
+                                      <div
+                                        className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 focus-within:border-purple-500 transition"
+                                        title="KDV Hariç Birim Fiyat (Değiştirip Enter'a basın veya kutudan çıkın)"
+                                      >
+                                        <span className="text-[10px] text-slate-400 font-semibold">Birim:</span>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          min={0}
+                                          disabled={orderModifying}
+                                          defaultValue={item.unitNetExVat}
+                                          key={`price-${item.id}-${item.unitNetExVat}`}
+                                          onBlur={(e) => {
+                                            const newPrice = parseFloat(e.target.value);
+                                            if (!isNaN(newPrice) && newPrice >= 0 && newPrice !== Number(item.unitNetExVat)) {
+                                              handleAdminOrderAction({
+                                                action: 'update_price',
+                                                itemId: item.id,
+                                                unitNetExVat: newPrice
+                                              });
+                                            }
+                                          }}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              (e.target as HTMLInputElement).blur();
+                                            }
+                                          }}
+                                          className="w-20 bg-transparent font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none text-right"
+                                        />
+                                        <span className="text-[10px] font-mono text-slate-400">₺</span>
+                                      </div>
+
+                                      {/* Quick Discount Menu per Item */}
+                                      <div className="relative group">
+                                        <button
+                                          type="button"
+                                          className="px-2 py-1.5 text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition cursor-pointer flex items-center gap-1"
+                                          title="Bu kaleme hızlı indirim uygula"
+                                        >
+                                          <span>% İndirim</span>
+                                          <ChevronDown className="w-2.5 h-2.5" />
+                                        </button>
+                                        <div className="hidden group-hover:flex absolute right-0 bottom-full mb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl z-30 gap-1 flex-row">
+                                          {[5, 10, 15, 20, 25].map((pct) => (
+                                            <button
+                                              key={pct}
+                                              type="button"
+                                              disabled={orderModifying}
+                                              onClick={() => {
+                                                const currentNet = Number(item.unitNetExVat);
+                                                const discounted = Number((currentNet * (1 - pct / 100)).toFixed(2));
+                                                handleAdminOrderAction({
+                                                  action: 'update_price',
+                                                  itemId: item.id,
+                                                  unitNetExVat: discounted
+                                                });
+                                              }}
+                                              className="px-2 py-1 text-[10px] font-bold text-slate-900 dark:text-white hover:bg-purple-600 hover:text-white rounded-lg transition font-mono cursor-pointer"
+                                              title={`Birim fiyata %${pct} indirim uygula`}
+                                            >
+                                              -%{pct}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Quantity Stepper */}
+                                      <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-0.5">
+                                        <button
+                                          type="button"
+                                          disabled={orderModifying}
+                                          onClick={() => {
+                                            const newQty = item.quantity - 1;
+                                            if (newQty <= 0) {
+                                              if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
+                                                handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
+                                              }
+                                            } else {
+                                              handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
+                                            }
+                                          }}
+                                          className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
+                                        >
+                                          -
+                                        </button>
+
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          disabled={orderModifying}
+                                          value={item.quantity}
+                                          onChange={(e) => {
+                                            const raw = parseInt(e.target.value, 10);
+                                            let val = isNaN(raw) ? 1 : raw;
+                                            if (val < 1) val = 1;
+                                            // Max allowed includes what this item already has plus current stock
+                                            const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
+                                            if (maxAllowed > 0 && val > maxAllowed) {
+                                              val = maxAllowed;
+                                            }
+                                            handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                          }}
+                                          className="w-12 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
+                                        />
+
+                                        <button
+                                          type="button"
+                                          disabled={orderModifying}
+                                          onClick={() => {
+                                            const newQty = item.quantity + 1;
+                                            const maxAllowed = itemStock > 0 ? (itemStock + item.quantity) : 0;
+                                            if (maxAllowed > 0 && newQty > maxAllowed) {
+                                              showToast(`Maksimum depo stoğuna (${maxAllowed}) ulaşıldı.`, 'warning');
+                                              return;
+                                            }
+                                            handleAdminOrderAction({ action: 'update_qty', itemId: item.id, quantity: newQty });
+                                          }}
+                                          className="px-2 py-0.5 text-slate-400 hover:text-white font-bold transition disabled:opacity-40 cursor-pointer"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+
+                                      <div className="font-mono font-bold text-emerald-400 text-xs w-24 text-right">
+                                        {formatCurrency(item.lineGross)}
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        disabled={orderModifying}
+                                        onClick={() => {
+                                          if (window.confirm(`"${item.name}" ürününü siparişten silmek istediğinize emin misiniz?`)) {
+                                            handleAdminOrderAction({ action: 'remove_item', itemId: item.id });
+                                          }
+                                        }}
+                                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                        title="Kalemi Sil"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Financial Summary & Order-wide Discount & CARI Notice */}
+                        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                          {/* Bulk Order Discount Toolbar */}
+                          {selectedAdminOrder.items?.length > 0 && (
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+                              <div className="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
+                                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                                <span>Tüm Siparişe Genel İskonto Uygula:</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {[5, 10, 15, 20].map((pct) => (
+                                  <button
+                                    key={pct}
+                                    type="button"
+                                    disabled={orderModifying}
+                                    onClick={() => {
+                                      if (window.confirm(`Tüm sipariş kalemlerine genel %${pct} indirim uygulamak istediğinize emin misiniz?`)) {
+                                        handleAdminOrderAction({ action: 'apply_discount', discountPercent: pct });
+                                      }
+                                    }}
+                                    className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-600 hover:text-white text-purple-400 border border-purple-500/30 rounded-lg text-xs font-bold transition font-mono cursor-pointer"
+                                    title={`Tüm kalemlere %${pct} iskonto uygula`}
+                                  >
+                                    Tümüne -%{pct}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Ara Toplam (KDV Hariç)</span>
+                              <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                                {formatCurrency(selectedAdminOrder.subtotalExVat || 0)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Toplam KDV</span>
+                              <span className="font-mono font-bold text-sky-400 text-sm">
+                                {formatCurrency(selectedAdminOrder.vatTotal || 0)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 block font-medium">Genel Toplam (KDV Dahil)</span>
+                              <span className="font-mono font-black text-emerald-400 text-base">
+                                {formatCurrency(selectedAdminOrder.grandTotal || 0)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {selectedAdminOrder.paymentMethod === 'CARI' && (
+                            <div className="bg-sky-500/10 border border-sky-500/20 rounded-xl p-2.5 text-[11px] text-sky-300 flex items-center gap-2">
+                              <ShieldCheck className="w-4 h-4 flex-shrink-0 text-sky-400" />
+                              <span>
+                                Bu sipariş <strong>Cari Hesap (Açık Hesap)</strong> ile oluşturulduğu için sipariş tutarındaki her artış veya azalış bayinin cari ekstresine anında otomatik borç/alacak kaydı olarak yansıtılmaktadır.
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Modal Footer */}
+                      <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-950/60">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAdminOrder(null)}
+                          className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-lg cursor-pointer"
+                        >
+                          Değişiklikleri Kaydet & Kapat
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: LIVE CARTS (CANLI SEPETLER) */}
+            {activeTab === 'carts' && (
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                        <ShoppingBag className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <span>Aktif Bayi Canlı Sepetleri</span>
+                          <span className="text-xs bg-cyan-500/20 text-cyan-400 font-mono px-2 py-0.5 rounded-full border border-cyan-500/30">
+                            {adminCarts.length} Aktif Sepet
+                          </span>
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Bayilerin veritabanındaki canlı sepetleri, anlık adetler, bayiye özel hesaplanmış tutarlar ve stok uyarıları
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="relative flex-1 sm:w-64">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder="Bayi adı, kullanıcı veya ürün ara..."
+                          value={cartSearchQuery}
+                          onChange={(e) => setCartSearchQuery(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition"
+                        />
+                      </div>
+                      <button
+                        onClick={loadAdminCarts}
+                        disabled={loadingAdminCarts}
+                        className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${loadingAdminCarts ? 'animate-spin text-cyan-400' : ''}`} />
+                        <span>Yenile</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {loadingAdminCarts ? (
+                    <div className="p-12 text-center text-xs text-slate-400">
+                      <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto mb-2" />
+                      <span>Canlı sepet verileri yükleniyor...</span>
+                    </div>
+                  ) : adminCarts.length === 0 ? (
+                    <div className="p-12 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                      Şu anda sistemde ürün eklenmiş aktif bir bayi sepeti bulunmuyor.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="py-3 px-4">Bayi Bilgisi</th>
+                            <th className="py-3 px-4">İletişim</th>
+                            <th className="py-3 px-4 text-center">Özel İskonto</th>
+                            <th className="py-3 px-4 text-center">Ürün / Adet</th>
+                            <th className="py-3 px-4 text-right">Sepet Toplamı</th>
+                            <th className="py-3 px-4 text-center">Stok Durumu</th>
+                            <th className="py-3 px-4 text-center">Son Güncelleme</th>
+                            <th className="py-3 px-4 text-right">İşlem</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
+                          {adminCarts
+                            .filter((c) => {
+                              if (!cartSearchQuery.trim()) return true;
+                              const q = cartSearchQuery.toLowerCase();
+                              return (
+                                c.dealer.companyName.toLowerCase().includes(q) ||
+                                c.dealer.username.toLowerCase().includes(q) ||
+                                c.items.some((i: any) => i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q))
+                              );
+                            })
+                            .map((cart) => (
+                              <tr key={cart.cartId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition group">
+                                <td className="py-3.5 px-4">
+                                  <div className="font-mono font-bold text-sky-400">{cart.dealer.username}</div>
+                                  <div className="font-bold text-slate-900 dark:text-white text-sm">{cart.dealer.companyName}</div>
+                                  <div className="text-[10px] text-slate-500">VN: {cart.dealer.taxNo}</div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <div className="text-slate-300 font-semibold">{cart.dealer.contactName}</div>
+                                  <div className="text-slate-500 text-[11px] font-mono">{cart.dealer.phone}</div>
+                                </td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                    %{cart.dealer.customDiscountPercent || 0}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 text-center font-mono">
+                                  <span className="font-bold text-slate-900 dark:text-white">{cart.summary.distinctItemCount} Çeşit</span>
+                                  <span className="text-slate-500 block text-[10px]">Toplam {cart.summary.totalQuantity} Adet</span>
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <div className="font-mono font-black text-emerald-400 text-sm">
+                                    {formatCurrency(cart.summary.totalAmountTRY)}
+                                  </div>
+                                  <span className="text-[10px] text-slate-500">+ KDV Dahil</span>
+                                </td>
+                                <td className="py-3.5 px-4 text-center">
+                                  {cart.summary.hasOverStock ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                      <AlertTriangle className="w-3 h-3" />
+                                      <span>Stok Yetersiz</span>
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      <span>Stoklar Uygun</span>
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 text-center font-mono text-[11px] text-slate-400">
+                                  {new Date(cart.updatedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <button
+                                    onClick={() => setSelectedAdminCart(cart)}
+                                    className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow cursor-pointer"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Sepet Detayı</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Interactive Modal for Cart Details */}
+                {selectedAdminCart && (
+                  <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                      <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-sm">
+                            <ShoppingBag className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900 dark:text-white">{selectedAdminCart.dealer.companyName}</h3>
+                            <p className="text-xs text-slate-400 font-mono">
+                              {selectedAdminCart.dealer.username} • Özel İskonto: %{selectedAdminCart.dealer.customDiscountPercent || 0} • Tel: {selectedAdminCart.dealer.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={cartModifying}
+                            onClick={() => {
+                              if (window.confirm(`"${selectedAdminCart.dealer.companyName}" bayisinin sepetindeki TÜM ürünleri temizlemek istediğinize emin misiniz?`)) {
+                                handleAdminCartAction({ action: 'clear_cart' });
+                              }
+                            }}
+                            className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Sepeti Boşalt</span>
+                          </button>
+                          <button
+                            onClick={() => setSelectedAdminCart(null)}
+                            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                        <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                          <div>
+                            <span className="text-xs text-slate-400">Toplam Sepet Kalem / Adet:</span>
+                            <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
+                              {selectedAdminCart.summary.distinctItemCount} Çeşit • {selectedAdminCart.summary.totalQuantity} Adet
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-slate-400">Bayiye Özel Sepet Toplamı:</span>
+                            <div className="text-xl font-black font-mono text-emerald-400">
+                              {formatCurrency(selectedAdminCart.summary.totalAmountTRY)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Add Product Section for Admin */}
+                        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                              <span>Bayi Sepetine Ürün Ekle</span>
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                placeholder="Ürün adı veya SKU ile katalogdan arayın..."
+                                value={cartProductSearch}
+                                onChange={(e) => {
+                                  setCartProductSearch(e.target.value);
+                                  setCartProductDropdownOpen(true);
+                                }}
+                                onFocus={() => setCartProductDropdownOpen(true)}
+                                className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+                              />
+                              {cartProductDropdownOpen && cartProductSearch.trim().length > 1 && (
+                                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                                  {dbProducts
+                                    .filter((p) => p.name.toLowerCase().includes(cartProductSearch.toLowerCase()) || p.sku.toLowerCase().includes(cartProductSearch.toLowerCase()))
+                                    .slice(0, 10)
+                                    .map((p) => (
+                                      <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setAddCartProductId(p.id);
+                                          setCartProductSearch(`${p.name} (${p.sku})`);
+                                          setCartProductDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition"
+                                      >
+                                        <div>
+                                          <div className="font-bold text-slate-900 dark:text-white">{p.name}</div>
+                                          <div className="text-[10px] text-sky-400 font-mono">SKU: {p.sku} • Stok: {p.stockQty}</div>
+                                        </div>
+                                        <div className="font-mono font-bold text-emerald-400 text-xs">
+                                          {formatCurrency(p.salePrice || 0)}
+                                        </div>
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                value={addCartQty}
+                                onChange={(e) => setAddCartQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                                className="w-16 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none"
+                                placeholder="Adet"
+                              />
+                              <button
+                                type="button"
+                                disabled={cartModifying || !addCartProductId}
+                                onClick={() => {
+                                  if (!addCartProductId) {
+                                    showToast('Lütfen önce arama kutusundan bir ürün seçiniz.', 'warning');
+                                    return;
+                                  }
+                                  handleAdminCartAction({
+                                    action: 'add_item',
+                                    productId: addCartProductId,
+                                    quantity: addCartQty
+                                  });
+                                }}
+                                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer whitespace-nowrap"
+                              >
+                                {cartModifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                                <span>Sepete Ekle</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Cart Items List */}
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-800/80">
+                          {selectedAdminCart.items.map((item: any) => (
+                            <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-12 h-12 rounded-xl object-cover bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 shrink-0"
+                                  onError={(e) => { (e.target as any).src = '/placeholder.svg'; }}
+                                />
+                                <div>
+                                  <div className="font-bold text-slate-900 dark:text-white text-xs">{item.name}</div>
+                                  <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
+                                  <div className="text-[10px] text-slate-400 mt-0.5">
+                                    Liste: {formatCurrency(item.basePriceTRY)} • Bayi Fiyatı: <strong className="text-emerald-400">{formatCurrency(item.unitPriceTRY)}</strong>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                                <div className="text-center">
+                                  <span className="text-[10px] text-slate-400 block mb-0.5">Stok</span>
+                                  <StockBadge stock={item.stockQty} unit={item.unit} />
+                                </div>
+
+                                {/* Stepper for Quantity Intervention */}
+                                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1">
+                                  <button
+                                    type="button"
+                                    disabled={cartModifying}
+                                    onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity - 1 })}
+                                    className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
+                                    title="Adeti Azalt"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={item.stockQty}
+                                    defaultValue={item.quantity}
+                                    key={`${item.id}-${item.quantity}`}
+                                    disabled={cartModifying}
+                                    onBlur={(e) => {
+                                      const val = parseInt(e.target.value, 10);
+                                      if (!isNaN(val) && val !== item.quantity && val > 0) {
+                                        handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        const val = parseInt((e.target as HTMLInputElement).value, 10);
+                                        if (!isNaN(val) && val !== item.quantity && val > 0) {
+                                          handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: val });
+                                        }
+                                      }
+                                    }}
+                                    className="w-12 text-center font-mono font-bold text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                                  />
+
+                                  <button
+                                    type="button"
+                                    disabled={cartModifying || item.quantity >= item.stockQty}
+                                    onClick={() => handleAdminCartAction({ action: 'update_qty', itemId: item.id, quantity: item.quantity + 1 })}
+                                    className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold transition disabled:opacity-50 cursor-pointer"
+                                    title="Adeti Artır"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                <div className="text-right min-w-[90px]">
+                                  <span className="text-[10px] text-slate-400 block mb-0.5">Satır Tutarı</span>
+                                  <div className="font-mono font-black text-emerald-400 text-xs">
+                                    {formatCurrency(item.totalTRY)}
+                                  </div>
+                                </div>
+
+                                {/* Delete Item Button */}
+                                <button
+                                  type="button"
+                                  disabled={cartModifying}
+                                  onClick={() => {
+                                    if (window.confirm(`"${item.name}" ürününü bayinin sepetinden silmek istediğinize emin misiniz?`)) {
+                                      handleAdminCartAction({ action: 'remove_item', itemId: item.id });
+                                    }
+                                  }}
+                                  className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition cursor-pointer disabled:opacity-50"
+                                  title="Ürünü Sepetten Kaldır"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             </div>
                           ))}
                         </div>
-                      )}
+                      </div>
+
+                      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex justify-end">
+                        <button
+                          onClick={() => setSelectedAdminCart(null)}
+                          className="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                        >
+                          Kapat
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 7: DEALERS & APPLICATIONS */}
+            {activeTab === 'dealers' && (
+              <div className="space-y-8">
+
+                {/* Section 1: Dealer Applications (Bayilik Başvuruları) */}
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                        <UserCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <span>Gelen Bayilik Başvuruları</span>
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            {dealerApplications.filter(a => a.status === 'PENDING').length} Bekleyen Başvuru
+                          </span>
+                        </h2>
+                        <p className="text-xs text-slate-400">Web sitesi üzerinden gelen yeni B2B bayi onay talepleri</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {dealerApplications.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      Bekleyen yeni bayilik başvurusu bulunmuyor.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="py-3 px-4">Firma Ünvanı & Yetkili</th>
+                            <th className="py-3 px-4">İletişim & Konum</th>
+                            <th className="py-3 px-4">Vergi & T.C. Kimlik</th>
+                            <th className="py-3 px-4">Açık Adres & Not</th>
+                            <th className="py-3 px-4">Tarih / Durum</th>
+                            <th className="py-3 px-4 text-right">İşlemler</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
+                          {dealerApplications.map((app) => (
+                            <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                              <td className="py-3.5 px-4">
+                                <div className="font-bold text-slate-900 dark:text-white">{app.companyName}</div>
+                                <div className="text-slate-400 text-[11px]">{app.contactPerson}</div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="font-mono text-sky-400 font-semibold">{app.phone}</div>
+                                <div className="text-slate-400 text-[11px]">
+                                  {app.city} {app.email ? `• ${app.email}` : ''}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="text-slate-300 font-medium">{app.taxOffice || '—'}</div>
+                                <div className="font-mono text-slate-400 text-[11px]">VN: {app.taxNumber}</div>
+                                {app.idNumber && (
+                                  <div className="font-mono text-amber-400 text-[10px] mt-0.5">TC: {app.idNumber}</div>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-4 max-w-xs text-slate-300">
+                                {app.address ? (
+                                  <div className="text-[11px] text-slate-200 font-medium truncate" title={app.address}>
+                                    {app.address}
+                                  </div>
+                                ) : null}
+                                <div className="truncate text-[10px] text-slate-400 mt-0.5">
+                                  {app.notes ? `Not: ${app.notes}` : '—'}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="text-slate-400 text-[11px]">{app.appliedAt}</div>
+                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-1 ${app.status === 'PENDING'
+                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                    : app.status === 'APPROVED'
+                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                      : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                                  }`}>
+                                  {app.status === 'PENDING' ? 'İnceleme Bekliyor' : app.status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                  <button
+                                    type="button"
+                                    onClick={() => setViewingAppDetail(app)}
+                                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white font-bold rounded-lg text-xs transition border border-slate-700 flex items-center gap-1 cursor-pointer shadow-xs"
+                                    title="Tüm Başvuru Detaylarını Gör"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>İncele</span>
+                                  </button>
+                                  {app.status === 'PENDING' && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          try {
+                                            const res = await fetch('/api/dealer-applications', {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ id: app.id, status: 'APPROVED', assignedTier: 'Silver' })
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                              showToast(`"${app.companyName}" başvurusu onaylandı ve veritabanına işlendi!`, 'success');
+                                              loadDealerApplications();
+                                              loadDealers();
+                                              if (data.credentials) {
+                                                setCreatedCredentialsModal({
+                                                  username: data.credentials.username,
+                                                  tempPassword: data.credentials.tempPassword,
+                                                  companyName: app.companyName,
+                                                  title: 'Yeni Bayi Hesabı Açıldı'
+                                                });
+                                              }
+                                            } else {
+                                              showToast(data.error || 'Onaylama başarısız oldu.', 'error');
+                                            }
+                                          } catch {
+                                            showToast('İşlem sırasında hata oluştu.', 'error');
+                                          }
+                                        }}
+                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow cursor-pointer"
+                                      >
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>Onayla</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          try {
+                                            const res = await fetch('/api/dealer-applications', {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ id: app.id, status: 'REJECTED' })
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                              showToast('Başvuru reddedildi.', 'info');
+                                              loadDealerApplications();
+                                            } else {
+                                              showToast(data.error || 'Reddetme başarısız oldu.', 'error');
+                                            }
+                                          } catch {
+                                            showToast('İşlem sırasında hata oluştu.', 'error');
+                                          }
+                                        }}
+                                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 font-bold rounded-lg text-xs transition border border-slate-700 cursor-pointer"
+                                      >
+                                        Reddet
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
-
                 </div>
-              </div>
-            </div>
-          )}
 
-        </div>
-      )}
+                {/* Section 2: Registered Dealers Table & Management */}
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-sky-400" />
+                        <span>Kayıtlı Bayiler & Cari Yönetimi ({dealersList.length})</span>
+                      </h2>
+                      <p className="text-xs text-slate-400">Veritabanındaki gerçek bayileri, cari bakiyelerini, kredi limitlerini ve canlı sepetlerini yönetin</p>
+                    </div>
+                    <button
+                      onClick={loadDealers}
+                      disabled={loadingDealers}
+                      className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingDealers ? 'animate-spin text-sky-400' : ''}`} />
+                      <span>Listeyi Yenile</span>
+                    </button>
+                  </div>
 
-      {/* TAB 7: BANK ACCOUNTS & SETTINGS */}
-      {activeTab === 'bank_accounts' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-              <Plus className="w-4 h-4 text-emerald-400" />
-              <span>Yeni Banka Hesabı Ekle</span>
-            </h3>
-
-            <form onSubmit={handleCreateBankAccount} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Banka Adı:</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: Garanti BBVA"
-                  value={newBankName}
-                  onChange={(e) => setNewBankName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Hesap Sahibi:</label>
-                <input
-                  type="text"
-                  required
-                  value={newAccountHolder}
-                  onChange={(e) => setNewAccountHolder(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">IBAN Numarası:</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="TR..."
-                  value={newIban}
-                  onChange={(e) => setNewIban(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sky-300 font-mono font-bold focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şube:</label>
-                  <input
-                    type="text"
-                    placeholder="Darıca Şubesi"
-                    value={newBranch}
-                    onChange={(e) => setNewBranch(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                  />
+                  {loadingDealers ? (
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      <Loader2 className="w-6 h-6 animate-spin text-sky-400 mx-auto mb-2" />
+                      <span>Bayiler yükleniyor...</span>
+                    </div>
+                  ) : dealersList.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                      Kayıtlı bayi bulunamadı. Yukarıdaki başvurulardan bayilik onaylayarak yeni bayi oluşturabilirsiniz.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="py-3 px-4">Bayi Kodu & Ünvan</th>
+                            <th className="py-3 px-4">Yetkili & İletişim</th>
+                            <th className="py-3 px-4">Özel İskonto</th>
+                            <th className="py-3 px-4">Kredi Limiti</th>
+                            <th className="py-3 px-4">Cari Bakiye</th>
+                            <th className="py-3 px-4">Kullanılabilir Limit</th>
+                            <th className="py-3 px-4">Siparişler</th>
+                            <th className="py-3 px-4">Durum</th>
+                            <th className="py-3 px-4 text-right">İşlemler</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
+                          {dealersList.map((dealer) => (
+                            <tr key={dealer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                              <td className="py-3.5 px-4">
+                                <div className="font-mono font-bold text-sky-400">{dealer.dealerCode}</div>
+                                <div className="font-bold text-slate-900 dark:text-white text-sm">{dealer.companyName}</div>
+                                <div className="text-[10px] text-slate-500">Kayıt: {dealer.registeredAt}</div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="text-slate-300 font-semibold">{dealer.contactPerson}</div>
+                                <div className="text-slate-500 text-[11px]">{dealer.phone}</div>
+                                <div className="text-slate-500 text-[10px]">{dealer.email}</div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                  %{dealer.customDiscountPercent || 0}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
+                                {formatCurrency(dealer.creditLimit)}
+                              </td>
+                              <td className="py-3.5 px-4 font-mono font-bold">
+                                <span className={dealer.currentBalance > 0 ? 'text-rose-400' : 'text-slate-200'}>
+                                  {formatCurrency(dealer.currentBalance)}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                                {formatCurrency(dealer.availableCredit)}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="font-bold text-slate-900 dark:text-white">{dealer.totalOrders} Sipariş</div>
+                                <div className="text-[10px] text-slate-500">Son: {dealer.lastOrderDate}</div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${dealer.status === 'ACTIVE'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                                  }`}>
+                                  {dealer.status === 'ACTIVE' ? 'Aktif' : 'Askıda'}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <button
+                                  onClick={() => openDealerDrawer(dealer.id)}
+                                  className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>Yönet & Cari</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Para Birimi:</label>
-                  <select
-                    value={newCurrency}
-                    onChange={(e) => setNewCurrency(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="TRY">TRY (₺)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">SWIFT Kodu (Opsiyonel):</label>
-                <input
-                  type="text"
-                  placeholder="TGBAISX"
-                  value={newSwift}
-                  onChange={(e) => setNewSwift(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
-              >
-                Hesabı Kaydet
-              </button>
-            </form>
-          </div>
-
-          <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-sky-400" />
-                <span>Tanımlı Banka Hesapları ({bankAccounts.length})</span>
-              </h3>
-              <button onClick={loadBankAccounts} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingBanks ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-
-            {loadingBanks ? (
-              <div className="py-10 text-center text-slate-400">Yükleniyor...</div>
-            ) : bankAccounts.length === 0 ? (
-              <div className="py-10 text-center text-slate-500 text-xs">
-                Kayıtlı banka hesabı yok. Yan taraftaki formdan resmi IBAN ekleyebilirsiniz.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {bankAccounts.map((b) => (
-                  <div
-                    key={b.id}
-                    className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between text-xs gap-3"
-                  >
-                    <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white">{b.bankName}</span>
-                        <span className="bg-slate-800 text-emerald-400 px-2 py-0.2 rounded font-mono font-bold text-[10px]">
-                          {b.currency}
-                        </span>
+                {/* Section 3: Interactive Dealer Details & Live Cart & Cari Modal */}
+                {selectedDealerId && selectedDealerDetail && (
+                  <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                      {/* Modal Header */}
+                      <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-sm">
+                            {selectedDealerDetail.legalName?.slice(0, 2).toUpperCase() || 'ER'}
+                          </div>
+                          <div>
+                            <h2 className="text-base font-black text-slate-900 dark:text-white">{selectedDealerDetail.legalName}</h2>
+                            <p className="text-xs text-slate-400 font-mono">
+                              {selectedDealerDetail.user?.username} • Özel İskonto: %{selectedDealerDetail.customDiscountPercent || 0} • {selectedDealerDetail.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedDealerId(null);
+                            setSelectedDealerDetail(null);
+                          }}
+                          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
                       </div>
-                      <div className="font-mono text-sky-300 text-[11px] select-all">{b.iban}</div>
-                      <div className="text-[10px] text-slate-500">{b.accountHolder}</div>
+
+                      {/* Modal Tabs Bar */}
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 px-5 gap-2 overflow-x-auto">
+                        {[
+                          { id: 'info', label: 'Genel & Limit', icon: Building2 },
+                          { id: 'account', label: 'Kullanıcı & Şifre', icon: Key },
+                          { id: 'finance', label: `Cari & Hareketler (${selectedDealerDetail.finance?.transactions?.length || 0})`, icon: CreditCard },
+                          { id: 'cart', label: `Canlı Sepet (${selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0})`, icon: ShoppingBag },
+                          { id: 'orders', label: `Sipariş Geçmişi (${selectedDealerDetail.orders?.length || 0})`, icon: FileText }
+                        ].map((tab) => {
+                          const Icon = tab.icon;
+                          const isActive = dealerDrawerTab === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              onClick={() => {
+                                setDealerDrawerTab(tab.id as any);
+                                if (tab.id === 'cart' && selectedDealerDetail?.id) {
+                                  loadDealerCart(selectedDealerDetail.id);
+                                }
+                              }}
+                              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition whitespace-nowrap cursor-pointer ${isActive
+                                  ? 'border-sky-500 text-sky-400'
+                                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                                }`}
+                            >
+                              <Icon className="w-4 h-4" />
+                              <span>{tab.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Modal Body */}
+                      <div className="p-6 overflow-y-auto flex-1 space-y-6">
+
+                        {/* TAB 1: INFO & LIMIT */}
+                        {dealerDrawerTab === 'info' && (
+                          <form
+                            onSubmit={async (e) => {
+                              e.preventDefault();
+                              try {
+                                const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    legalName: editLegalName,
+                                    taxNo: editTaxNo,
+                                    taxOffice: editTaxOffice,
+                                    phone: editPhone,
+                                    email: editEmail,
+                                    status: editStatus,
+                                    customDiscountPercent: parseFloat(editCustomDiscount) || 0,
+                                    creditLimit: parseFloat(editCreditLimit) || 0
+                                  })
+                                });
+                                const json = await res.json();
+                                if (json.success) {
+                                  showToast('Bayi bilgileri, iskonto ve limit başarıyla güncellendi!', 'success');
+                                  loadDealers();
+                                  openDealerDrawer(selectedDealerDetail.id);
+                                } else {
+                                  showToast(json.error || 'Güncelleme başarısız', 'error');
+                                }
+                              } catch {
+                                showToast('Hata oluştu', 'error');
+                              }
+                            }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"
+                          >
+                            <div className="md:col-span-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                              <div>
+                                <span className="text-slate-400 block text-[11px] font-semibold">Bayi Giriş Kullanıcı Adı:</span>
+                                <span className="text-sm font-mono font-bold text-sky-400">
+                                  {selectedDealerDetail.user?.username || selectedDealerDetail.dealerCode}
+                                </span>
+                                <span className="text-[10px] text-slate-500 block mt-0.5">
+                                  Giriş Rolü: {selectedDealerDetail.user?.role || 'B2B_DEALER'} • Son Giriş: {selectedDealerDetail.user?.lastLoginAt ? new Date(selectedDealerDetail.user.lastLoginAt).toLocaleString('tr-TR') : 'Henüz Giriş Yapılmadı'}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/reset-password`, {
+                                      method: 'POST'
+                                    });
+                                    const json = await res.json();
+                                    if (json.success) {
+                                      setCreatedCredentialsModal({
+                                        username: json.username,
+                                        tempPassword: json.tempPassword,
+                                        companyName: selectedDealerDetail.legalName,
+                                        title: 'Yeni Geçici Şifre Oluşturuldu'
+                                      });
+                                    } else {
+                                      showToast(json.error || 'Şifre sıfırlanamadı', 'error');
+                                    }
+                                  } catch {
+                                    showToast('İşlem sırasında hata oluştu', 'error');
+                                  }
+                                }}
+                                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
+                              >
+                                <Key className="w-3.5 h-3.5" />
+                                <span>Yeni Geçici Şifre Üret</span>
+                              </button>
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Firma Resmi Ünvanı:</label>
+                              <input
+                                type="text"
+                                required
+                                value={editLegalName}
+                                onChange={(e) => setEditLegalName(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Bayi Özel İskonto Oranı (%):</label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="100"
+                                  placeholder="0.00"
+                                  value={editCustomDiscount}
+                                  onChange={(e) => setEditCustomDiscount(e.target.value)}
+                                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-8 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
+                                />
+                                <span className="absolute right-3 top-2 text-slate-500 font-bold">%</span>
+                              </div>
+                              <p className="text-[10px] text-slate-500 mt-1">Bayiye özel uygulanacak net indirim yüzdesi (0.00 - 100.00)</p>
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi Dairesi:</label>
+                              <input
+                                type="text"
+                                value={editTaxOffice}
+                                onChange={(e) => setEditTaxOffice(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Vergi No / T.C. Kimlik:</label>
+                              <input
+                                type="text"
+                                value={editTaxNo}
+                                onChange={(e) => setEditTaxNo(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Telefon Numarası:</label>
+                              <input
+                                type="text"
+                                value={editPhone}
+                                onChange={(e) => setEditPhone(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">E-posta Adresi:</label>
+                              <input
+                                type="email"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Tanımlı Kredi Limiti (TL):</label>
+                              <input
+                                type="number"
+                                value={editCreditLimit}
+                                onChange={(e) => setEditCreditLimit(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1 font-semibold">Hesap Durumu:</label>
+                              <select
+                                value={editStatus}
+                                onChange={(e) => setEditStatus(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                              >
+                                <option value="ACTIVE">Aktif (Sipariş Verebilir)</option>
+                                <option value="SUSPENDED">Askıda (Geçici Olarak Kapalı)</option>
+                              </select>
+                            </div>
+
+                            <div className="md:col-span-2 pt-3 flex justify-end">
+                              <button
+                                type="submit"
+                                className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2"
+                              >
+                                <Save className="w-4 h-4" />
+                                <span>Değişiklikleri Kaydet</span>
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* TAB 1.5: ACCOUNT & SECURITY */}
+                        {dealerDrawerTab === 'account' && (
+                          <div className="space-y-6 text-xs">
+                            {/* User Account Overview */}
+                            <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-slate-400 text-xs">Giriş Kullanıcı Adı:</span>
+                                  <span className="font-mono font-bold text-sky-400 text-sm">
+                                    {selectedDealerDetail.user?.username || 'Tanımsız'}
+                                  </span>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${(selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE'
+                                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                      : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                                    }`}>
+                                    {(selectedDealerDetail.user?.status || selectedDealerDetail.status) === 'ACTIVE' ? 'Aktif Hesap' : 'Askıda (Kilitli)'}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-slate-400">
+                                  Firma: <strong className="text-slate-900 dark:text-slate-200">{selectedDealerDetail.legalName}</strong> • Yetkili: {selectedDealerDetail.user?.name || '—'}
+                                </div>
+                                <div className="text-[10px] text-slate-500">
+                                  Rol: {selectedDealerDetail.user?.role || 'B2B_DEALER'} • Son Giriş: {selectedDealerDetail.user?.lastLoginAt ? new Date(selectedDealerDetail.user.lastLoginAt).toLocaleString('tr-TR') : 'Henüz Giriş Yapılmadı'}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/reset-password`, {
+                                      method: 'POST'
+                                    });
+                                    const json = await res.json();
+                                    if (json.success) {
+                                      setCreatedCredentialsModal({
+                                        username: json.username,
+                                        tempPassword: json.tempPassword,
+                                        companyName: selectedDealerDetail.legalName,
+                                        title: 'Yeni Geçici Şifre Üretildi'
+                                      });
+                                    } else {
+                                      showToast(json.error || 'Şifre sıfırlanamadı', 'error');
+                                    }
+                                  } catch {
+                                    showToast('İşlem sırasında hata oluştu', 'error');
+                                  }
+                                }}
+                                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Rastgele Geçici Şifre Üret</span>
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {/* Section 1: Change Username */}
+                              <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-4">
+                                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                                  <UserCheck className="w-4 h-4 text-sky-400" />
+                                  <h3 className="font-bold text-slate-900 dark:text-white text-xs">Kullanıcı Adı Değiştir</h3>
+                                </div>
+
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    if (!editUsername || editUsername.trim().length < 3) {
+                                      showToast('Kullanıcı adı en az 3 karakter olmalıdır.', 'warning');
+                                      return;
+                                    }
+                                    setSavingAccount(true);
+                                    try {
+                                      const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ username: editUsername.trim() })
+                                      });
+                                      const json = await res.json();
+                                      if (json.success) {
+                                        showToast(json.message || 'Kullanıcı adı başarıyla güncellendi!', 'success');
+                                        loadDealers();
+                                        openDealerDrawer(selectedDealerDetail.id);
+                                      } else {
+                                        showToast(json.error || 'Kullanıcı adı güncellenemedi', 'error');
+                                      }
+                                    } catch {
+                                      showToast('İşlem sırasında hata oluştu', 'error');
+                                    } finally {
+                                      setSavingAccount(false);
+                                    }
+                                  }}
+                                  className="space-y-3"
+                                >
+                                  <div>
+                                    <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Kullanıcı Adı:</label>
+                                    <input
+                                      type="text"
+                                      required
+                                      value={editUsername}
+                                      onChange={(e) => setEditUsername(e.target.value)}
+                                      placeholder="Örn: bayikodu veya firma_adi"
+                                      className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-sky-500"
+                                    />
+                                    <p className="text-[10px] text-slate-500 mt-1">
+                                      Benzersiz olmalıdır. Aynı kullanıcı adı başka bir hesapta varsa sistem hata verir.
+                                    </p>
+                                  </div>
+
+                                  <button
+                                    type="submit"
+                                    disabled={savingAccount}
+                                    className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                                  >
+                                    <Save className="w-3.5 h-3.5" />
+                                    <span>{savingAccount ? 'Kaydediliyor...' : 'Kullanıcı Adını Güncelle'}</span>
+                                  </button>
+                                </form>
+                              </div>
+
+                              {/* Section 2: Change Password */}
+                              <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-4">
+                                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                                  <Key className="w-4 h-4 text-emerald-400" />
+                                  <h3 className="font-bold text-slate-900 dark:text-white text-xs">Güvenli Şifre Değiştir</h3>
+                                </div>
+
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    if (!editNewPassword || editNewPassword.length < 6) {
+                                      showToast('Yeni şifre en az 6 karakter olmalıdır.', 'warning');
+                                      return;
+                                    }
+                                    if (editNewPassword !== editNewPasswordConfirm) {
+                                      showToast('Girdiğiniz şifreler birbiriyle uyuşmuyor.', 'error');
+                                      return;
+                                    }
+                                    setSavingAccount(true);
+                                    try {
+                                      const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          newPassword: editNewPassword,
+                                          newPasswordConfirm: editNewPasswordConfirm,
+                                          confirmPassword: editNewPasswordConfirm
+                                        })
+                                      });
+                                      const json = await res.json();
+                                      if (json.success) {
+                                        showToast(json.message || 'Şifre başarıyla güncellendi ve hashlenerek kaydedildi!', 'success');
+                                        setEditNewPassword('');
+                                        setEditNewPasswordConfirm('');
+                                      } else {
+                                        showToast(json.error || 'Şifre güncellenemedi', 'error');
+                                      }
+                                    } catch {
+                                      showToast('İşlem sırasında hata oluştu', 'error');
+                                    } finally {
+                                      setSavingAccount(false);
+                                    }
+                                  }}
+                                  className="space-y-3"
+                                >
+                                  <div>
+                                    <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Şifre:</label>
+                                    <input
+                                      type="password"
+                                      required
+                                      minLength={6}
+                                      value={editNewPassword}
+                                      onChange={(e) => setEditNewPassword(e.target.value)}
+                                      placeholder="••••••••"
+                                      className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Yeni Şifre Tekrar:</label>
+                                    <input
+                                      type="password"
+                                      required
+                                      minLength={6}
+                                      value={editNewPasswordConfirm}
+                                      onChange={(e) => setEditNewPasswordConfirm(e.target.value)}
+                                      placeholder="••••••••"
+                                      className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                                    />
+                                  </div>
+
+                                  <div className="text-[10px] text-slate-500">
+                                    Şifre güvenli bcrypt hash algoritması ile kaydedilir. Plaintext olarak gösterilmez.
+                                  </div>
+
+                                  <button
+                                    type="submit"
+                                    disabled={savingAccount}
+                                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>{savingAccount ? 'İşleniyor...' : 'Şifreyi Değiştir ve Kaydet'}</span>
+                                  </button>
+                                </form>
+                              </div>
+
+                              {/* Section 3: Account Status */}
+                              <div className="md:col-span-2 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                  <div>
+                                    <h4 className="font-bold text-slate-900 dark:text-white text-xs mb-1">Hesap Durumu & Giriş Yetkisi</h4>
+                                    <p className="text-[11px] text-slate-400">
+                                      Askıya alınan bayiler panele giriş yapamaz ve sipariş veremez.
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <select
+                                      value={editAccountStatus}
+                                      onChange={(e) => setEditAccountStatus(e.target.value)}
+                                      className="bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold focus:outline-none"
+                                    >
+                                      <option value="ACTIVE">Aktif (Giriş Yapabilir)</option>
+                                      <option value="SUSPENDED">Askıda (Giriş Kilitli)</option>
+                                    </select>
+
+                                    <button
+                                      type="button"
+                                      disabled={savingAccount}
+                                      onClick={async () => {
+                                        setSavingAccount(true);
+                                        try {
+                                          const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/account`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ status: editAccountStatus })
+                                          });
+                                          const json = await res.json();
+                                          if (json.success) {
+                                            showToast('Hesap durumu başarıyla güncellendi!', 'success');
+                                            loadDealers();
+                                            openDealerDrawer(selectedDealerDetail.id);
+                                          } else {
+                                            showToast(json.error || 'Durum güncellenemedi', 'error');
+                                          }
+                                        } catch {
+                                          showToast('İşlem sırasında hata oluştu', 'error');
+                                        } finally {
+                                          setSavingAccount(false);
+                                        }
+                                      }}
+                                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white font-bold rounded-xl transition border border-slate-700 cursor-pointer whitespace-nowrap"
+                                    >
+                                      Durumu Kaydet
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* TAB 2: FINANCE & CARI */}
+                        {dealerDrawerTab === 'finance' && (
+                          <div className="space-y-6">
+                            {/* Financial KPI Cards */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                                <span className="text-slate-400 block mb-1">Cari Bakiye (Borç)</span>
+                                <span className="text-base font-black text-rose-400 font-mono">
+                                  {formatCurrency(selectedDealerDetail.finance?.currentBalance || 0)}
+                                </span>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                                <span className="text-slate-400 block mb-1">Kredi Limiti</span>
+                                <span className="text-base font-black text-emerald-400 font-mono">
+                                  {formatCurrency(selectedDealerDetail.finance?.creditLimit || 0)}
+                                </span>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                                <span className="text-slate-400 block mb-1">Kullanılabilir Limit</span>
+                                <span className="text-base font-black text-cyan-400 font-mono">
+                                  {formatCurrency(selectedDealerDetail.finance?.availableCredit || 0)}
+                                </span>
+                              </div>
+                              <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-3 rounded-2xl">
+                                <span className="text-slate-400 block mb-1">Toplam İşlem Adedi</span>
+                                <span className="text-base font-black text-slate-200 font-mono">
+                                  {selectedDealerDetail.finance?.transactions?.length || 0}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Add Transaction Form */}
+                            <div className="bg-slate-50 dark:bg-[#0B1120]/60 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                              <h4 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
+                                <Plus className="w-4 h-4 text-emerald-400" />
+                                <span>Yeni Cari Hareket Ekle (Borç / Tahsilat)</span>
+                              </h4>
+
+                              <form
+                                onSubmit={async (e) => {
+                                  e.preventDefault();
+                                  if (!drawerAmount || parseFloat(drawerAmount) <= 0) {
+                                    showToast('Geçerli bir tutar giriniz', 'warning');
+                                    return;
+                                  }
+                                  setSubmittingCari(true);
+                                  try {
+                                    const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cari-transaction`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        type: drawerDocType,
+                                        amount: parseFloat(drawerAmount),
+                                        docNo: drawerDocNo,
+                                        note: drawerNote
+                                      })
+                                    });
+                                    const json = await res.json();
+                                    if (json.success) {
+                                      showToast(json.message, 'success');
+                                      setDrawerAmount('');
+                                      setDrawerDocNo('');
+                                      setDrawerNote('');
+                                      loadDealers();
+                                      openDealerDrawer(selectedDealerDetail.id);
+                                    } else {
+                                      showToast(json.error || 'İşlem başarısız', 'error');
+                                    }
+                                  } catch {
+                                    showToast('Hata oluştu', 'error');
+                                  } finally {
+                                    setSubmittingCari(false);
+                                  }
+                                }}
+                                className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs"
+                              >
+                                <div>
+                                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">İşlem Türü:</label>
+                                  <select
+                                    value={drawerDocType}
+                                    onChange={(e) => setDrawerDocType(e.target.value)}
+                                    className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                                  >
+                                    <option value="MANUAL_DEBIT">Manuel Borç (Fatura / Satış)</option>
+                                    <option value="MANUAL_CREDIT">Tahsilat / Ödeme (Alacak)</option>
+                                    <option value="CORRECTION">Bakiye Düzeltme</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Tutar (TL):</label>
+                                  <input
+                                    type="number"
+                                    required
+                                    placeholder="0.00"
+                                    value={drawerAmount}
+                                    onChange={(e) => setDrawerAmount(e.target.value)}
+                                    className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Evrak / Dekont No:</label>
+                                  <input
+                                    type="text"
+                                    placeholder="Örn: DEK-2026-001"
+                                    value={drawerDocNo}
+                                    onChange={(e) => setDrawerDocNo(e.target.value)}
+                                    className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 mb-1">Açıklama / Not:</label>
+                                  <input
+                                    type="text"
+                                    placeholder="Örn: Havale ile tahsilat"
+                                    value={drawerNote}
+                                    onChange={(e) => setDrawerNote(e.target.value)}
+                                    className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 shadow-xs rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-4 flex justify-end">
+                                  <button
+                                    type="submit"
+                                    disabled={submittingCari}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                    <span>{submittingCari ? 'İşleniyor...' : 'Cari Hareketi Kaydet'}</span>
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+
+                            {/* Transactions Table */}
+                            <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+                              <table className="w-full text-left text-xs">
+                                <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                                  <tr>
+                                    <th className="py-2.5 px-3">Tarih</th>
+                                    <th className="py-2.5 px-3">Tür</th>
+                                    <th className="py-2.5 px-3">Evrak / Açıklama</th>
+                                    <th className="py-2.5 px-3 text-right">Tutar</th>
+                                    <th className="py-2.5 px-3 text-right">Son Bakiye</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
+                                  {selectedDealerDetail.finance?.transactions?.map((t: any) => (
+                                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                      <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
+                                        {new Date(t.createdAt).toLocaleDateString('tr-TR')} {new Date(t.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                      </td>
+                                      <td className="py-2 px-3">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT'
+                                            ? 'bg-rose-500/20 text-rose-300'
+                                            : 'bg-emerald-500/20 text-emerald-300'
+                                          }`}>
+                                          {t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'BORÇ' : 'TAHSİLAT/ALACAK'}
+                                        </span>
+                                      </td>
+                                      <td className="py-2 px-3 text-slate-300 max-w-sm truncate">{t.note}</td>
+                                      <td className="py-2 px-3 text-right font-mono font-bold">
+                                        <span className={t.type.includes('DEBIT') || t.type === 'ORDER_DEBIT' ? 'text-rose-400' : 'text-emerald-400'}>
+                                          {formatCurrency(t.amount)}
+                                        </span>
+                                      </td>
+                                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-200">
+                                        {formatCurrency(t.balanceAfter)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* TAB 3: LIVE CART */}
+                        {dealerDrawerTab === 'cart' && (
+                          <div className="space-y-6 text-xs">
+                            {/* Cart Header & Actions */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                              <div className="flex items-center gap-2">
+                                <ShoppingBag className="w-4 h-4 text-sky-400" />
+                                <span className="font-bold text-slate-900 dark:text-white">
+                                  Bayinin Aktif Veritabanı Sepeti ({selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0} Kalem)
+                                </span>
+                                {loadingDealerCart && (
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400 ml-1" />
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => loadDealerCart(selectedDealerDetail.id)}
+                                  className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                                  title="Sepeti Yenile"
+                                >
+                                  <RefreshCw className={`w-3.5 h-3.5 ${loadingDealerCart ? 'animate-spin' : ''}`} />
+                                  <span>Yenile</span>
+                                </button>
+
+                                {((selectedDealerCart?.items?.length ?? selectedDealerDetail.cart?.items?.length ?? 0) > 0) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setConfirmModal({
+                                        isOpen: true,
+                                        title: 'Sepeti Tamamen Temizle',
+                                        message: `"${selectedDealerDetail.legalName}" bayisinin sepetindeki TÜM ürünler silinecektir. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`,
+                                        confirmText: 'Evet, Sepeti Temizle',
+                                        isDanger: true,
+                                        onConfirm: async () => {
+                                          try {
+                                            const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ action: 'clear_cart' })
+                                            });
+                                            const json = await res.json();
+                                            if (json.success) {
+                                              showToast('Bayinin sepeti tamamen temizlendi.', 'success');
+                                              await loadDealerCart(selectedDealerDetail.id);
+                                              openDealerDrawer(selectedDealerDetail.id);
+                                            } else {
+                                              showToast(json.error || 'Sepet temizlenemedi', 'error');
+                                            }
+                                          } catch {
+                                            showToast('Bağlantı hatası', 'error');
+                                          }
+                                        }
+                                      });
+                                    }}
+                                    className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Sepeti Temizle</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Add Product to Dealer's Cart Form */}
+                            <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Plus className="w-4 h-4 text-emerald-400" />
+                                <h4 className="font-bold text-slate-900 dark:text-white text-xs">Bayinin Sepetine Ürün Ekle</h4>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                <div className="sm:col-span-7">
+                                  <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Ürün Seçin:</label>
+                                  <select
+                                    value={cartAddProductId}
+                                    onChange={(e) => {
+                                      setCartAddProductId(e.target.value);
+                                      setCartAddQty(1);
+                                    }}
+                                    className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 text-xs"
+                                  >
+                                    <option value="">-- Listeden Ürün Seçiniz --</option>
+                                    {dbProducts.map((p) => (
+                                      <option key={p.id} value={p.id} disabled={p.stockQty <= 0}>
+                                        {p.name} ({p.sku}) — Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                  <label className="block text-slate-700 dark:text-slate-400 mb-1 font-semibold">Miktar:</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={cartAddQty}
+                                    onChange={(e) => setCartAddQty(Math.max(1, parseInt(e.target.value) || 1))}
+                                    className="w-full bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono font-bold text-xs focus:outline-none focus:border-sky-500"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-3 flex items-end">
+                                  <button
+                                    type="button"
+                                    disabled={!cartAddProductId || isAddingCartItem}
+                                    onClick={async () => {
+                                      if (!cartAddProductId) {
+                                        showToast('Lütfen eklenecek bir ürün seçin.', 'warning');
+                                        return;
+                                      }
+                                      setIsAddingCartItem(true);
+                                      try {
+                                        const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            action: 'add_item',
+                                            productId: cartAddProductId,
+                                            quantity: cartAddQty
+                                          })
+                                        });
+                                        const json = await res.json();
+                                        if (json.success) {
+                                          showToast(json.message || 'Ürün sepete başarıyla eklendi!', 'success');
+                                          setCartAddProductId('');
+                                          setCartAddQty(1);
+                                          await loadDealerCart(selectedDealerDetail.id);
+                                          openDealerDrawer(selectedDealerDetail.id);
+                                        } else {
+                                          showToast(json.error || 'Ürün sepete eklenemedi.', 'error');
+                                        }
+                                      } catch {
+                                        showToast('İşlem sırasında hata oluştu.', 'error');
+                                      } finally {
+                                        setIsAddingCartItem(false);
+                                      }
+                                    }}
+                                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer text-xs"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>{isAddingCartItem ? 'Ekleniyor...' : 'Sepete Ekle'}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Cart Items List */}
+                            {(!selectedDealerCart?.items || selectedDealerCart.items.length === 0) &&
+                              (!selectedDealerDetail.cart || selectedDealerDetail.cart.items.length === 0) ? (
+                              <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                Bayinin sepeti şu anda boş. Yukarıdaki alandan ürün ekleyebilirsiniz.
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-[#0B1120]">
+                                  {(selectedDealerCart?.items || selectedDealerDetail.cart.items).map((item: any) => {
+                                    const qty = item.quantity;
+                                    const unitPrice = item.unitPriceTRY ?? item.salePrice;
+                                    const basePrice = item.basePriceTRY ?? item.salePrice;
+                                    const discountPercent = item.discountPercent ?? 0;
+                                    const vatAmount = item.vatAmount ?? ((unitPrice * qty * 0.20));
+                                    const lineGross = item.lineGross ?? ((unitPrice * qty) + vatAmount);
+
+                                    return (
+                                      <div key={item.id} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                        {/* Product info */}
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shrink-0 overflow-hidden">
+                                            <img
+                                              src={item.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'}
+                                              alt={item.name}
+                                              className="w-full h-full object-cover rounded-lg"
+                                              onError={(e) => { (e.target as any).src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'; }}
+                                            />
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <div className="font-bold text-slate-900 dark:text-white text-xs truncate">{item.name}</div>
+                                            <div className="text-[10px] font-mono text-sky-400 mt-0.5">SKU: {item.sku}</div>
+                                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                              <StockBadge stock={item.stockQty ?? 999} unit={item.unit || 'Adet'} size="sm" />
+                                              {item.isOverStock && (
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                  Yetersiz Stok! (Mevcut: {item.stockQty})
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Price breakdown */}
+                                        <div className="flex items-center gap-4 flex-wrap text-right">
+                                          <div>
+                                            <div className="text-[10px] text-slate-400">Liste Fiyatı</div>
+                                            <div className="font-mono text-slate-400 text-xs">
+                                              {formatCurrency(basePrice)}
+                                            </div>
+                                          </div>
+
+                                          {discountPercent > 0 && (
+                                            <div>
+                                              <div className="text-[10px] text-emerald-400 font-bold">İskonto (%{discountPercent})</div>
+                                              <div className="font-mono text-emerald-400 text-xs font-semibold">
+                                                -{formatCurrency(item.unitDiscountAmt ?? (basePrice - unitPrice))}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          <div>
+                                            <div className="text-[10px] text-slate-400">Net Birim</div>
+                                            <div className="font-mono font-bold text-slate-900 dark:text-white text-xs">
+                                              {formatCurrency(unitPrice)}
+                                            </div>
+                                          </div>
+
+                                          {/* Quantity Controls */}
+                                          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
+                                            <button
+                                              type="button"
+                                              onClick={async () => {
+                                                try {
+                                                  const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                                    method: 'PUT',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: qty - 1 })
+                                                  });
+                                                  const json = await res.json();
+                                                  if (json.success) {
+                                                    await loadDealerCart(selectedDealerDetail.id);
+                                                    openDealerDrawer(selectedDealerDetail.id);
+                                                  } else {
+                                                    showToast(json.error || 'Miktar güncellenemedi', 'error');
+                                                  }
+                                                } catch {
+                                                  showToast('Bağlantı hatası', 'error');
+                                                }
+                                              }}
+                                              className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold cursor-pointer"
+                                            >
+                                              -
+                                            </button>
+                                            <span className="w-8 text-center font-mono font-bold text-slate-900 dark:text-white">{qty}</span>
+                                            <button
+                                              type="button"
+                                              onClick={async () => {
+                                                try {
+                                                  const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                                    method: 'PUT',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ action: 'update_qty', itemId: item.id, quantity: qty + 1 })
+                                                  });
+                                                  const json = await res.json();
+                                                  if (json.success) {
+                                                    await loadDealerCart(selectedDealerDetail.id);
+                                                    openDealerDrawer(selectedDealerDetail.id);
+                                                  } else {
+                                                    showToast(json.error || 'Miktar güncellenemedi', 'error');
+                                                  }
+                                                } catch {
+                                                  showToast('Bağlantı hatası', 'error');
+                                                }
+                                              }}
+                                              className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold cursor-pointer"
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+
+                                          {/* Line Total */}
+                                          <div className="min-w-[100px]">
+                                            <div className="text-[10px] text-slate-400">Toplam (KDV Dahil)</div>
+                                            <div className="font-mono font-bold text-emerald-400 text-sm">
+                                              {formatCurrency(lineGross)}
+                                            </div>
+                                          </div>
+
+                                          {/* Delete Button */}
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setConfirmModal({
+                                                isOpen: true,
+                                                title: 'Ürünü Sepetten Kaldır',
+                                                message: `"${item.name}" ürününü sepetten kaldırmak istediğinize emin misiniz?`,
+                                                confirmText: 'Ürünü Kaldır',
+                                                isDanger: true,
+                                                onConfirm: async () => {
+                                                  try {
+                                                    const res = await fetch(`/api/admin/dealers/${selectedDealerDetail.id}/cart`, {
+                                                      method: 'PUT',
+                                                      headers: { 'Content-Type': 'application/json' },
+                                                      body: JSON.stringify({ action: 'remove_item', itemId: item.id })
+                                                    });
+                                                    const json = await res.json();
+                                                    if (json.success) {
+                                                      showToast('Ürün sepetten kaldırıldı.', 'info');
+                                                      await loadDealerCart(selectedDealerDetail.id);
+                                                      openDealerDrawer(selectedDealerDetail.id);
+                                                    } else {
+                                                      showToast(json.error || 'İşlem başarısız', 'error');
+                                                    }
+                                                  } catch {
+                                                    showToast('Bağlantı hatası', 'error');
+                                                  }
+                                                }
+                                              });
+                                            }}
+                                            className="p-2 text-slate-400 hover:text-rose-400 rounded-xl hover:bg-rose-500/10 transition cursor-pointer"
+                                            title="Ürünü Sepetten Kaldır"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Cart Financial Summary Card */}
+                                <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  <div>
+                                    <span className="text-slate-400 block text-[11px]">Ara Toplam (KDV Hariç)</span>
+                                    <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                                      {formatCurrency(selectedDealerCart?.subtotalExVat ?? selectedDealerDetail.cart?.items?.reduce((s: number, i: any) => s + (i.quantity * i.salePrice), 0) ?? 0)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[11px]">Toplam İskonto</span>
+                                    <span className="font-mono font-bold text-emerald-400 text-sm">
+                                      -{formatCurrency(selectedDealerCart?.totalDiscount ?? 0)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[11px]">KDV (%20)</span>
+                                    <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                                      {formatCurrency(selectedDealerCart?.vatTotal ?? ((selectedDealerCart?.subtotalExVat ?? 0) * 0.20))}
+                                    </span>
+                                  </div>
+                                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
+                                    <span className="text-emerald-400 block text-[11px] font-bold">Genel Toplam</span>
+                                    <span className="font-mono font-black text-emerald-400 text-base">
+                                      {formatCurrency(selectedDealerCart?.grandTotal ?? (((selectedDealerCart?.subtotalExVat ?? 0) * 1.20)))}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* TAB 4: ORDERS */}
+                        {dealerDrawerTab === 'orders' && (
+                          <div className="space-y-3 text-xs">
+                            {selectedDealerDetail.orders.length === 0 ? (
+                              <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-800">
+                                Bu bayiye ait henüz sipariş kaydı bulunmuyor.
+                              </div>
+                            ) : (
+                              <div className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden">
+                                {selectedDealerDetail.orders.map((order: any) => (
+                                  <div key={order.id} className="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-sky-400">{order.orderNo}</span>
+                                        <span className="text-slate-500">•</span>
+                                        <span className="text-slate-400">{new Date(order.createdAt).toLocaleDateString('tr-TR')}</span>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <span className="font-mono font-bold text-emerald-400">{formatCurrency(order.grandTotal)}</span>
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${order.status === 'DELIVERED'
+                                            ? 'bg-emerald-500/20 text-emerald-300'
+                                            : order.status === 'PENDING_LIMIT_APPROVAL'
+                                              ? 'bg-rose-500/20 text-rose-300'
+                                              : 'bg-amber-500/20 text-amber-300'
+                                          }`}>
+                                          {order.status}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="text-slate-400 text-[11px]">
+                                      {order.items.map((i: any) => `${i.name} (${i.quantity} ${i.unit})`).join(', ')}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* TAB 7: BANK ACCOUNTS & SETTINGS */}
+            {activeTab === 'bank_accounts' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <Plus className="w-4 h-4 text-emerald-400" />
+                    <span>Yeni Banka Hesabı Ekle</span>
+                  </h3>
+
+                  <form onSubmit={handleCreateBankAccount} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Banka Adı:</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Örn: Garanti BBVA"
+                        value={newBankName}
+                        onChange={(e) => setNewBankName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Hesap Sahibi:</label>
+                      <input
+                        type="text"
+                        required
+                        value={newAccountHolder}
+                        onChange={(e) => setNewAccountHolder(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">IBAN Numarası:</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="TR..."
+                        value={newIban}
+                        onChange={(e) => setNewIban(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sky-300 font-mono font-bold focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Şube:</label>
+                        <input
+                          type="text"
+                          placeholder="Darıca Şubesi"
+                          value={newBranch}
+                          onChange={(e) => setNewBranch(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Para Birimi:</label>
+                        <select
+                          value={newCurrency}
+                          onChange={(e) => setNewCurrency(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                        >
+                          <option value="TRY">TRY (₺)</option>
+                          <option value="USD">USD ($)</option>
+                          <option value="EUR">EUR (€)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">SWIFT Kodu (Opsiyonel):</label>
+                      <input
+                        type="text"
+                        placeholder="TGBAISX"
+                        value={newSwift}
+                        onChange={(e) => setNewSwift(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono focus:outline-none"
+                      />
                     </div>
 
                     <button
-                      onClick={() => handleDeleteBankAccount(b.id)}
-                      className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition"
-                      title="Hesabı Sil"
+                      type="submit"
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-lg"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Hesabı Kaydet
+                    </button>
+                  </form>
+                </div>
+
+                <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs p-5 rounded-2xl shadow-xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-sky-400" />
+                      <span>Tanımlı Banka Hesapları ({bankAccounts.length})</span>
+                    </h3>
+                    <button onClick={loadBankAccounts} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingBanks ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
-                ))}
+
+                  {loadingBanks ? (
+                    <div className="py-10 text-center text-slate-400">Yükleniyor...</div>
+                  ) : bankAccounts.length === 0 ? (
+                    <div className="py-10 text-center text-slate-500 text-xs">
+                      Kayıtlı banka hesabı yok. Yan taraftaki formdan resmi IBAN ekleyebilirsiniz.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {bankAccounts.map((b) => (
+                        <div
+                          key={b.id}
+                          className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between text-xs gap-3"
+                        >
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 dark:text-white">{b.bankName}</span>
+                              <span className="bg-slate-800 text-emerald-400 px-2 py-0.2 rounded font-mono font-bold text-[10px]">
+                                {b.currency}
+                              </span>
+                            </div>
+                            <div className="font-mono text-sky-300 text-[11px] select-all">{b.iban}</div>
+                            <div className="text-[10px] text-slate-500">{b.accountHolder}</div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteBankAccount(b.id)}
+                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition"
+                            title="Hesabı Sil"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* TAB 8: AUDIT LOGS & SECURITY */}
-      {activeTab === 'audit' && (
-        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Sistem Güvenlik & Audit Günlüğü</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                    {auditLogs.length} Kayıt
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-400">Veritabanı sıfırlama, scraper çalıştırma, cari ve sipariş operasyonları logları</p>
-              </div>
-            </div>
-
-            <button
-              onClick={loadAuditLogs}
-              disabled={loadingAuditLogs}
-              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingAuditLogs ? 'animate-spin text-purple-400' : ''}`} />
-              <span>Yenile</span>
-            </button>
-          </div>
-
-          {loadingAuditLogs ? (
-            <div className="py-12 text-center text-slate-400 text-xs">Audit kayıtları yükleniyor...</div>
-          ) : auditLogs.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 text-xs">
-              Henüz kayıtlı audit log bulunmuyor.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
-                  <tr>
-                    <th className="py-3 px-4">Tarih / Saat</th>
-                    <th className="py-3 px-4">Kullanıcı & Rol</th>
-                    <th className="py-3 px-4">İşlem / Eylem</th>
-                    <th className="py-3 px-4">Hedef Nesne</th>
-                    <th className="py-3 px-4">Detay / Payload</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
-                  {auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                      <td className="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">
-                        {log.createdAt}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900 dark:text-white">{log.actorName}</div>
-                        <span className="text-[10px] text-sky-400 font-mono">{log.actorRole}</span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${
-                          log.action.includes('CLEAN') || log.action.includes('DELETE')
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                            : log.action.includes('CREATE') || log.action.includes('START')
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                        }`}>
-                          {log.action}
+            {/* TAB 8: AUDIT LOGS & SECURITY */}
+            {activeTab === 'audit' && (
+              <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl p-6 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>Sistem Güvenlik & Audit Günlüğü</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                          {auditLogs.length} Kayıt
                         </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-mono text-slate-300">{log.entityType}</span>
-                        <div className="text-[10px] text-slate-500 font-mono truncate max-w-[120px]">{log.entityId}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded-lg font-mono text-[11px] text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-800 max-w-md overflow-x-auto">
-                          {log.afterJson ? JSON.stringify(log.afterJson) : log.beforeJson ? JSON.stringify(log.beforeJson) : '—'}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+                      </h2>
+                      <p className="text-xs text-slate-400">Veritabanı sıfırlama, scraper çalıştırma, cari ve sipariş operasyonları logları</p>
+                    </div>
+                  </div>
 
-      {/* MODAL: NEW PRODUCT */}
-      {isNewProductModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">Yeni Ürün Oluştur</h3>
-              <button onClick={() => setIsNewProductModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: 2.5 kW Tavan Tipi Evaporatör"
-                  value={newProductName}
-                  onChange={(e) => setNewProductName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ERS-7010..."
-                    value={newProductSku}
-                    onChange={(e) => setNewProductSku(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
-                  <select
-                    value={newProductCategory}
-                    onChange={(e) => setNewProductCategory(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                  <button
+                    onClick={loadAuditLogs}
+                    disabled={loadingAuditLogs}
+                    className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition border border-slate-700"
                   >
-                    <option value="">-- Kategori Seçin --</option>
-                    {dbCategories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingAuditLogs ? 'animate-spin text-purple-400' : ''}`} />
+                    <span>Yenile</span>
+                  </button>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="0.00"
-                    value={newProductCost}
-                    onChange={(e) => setNewProductCost(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="0.00"
-                    value={newProductSale}
-                    onChange={(e) => setNewProductSale(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto (%):</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    max="100"
-                    placeholder="0"
-                    value={newProductDiscount}
-                    onChange={(e) => setNewProductDiscount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
-                  <input
-                    type="number"
-                    value={newProductStock}
-                    onChange={(e) => setNewProductStock(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Drag and Drop Image Uploader */}
-              <ImageDropzone
-                value={newProductImageUrl}
-                onChange={setNewProductImageUrl}
-                label="Ürün Görseli (Bilgisayardan Sürükleyin veya Dosya Seçin)"
-              />
-
-              <div className="pt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsNewProductModalOpen(false)}
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition"
-                >
-                  Ürünü Oluştur
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: EDIT PRODUCT */}
-      {editingProduct && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Edit className="w-4 h-4 text-sky-400" />
-                <h3 className="font-bold text-slate-900 dark:text-white text-base">Ürünü Düzenle</h3>
-              </div>
-              <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEditProduct} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
-                <input
-                  type="text"
-                  required
-                  value={editProdName}
-                  onChange={(e) => setEditProdName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
-                  <input
-                    type="text"
-                    required
-                    value={editProdSku}
-                    onChange={(e) => setEditProdSku(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Barkod (Opsiyonel):</label>
-                  <input
-                    type="text"
-                    value={editProdBarcode}
-                    onChange={(e) => setEditProdBarcode(e.target.value)}
-                    placeholder="8690000000000"
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-300 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
-                <select
-                  value={editProdCategory}
-                  onChange={(e) => setEditProdCategory(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                >
-                  <option value="">-- Kategori Seçin --</option>
-                  {dbCategories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="0.00"
-                    value={editProdCost}
-                    onChange={(e) => setEditProdCost(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="0.00"
-                    value={editProdSale}
-                    onChange={(e) => setEditProdSale(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    max="100"
-                    placeholder="0"
-                    value={editProdDiscount}
-                    onChange={(e) => setEditProdDiscount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
-                  <input
-                    type="number"
-                    value={editProdStock}
-                    onChange={(e) => setEditProdStock(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Image Drag and Drop Uploader */}
-              <ImageDropzone
-                value={editProdImageUrl}
-                onChange={setEditProdImageUrl}
-                label="Ürün Görseli (Bilgisayardan Sürükleyin veya Seçin)"
-              />
-
-              <div className="pt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingProduct(null)}
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingProduct}
-                  className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
-                >
-                  {savingProduct ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Kaydediliyor...</span>
-                    </>
-                  ) : (
-                    <span>Değişiklikleri Kaydet</span>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: EDIT CATEGORY */}
-      {editingCategory && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <FolderTree className="w-4 h-4 text-purple-400" />
-                <h3 className="font-bold text-slate-900 dark:text-white text-base">Kategoriyi Düzenle</h3>
-              </div>
-              <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEditCategory} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori Adı:</label>
-                <input
-                  type="text"
-                  required
-                  value={editCatName}
-                  onChange={(e) => setEditCatName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                  Üst Kategori (Bağlı Olduğu Ana Kategori):
-                </label>
-                <select
-                  value={editCatParent}
-                  onChange={(e) => setEditCatParent(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
-                >
-                  <option value="">📁 Bağımsız Ana Kategori Yap (Üst Kategori Yok)</option>
-                  <optgroup label="Mevcut Ana Kategoriler">
-                    {dbCategories
-                      .filter((c) => c.id !== editingCategory.id && !c.parentId)
-                      .map((c) => (
-                        <option key={c.id} value={c.id}>
-                          ↳ {c.name}
-                        </option>
-                      ))}
-                  </optgroup>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
-                  <input
-                    type="number"
-                    value={editCatSortOrder}
-                    onChange={(e) => setEditCatSortOrder(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    max="100"
-                    value={editCatDiscount}
-                    onChange={(e) => setEditCatDiscount(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingCategory(null)}
-                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingCategory}
-                  className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
-                >
-                  {savingCategory ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Kaydediliyor...</span>
-                    </>
-                  ) : (
-                    <span>Kategoriyi Güncelle</span>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: BULK LINK CATEGORIES */}
-      {bulkLinkModalOpen && (() => {
-        const mainCats = dbCategories.filter((c) => !c.parentId);
-
-        // Filter categories according to filter tab and search query
-        const displayedCats = dbCategories.filter((cat) => {
-          // Cannot link the target parent to itself
-          if (bulkTargetParent && cat.id === bulkTargetParent) return false;
-
-          if (bulkFilterType === 'unlinked' && cat.parentId) return false;
-          if (bulkFilterType === 'linked' && !cat.parentId) return false;
-
-          if (bulkCatSearch.trim()) {
-            return cat.name.toLowerCase().includes(bulkCatSearch.toLowerCase());
-          }
-          return true;
-        });
-
-        const allDisplayedSelected =
-          displayedCats.length > 0 &&
-          displayedCats.every((c) => bulkSelectedCatIds.includes(c.id));
-
-        const toggleSelectAll = () => {
-          if (allDisplayedSelected) {
-            const displayedIds = new Set(displayedCats.map((c) => c.id));
-            setBulkSelectedCatIds((prev) => prev.filter((id) => !displayedIds.has(id)));
-          } else {
-            const newIds = new Set([...bulkSelectedCatIds, ...displayedCats.map((c) => c.id)]);
-            setBulkSelectedCatIds(Array.from(newIds));
-          }
-        };
-
-        const targetParentObj = dbCategories.find((c) => c.id === bulkTargetParent);
-
-        return (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
-                    <Link2 className="w-4 h-4" />
+                {loadingAuditLogs ? (
+                  <div className="py-12 text-center text-slate-400 text-xs">Audit kayıtları yükleniyor...</div>
+                ) : auditLogs.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs">
+                    Henüz kayıtlı audit log bulunmuyor.
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                      Toplu Kategori Bağlama & Taşıma
-                    </h3>
-                    <p className="text-[11px] text-slate-400">
-                      Mevcut kategorilerinizi seçtiğiniz yeni bir ana kategoriye tek tıkla bağlayın.
-                    </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-[#0B1120] text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                          <th className="py-3 px-4">Tarih / Saat</th>
+                          <th className="py-3 px-4">Kullanıcı & Rol</th>
+                          <th className="py-3 px-4">İşlem / Eylem</th>
+                          <th className="py-3 px-4">Hedef Nesne</th>
+                          <th className="py-3 px-4">Detay / Payload</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-200 dark:divide-slate-800/60">
+                        {auditLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td className="py-3.5 px-4 font-mono text-slate-400 whitespace-nowrap">
+                              {log.createdAt}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-900 dark:text-white">{log.actorName}</div>
+                              <span className="text-[10px] text-sky-400 font-mono">{log.actorRole}</span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${log.action.includes('CLEAN') || log.action.includes('DELETE')
+                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                  : log.action.includes('CREATE') || log.action.includes('START')
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                }`}>
+                                {log.action}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-mono text-slate-300">{log.entityType}</span>
+                              <div className="text-[10px] text-slate-500 font-mono truncate max-w-[120px]">{log.entityId}</div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded-lg font-mono text-[11px] text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-800 max-w-md overflow-x-auto">
+                                {log.afterJson ? JSON.stringify(log.afterJson) : log.beforeJson ? JSON.stringify(log.beforeJson) : '—'}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODAL: NEW PRODUCT */}
+            {isNewProductModalOpen && (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-base">Yeni Ürün Oluştur</h3>
+                    <button onClick={() => setIsNewProductModalOpen(false)} className="text-slate-400 hover:text-white">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Örn: 2.5 kW Tavan Tipi Evaporatör"
+                        value={newProductName}
+                        onChange={(e) => setNewProductName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="ERS-7010..."
+                          value={newProductSku}
+                          onChange={(e) => setNewProductSku(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
+                        <select
+                          value={newProductCategory}
+                          onChange={(e) => setNewProductCategory(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                        >
+                          <option value="">-- Kategori Seçin --</option>
+                          {dbCategories.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="0.00"
+                          value={newProductCost}
+                          onChange={(e) => setNewProductCost(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="0.00"
+                          value={newProductSale}
+                          onChange={(e) => setNewProductSale(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto (%):</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          placeholder="0"
+                          value={newProductDiscount}
+                          onChange={(e) => setNewProductDiscount(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                        <input
+                          type="number"
+                          value={newProductStock}
+                          onChange={(e) => setNewProductStock(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Drag and Drop Image Uploader */}
+                    <ImageDropzone
+                      value={newProductImageUrl}
+                      onChange={setNewProductImageUrl}
+                      label="Ürün Görseli (Bilgisayardan Sürükleyin veya Dosya Seçin)"
+                    />
+
+                    <div className="pt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsNewProductModalOpen(false)}
+                        className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
+                      >
+                        İptal
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition"
+                      >
+                        Ürünü Oluştur
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* MODAL: EDIT PRODUCT */}
+            {editingProduct && (
+              <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-sky-400" />
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base">Ürünü Düzenle</h3>
+                    </div>
+                    <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEditProduct} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün Adı:</label>
+                      <input
+                        type="text"
+                        required
+                        value={editProdName}
+                        onChange={(e) => setEditProdName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Kodu (SKU):</label>
+                        <input
+                          type="text"
+                          required
+                          value={editProdSku}
+                          onChange={(e) => setEditProdSku(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-sky-300 focus:outline-none focus:border-sky-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Barkod (Opsiyonel):</label>
+                        <input
+                          type="text"
+                          value={editProdBarcode}
+                          onChange={(e) => setEditProdBarcode(e.target.value)}
+                          placeholder="8690000000000"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-300 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori:</label>
+                      <select
+                        value={editProdCategory}
+                        onChange={(e) => setEditProdCategory(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      >
+                        <option value="">-- Kategori Seçin --</option>
+                        {dbCategories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="0.00"
+                          value={editProdCost}
+                          onChange={(e) => setEditProdCost(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="0.00"
+                          value={editProdSale}
+                          onChange={(e) => setEditProdSale(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          placeholder="0"
+                          value={editProdDiscount}
+                          onChange={(e) => setEditProdDiscount(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                        <input
+                          type="number"
+                          value={editProdStock}
+                          onChange={(e) => setEditProdStock(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Image Drag and Drop Uploader */}
+                    <ImageDropzone
+                      value={editProdImageUrl}
+                      onChange={setEditProdImageUrl}
+                      label="Ürün Görseli (Bilgisayardan Sürükleyin veya Seçin)"
+                    />
+
+                    <div className="pt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingProduct(null)}
+                        className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
+                      >
+                        İptal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingProduct}
+                        className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+                      >
+                        {savingProduct ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Kaydediliyor...</span>
+                          </>
+                        ) : (
+                          <span>Değişiklikleri Kaydet</span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* MODAL: EDIT CATEGORY */}
+            {editingCategory && (
+              <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <FolderTree className="w-4 h-4 text-purple-400" />
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base">Kategoriyi Düzenle</h3>
+                    </div>
+                    <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-white">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEditCategory} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Kategori Adı:</label>
+                      <input
+                        type="text"
+                        required
+                        value={editCatName}
+                        onChange={(e) => setEditCatName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Üst Kategori (Bağlı Olduğu Ana Kategori):
+                      </label>
+                      <select
+                        value={editCatParent}
+                        onChange={(e) => setEditCatParent(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
+                      >
+                        <option value="">📁 Bağımsız Ana Kategori Yap (Üst Kategori Yok)</option>
+                        <optgroup label="Mevcut Ana Kategoriler">
+                          {dbCategories
+                            .filter((c) => c.id !== editingCategory.id && !c.parentId)
+                            .map((c) => (
+                              <option key={c.id} value={c.id}>
+                                ↳ {c.name}
+                              </option>
+                            ))}
+                        </optgroup>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Sıra Numarası:</label>
+                        <input
+                          type="number"
+                          value={editCatSortOrder}
+                          onChange={(e) => setEditCatSortOrder(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto Oranı (%):</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          value={editCatDiscount}
+                          onChange={(e) => setEditCatDiscount(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCategory(null)}
+                        className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs py-2.5 rounded-xl transition"
+                      >
+                        İptal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingCategory}
+                        className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+                      >
+                        {savingCategory ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Kaydediliyor...</span>
+                          </>
+                        ) : (
+                          <span>Kategoriyi Güncelle</span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* MODAL: BULK LINK CATEGORIES */}
+            {bulkLinkModalOpen && (() => {
+              const mainCats = dbCategories.filter((c) => !c.parentId);
+
+              // Filter categories according to filter tab and search query
+              const displayedCats = dbCategories.filter((cat) => {
+                // Cannot link the target parent to itself
+                if (bulkTargetParent && cat.id === bulkTargetParent) return false;
+
+                if (bulkFilterType === 'unlinked' && cat.parentId) return false;
+                if (bulkFilterType === 'linked' && !cat.parentId) return false;
+
+                if (bulkCatSearch.trim()) {
+                  return cat.name.toLowerCase().includes(bulkCatSearch.toLowerCase());
+                }
+                return true;
+              });
+
+              const allDisplayedSelected =
+                displayedCats.length > 0 &&
+                displayedCats.every((c) => bulkSelectedCatIds.includes(c.id));
+
+              const toggleSelectAll = () => {
+                if (allDisplayedSelected) {
+                  const displayedIds = new Set(displayedCats.map((c) => c.id));
+                  setBulkSelectedCatIds((prev) => prev.filter((id) => !displayedIds.has(id)));
+                } else {
+                  const newIds = new Set([...bulkSelectedCatIds, ...displayedCats.map((c) => c.id)]);
+                  setBulkSelectedCatIds(Array.from(newIds));
+                }
+              };
+
+              const targetParentObj = dbCategories.find((c) => c.id === bulkTargetParent);
+
+              return (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-shrink-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                          <Link2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                            Toplu Kategori Bağlama & Taşıma
+                          </h3>
+                          <p className="text-[11px] text-slate-400">
+                            Mevcut kategorilerinizi seçtiğiniz yeni bir ana kategoriye tek tıkla bağlayın.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setBulkLinkModalOpen(false)}
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Step 1: Target Main Category Selector */}
+                    <div className="p-3.5 bg-gradient-to-r from-purple-950/30 via-slate-900 to-slate-900 border border-purple-500/30 rounded-xl space-y-2 flex-shrink-0">
+                      <label className="block text-xs font-bold text-purple-300">
+                        1. Adım: Hedef Ana Kategoriyi Seçin:
+                      </label>
+                      <select
+                        value={bulkTargetParent}
+                        onChange={(e) => setBulkTargetParent(e.target.value)}
+                        className="w-full bg-slate-900 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-purple-400 cursor-pointer"
+                      >
+                        <option value="" disabled>-- Hedef Ana Kategori Seçiniz --</option>
+                        {mainCats.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            📁 {m.name} ({dbCategories.filter((c) => c.parentId === m.id).length} mevcut alt kategori)
+                          </option>
+                        ))}
+                        <option value="__UNBIND__">📁 Bağımsız Ana Kategoriye Dönüştür (Üst Kategori Bağlantısını Kaldır)</option>
+                      </select>
+
+                      <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block"></span>
+                        {bulkTargetParent === '__UNBIND__' ? (
+                          <span>Seçilen kategoriler üst kategorisiz <strong>Ana Kategori</strong> yapılacaktır.</span>
+                        ) : targetParentObj ? (
+                          <span>Seçilen kategoriler <strong>"{targetParentObj.name}"</strong> ana kategorisinin altına alt kategori olarak bağlanacaktır.</span>
+                        ) : (
+                          <span>Lütfen yukarıdan hedef ana kategoriyi belirleyin.</span>
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Step 2: Category Filter & Search Bar */}
+                    <div className="space-y-2 flex-shrink-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          2. Adım: Bağlamak İstediğiniz Kategorileri Seçin:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={toggleSelectAll}
+                            className="text-[11px] font-bold text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                          >
+                            {allDisplayedSelected ? 'Seçimi Kaldır' : `Görüntülenenleri Seç (${displayedCats.length})`}
+                          </button>
+                          {bulkSelectedCatIds.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setBulkSelectedCatIds([])}
+                              className="text-[11px] text-slate-400 hover:text-rose-400 cursor-pointer"
+                            >
+                              Temizle ({bulkSelectedCatIds.length})
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Filter Tabs & Search Box */}
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-bold w-full sm:w-auto">
+                          <button
+                            type="button"
+                            onClick={() => setBulkFilterType('unlinked')}
+                            className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'unlinked'
+                                ? 'bg-purple-600 text-white'
+                                : 'text-slate-500 hover:text-white'
+                              }`}
+                          >
+                            Boştaki Kategoriler ({dbCategories.filter((c) => !c.parentId && c.id !== bulkTargetParent).length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkFilterType('all')}
+                            className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'all'
+                                ? 'bg-purple-600 text-white'
+                                : 'text-slate-500 hover:text-white'
+                              }`}
+                          >
+                            Tümü ({dbCategories.filter((c) => c.id !== bulkTargetParent).length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkFilterType('linked')}
+                            className={`px-2.5 py-1 rounded-md transition cursor-pointer ${bulkFilterType === 'linked'
+                                ? 'bg-purple-600 text-white'
+                                : 'text-slate-500 hover:text-white'
+                              }`}
+                          >
+                            Bağlı Olanlar ({dbCategories.filter((c) => !!c.parentId).length})
+                          </button>
+                        </div>
+
+                        <div className="relative flex-1 w-full">
+                          <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            placeholder="Listede kategori adına göre filtrele..."
+                            value={bulkCatSearch}
+                            onChange={(e) => setBulkCatSearch(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-7 pr-3 py-1 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Scrollable Categories List */}
+                    <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[300px] min-h-[160px]">
+                      {displayedCats.length === 0 ? (
+                        <div className="py-8 text-center text-xs text-slate-400">
+                          Seçilen filtreye uygun kategori bulunamadı.
+                        </div>
+                      ) : (
+                        displayedCats.map((cat) => {
+                          const isSelected = bulkSelectedCatIds.includes(cat.id);
+                          const currentParent = cat.parentId
+                            ? dbCategories.find((c) => c.id === cat.parentId)?.name
+                            : null;
+
+                          return (
+                            <label
+                              key={cat.id}
+                              className={`flex items-center justify-between p-2.5 text-xs hover:bg-purple-500/5 cursor-pointer transition ${isSelected ? 'bg-purple-500/10' : ''
+                                }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    setBulkSelectedCatIds((prev) =>
+                                      prev.includes(cat.id)
+                                        ? prev.filter((id) => id !== cat.id)
+                                        : [...prev, cat.id]
+                                    );
+                                  }}
+                                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-700"
+                                />
+                                <span className="font-bold text-slate-900 dark:text-white truncate">
+                                  {cat.name}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {currentParent ? (
+                                  <span className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full font-medium">
+                                    ↳ {currentParent} altında
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full font-medium">
+                                    📁 Ana Kategori
+                                  </span>
+                                )}
+
+                                {cat._count?.products !== undefined && (
+                                  <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+                                    {cat._count.products} Ürün
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* Modal Footer Actions */}
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
+                      <div className="text-xs text-slate-400">
+                        <span className="font-bold text-white font-mono">{bulkSelectedCatIds.length}</span> kategori seçildi
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setBulkLinkModalOpen(false)}
+                          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                        >
+                          Vazgeç
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={
+                            bulkAssigning ||
+                            bulkSelectedCatIds.length === 0 ||
+                            !bulkTargetParent
+                          }
+                          onClick={handleBulkAssignCategories}
+                          className="px-5 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer"
+                        >
+                          {bulkAssigning ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Bağlanıyor...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Link2 className="w-3.5 h-3.5" />
+                              <span>
+                                Seçilen {bulkSelectedCatIds.length} Kategoriyi{' '}
+                                {bulkTargetParent === '__UNBIND__'
+                                  ? 'Ana Kategori Yap'
+                                  : `"${targetParentObj?.name || 'Ana Kategori'}"ye Bağla`}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setBulkLinkModalOpen(false)}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+              );
+            })()}
+
+            {/* Modal: New Dealer Credentials / Temporary Password */}
+            {createdCredentialsModal && (
+              <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      <span>{createdCredentialsModal.title}</span>
+                    </div>
+                    <button
+                      onClick={() => setCreatedCredentialsModal(null)}
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-400">
+                    <strong className="text-slate-900 dark:text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
+                  </p>
+
+                  <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                      <span className="text-slate-400">Kullanıcı Adı:</span>
+                      <span className="text-sky-400 font-bold text-sm">{createdCredentialsModal.username}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Geçici Şifre:</span>
+                      <span className="text-emerald-400 font-bold text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white">
+                        {createdCredentialsModal.tempPassword}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
+                    <strong>Önemli Güvenlik Notu:</strong> Bu geçici şifre veritabanında plain-text olarak tutulmaz, yalnızca bcrypt hash'i saklanır. Lütfen şifreyi şimdi kopyalayarak bayinizle paylaşınız.
+                  </div>
+
+                  <div className="pt-2 flex gap-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`Ersa Soğutma B2B Bayi Girişi\nKullanıcı Adı: ${createdCredentialsModal.username}\nGeçici Şifre: ${createdCredentialsModal.tempPassword}\nGiriş URL: https://ersasogutma.vercel.app/bayi/login`);
+                        showToast('Giriş bilgileri panoya kopyalandı!', 'success');
+                      }}
+                      className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
+                    >
+                      <Layers className="w-4 h-4" />
+                      <span>Bilgileri Kopyala</span>
+                    </button>
+                    <button
+                      onClick={() => setCreatedCredentialsModal(null)}
+                      className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition"
+                    >
+                      Tamam
+                    </button>
+                  </div>
+                </div>
               </div>
+            )}
 
-              {/* Step 1: Target Main Category Selector */}
-              <div className="p-3.5 bg-gradient-to-r from-purple-950/30 via-slate-900 to-slate-900 border border-purple-500/30 rounded-xl space-y-2 flex-shrink-0">
-                <label className="block text-xs font-bold text-purple-300">
-                  1. Adım: Hedef Ana Kategoriyi Seçin:
-                </label>
-                <select
-                  value={bulkTargetParent}
-                  onChange={(e) => setBulkTargetParent(e.target.value)}
-                  className="w-full bg-slate-900 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-purple-400 cursor-pointer"
-                >
-                  <option value="" disabled>-- Hedef Ana Kategori Seçiniz --</option>
-                  {mainCats.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      📁 {m.name} ({dbCategories.filter((c) => c.parentId === m.id).length} mevcut alt kategori)
-                    </option>
-                  ))}
-                  <option value="__UNBIND__">📁 Bağımsız Ana Kategoriye Dönüştür (Üst Kategori Bağlantısını Kaldır)</option>
-                </select>
+            {/* DANGEROUS ACTION CONFIRMATION MODAL */}
+            {confirmModal?.isOpen && (
+              <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${confirmModal.isDanger ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">{confirmModal.title}</h3>
+                  </div>
 
-                <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block"></span>
-                  {bulkTargetParent === '__UNBIND__' ? (
-                    <span>Seçilen kategoriler üst kategorisiz <strong>Ana Kategori</strong> yapılacaktır.</span>
-                  ) : targetParentObj ? (
-                    <span>Seçilen kategoriler <strong>"{targetParentObj.name}"</strong> ana kategorisinin altına alt kategori olarak bağlanacaktır.</span>
-                  ) : (
-                    <span>Lütfen yukarıdan hedef ana kategoriyi belirleyin.</span>
-                  )}
-                </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {confirmModal.message}
+                  </p>
+
+                  <div className="pt-3 flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmModal(null)}
+                      className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const onConf = confirmModal.onConfirm;
+                        setConfirmModal(null);
+                        await onConf();
+                      }}
+                      className={`px-4 py-2 text-white font-bold rounded-xl text-xs transition shadow cursor-pointer ${confirmModal.isDanger
+                          ? 'bg-rose-600 hover:bg-rose-500'
+                          : 'bg-sky-600 hover:bg-sky-500'
+                        }`}
+                    >
+                      {confirmModal.confirmText || 'Onayla'}
+                    </button>
+                  </div>
+                </div>
               </div>
+            )}
 
-              {/* Step 2: Category Filter & Search Bar */}
-              <div className="space-y-2 flex-shrink-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    2. Adım: Bağlamak İstediğiniz Kategorileri Seçin:
-                  </span>
+            {/* DEALER APPLICATION FULL DETAIL MODAL */}
+            {viewingAppDetail && (
+              <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                  {/* Modal Header */}
+                  <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                        <UserCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Bayilik Başvuru Detayı</h3>
+                        <p className="text-xs text-slate-400 font-mono">ID: {viewingAppDetail.id}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingAppDetail(null)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Modal Body: All 8 Fields */}
+                  <div className="p-6 overflow-y-auto space-y-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">1. Firma Ünvanı:</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{viewingAppDetail.companyName}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">2. Yetkili İsim Soyisim:</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{viewingAppDetail.contactPerson}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">3. Vergi Dairesi:</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{viewingAppDetail.taxOffice || '—'}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">4. Vergi Numarası:</span>
+                        <span className="font-mono font-bold text-sky-400 text-sm">{viewingAppDetail.taxNumber}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">5. T.C. Kimlik No:</span>
+                        <span className="font-mono font-bold text-amber-400 text-sm">{viewingAppDetail.idNumber || 'Belirtilmedi'}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">6. İl:</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{viewingAppDetail.city}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">7. E-Posta Adresi:</span>
+                        <span className="font-mono text-sky-400">{viewingAppDetail.email}</span>
+                      </div>
+
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">Telefon Numarası:</span>
+                        <span className="font-mono text-emerald-400 font-semibold">{viewingAppDetail.phone}</span>
+                      </div>
+
+                      <div className="sm:col-span-2 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">8. Açık Adres:</span>
+                        <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
+                          {viewingAppDetail.address || 'Adres belirtilmedi.'}
+                        </p>
+                      </div>
+
+                      <div className="sm:col-span-2 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block mb-0.5">Başvuru Notu / Mesaj:</span>
+                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                          {viewingAppDetail.notes || 'Not eklenmedi.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-slate-400">
+                      Tarih: {viewingAppDetail.appliedAt} • Durum: <strong className="text-sky-400">{viewingAppDetail.status}</strong>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setViewingAppDetail(null)}
+                        className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+                      >
+                        Kapat
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ADMIN ORDER PRINT MODAL (ON-SCREEN PREVIEW ONLY - HIDDEN IN PRINT) */}
+            {adminPrintingOrder && (
+              <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto no-print print:hidden">
+                {/* Controls Bar */}
+                <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl">
+                  <div className="flex items-center gap-2">
+                    <Printer className="w-5 h-5 text-sky-400" />
+                    <div>
+                      <h3 className="text-sm font-bold">Sipariş Yazdırma Önizleme (A4)</h3>
+                      <p className="text-xs text-slate-400">Sipariş No: {adminPrintingOrder.orderNumber}</p>
+                    </div>
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={toggleSelectAll}
-                      className="text-[11px] font-bold text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                      onClick={() => window.print()}
+                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
                     >
-                      {allDisplayedSelected ? 'Seçimi Kaldır' : `Görüntülenenleri Seç (${displayedCats.length})`}
+                      <Printer className="w-4 h-4" />
+                      <span>Hemen Yazdır</span>
                     </button>
-                    {bulkSelectedCatIds.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setBulkSelectedCatIds([])}
-                        className="text-[11px] text-slate-400 hover:text-rose-400 cursor-pointer"
-                      >
-                        Temizle ({bulkSelectedCatIds.length})
-                      </button>
-                    )}
-                  </div>
-                </div>
 
-                {/* Filter Tabs & Search Box */}
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-bold w-full sm:w-auto">
                     <button
                       type="button"
-                      onClick={() => setBulkFilterType('unlinked')}
-                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                        bulkFilterType === 'unlinked'
-                          ? 'bg-purple-600 text-white'
-                          : 'text-slate-500 hover:text-white'
-                      }`}
+                      onClick={() => setAdminPrintingOrder(null)}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
                     >
-                      Boştaki Kategoriler ({dbCategories.filter((c) => !c.parentId && c.id !== bulkTargetParent).length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBulkFilterType('all')}
-                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                        bulkFilterType === 'all'
-                          ? 'bg-purple-600 text-white'
-                          : 'text-slate-500 hover:text-white'
-                      }`}
-                    >
-                      Tümü ({dbCategories.filter((c) => c.id !== bulkTargetParent).length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBulkFilterType('linked')}
-                      className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                        bulkFilterType === 'linked'
-                          ? 'bg-purple-600 text-white'
-                          : 'text-slate-500 hover:text-white'
-                      }`}
-                    >
-                      Bağlı Olanlar ({dbCategories.filter((c) => !!c.parentId).length})
+                      Kapat
                     </button>
                   </div>
-
-                  <div className="relative flex-1 w-full">
-                    <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Listede kategori adına göre filtrele..."
-                      value={bulkCatSearch}
-                      onChange={(e) => setBulkCatSearch(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-7 pr-3 py-1 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Scrollable Categories List */}
-              <div className="flex-1 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[300px] min-h-[160px]">
-                {displayedCats.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400">
-                    Seçilen filtreye uygun kategori bulunamadı.
-                  </div>
-                ) : (
-                  displayedCats.map((cat) => {
-                    const isSelected = bulkSelectedCatIds.includes(cat.id);
-                    const currentParent = cat.parentId
-                      ? dbCategories.find((c) => c.id === cat.parentId)?.name
-                      : null;
-
-                    return (
-                      <label
-                        key={cat.id}
-                        className={`flex items-center justify-between p-2.5 text-xs hover:bg-purple-500/5 cursor-pointer transition ${
-                          isSelected ? 'bg-purple-500/10' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => {
-                              setBulkSelectedCatIds((prev) =>
-                                prev.includes(cat.id)
-                                  ? prev.filter((id) => id !== cat.id)
-                                  : [...prev, cat.id]
-                              );
-                            }}
-                            className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-700"
-                          />
-                          <span className="font-bold text-slate-900 dark:text-white truncate">
-                            {cat.name}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {currentParent ? (
-                            <span className="text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full font-medium">
-                              ↳ {currentParent} altında
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full font-medium">
-                              📁 Ana Kategori
-                            </span>
-                          )}
-
-                          {cat._count?.products !== undefined && (
-                            <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
-                              {cat._count.products} Ürün
-                            </span>
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* Modal Footer Actions */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
-                <div className="text-xs text-slate-400">
-                  <span className="font-bold text-white font-mono">{bulkSelectedCatIds.length}</span> kategori seçildi
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setBulkLinkModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
-                  >
-                    Vazgeç
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={
-                      bulkAssigning ||
-                      bulkSelectedCatIds.length === 0 ||
-                      !bulkTargetParent
-                    }
-                    onClick={handleBulkAssignCategories}
-                    className="px-5 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer"
-                  >
-                    {bulkAssigning ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Bağlanıyor...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Link2 className="w-3.5 h-3.5" />
-                        <span>
-                          Seçilen {bulkSelectedCatIds.length} Kategoriyi{' '}
-                          {bulkTargetParent === '__UNBIND__'
-                            ? 'Ana Kategori Yap'
-                            : `"${targetParentObj?.name || 'Ana Kategori'}"ye Bağla`}
-                        </span>
-                      </>
-                    )}
-                  </button>
+                {/* On-screen Preview Container */}
+                <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+                  <OrderPrintDocument order={adminPrintingOrder} isPreview />
                 </div>
               </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Modal: New Dealer Credentials / Temporary Password */}
-      {createdCredentialsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <span>{createdCredentialsModal.title}</span>
-              </div>
-              <button
-                onClick={() => setCreatedCredentialsModal(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-400">
-              <strong className="text-slate-900 dark:text-white">{createdCredentialsModal.companyName}</strong> için güvenli giriş bilgileri başarıyla oluşturuldu.
-            </p>
-
-            <div className="bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 font-mono text-xs">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-                <span className="text-slate-400">Kullanıcı Adı:</span>
-                <span className="text-sky-400 font-bold text-sm">{createdCredentialsModal.username}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Geçici Şifre:</span>
-                <span className="text-emerald-400 font-bold text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white">
-                  {createdCredentialsModal.tempPassword}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
-              <strong>Önemli Güvenlik Notu:</strong> Bu geçici şifre veritabanında plain-text olarak tutulmaz, yalnızca bcrypt hash'i saklanır. Lütfen şifreyi şimdi kopyalayarak bayinizle paylaşınız.
-            </div>
-
-            <div className="pt-2 flex gap-2">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(`Ersa Soğutma B2B Bayi Girişi\nKullanıcı Adı: ${createdCredentialsModal.username}\nGeçici Şifre: ${createdCredentialsModal.tempPassword}\nGiriş URL: https://ersasogutma.vercel.app/bayi/login`);
-                  showToast('Giriş bilgileri panoya kopyalandı!', 'success');
-                }}
-                className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5"
-              >
-                <Layers className="w-4 h-4" />
-                <span>Bilgileri Kopyala</span>
-              </button>
-              <button
-                onClick={() => setCreatedCredentialsModal(null)}
-                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition"
-              >
-                Tamam
-              </button>
-            </div>
-          </div>
+            )}
+          </main>
         </div>
-      )}
+      </div>
 
-      {/* DANGEROUS ACTION CONFIRMATION MODAL */}
-      {confirmModal?.isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                confirmModal.isDanger ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-              }`}>
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">{confirmModal.title}</h3>
-            </div>
-
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {confirmModal.message}
-            </p>
-
-            <div className="pt-3 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setConfirmModal(null)}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
-              >
-                İptal
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const onConf = confirmModal.onConfirm;
-                  setConfirmModal(null);
-                  await onConf();
-                }}
-                className={`px-4 py-2 text-white font-bold rounded-xl text-xs transition shadow cursor-pointer ${
-                  confirmModal.isDanger
-                    ? 'bg-rose-600 hover:bg-rose-500'
-                    : 'bg-sky-600 hover:bg-sky-500'
-                }`}
-              >
-                {confirmModal.confirmText || 'Onayla'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DEALER APPLICATION FULL DETAIL MODAL */}
-      {viewingAppDetail && (
-        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Bayilik Başvuru Detayı</h3>
-                  <p className="text-xs text-slate-400 font-mono">ID: {viewingAppDetail.id}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setViewingAppDetail(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body: All 8 Fields */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">1. Firma Ünvanı:</span>
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">{viewingAppDetail.companyName}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">2. Yetkili İsim Soyisim:</span>
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">{viewingAppDetail.contactPerson}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">3. Vergi Dairesi:</span>
-                  <span className="font-medium text-slate-900 dark:text-white">{viewingAppDetail.taxOffice || '—'}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">4. Vergi Numarası:</span>
-                  <span className="font-mono font-bold text-sky-400 text-sm">{viewingAppDetail.taxNumber}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">5. T.C. Kimlik No:</span>
-                  <span className="font-mono font-bold text-amber-400 text-sm">{viewingAppDetail.idNumber || 'Belirtilmedi'}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">6. İl:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{viewingAppDetail.city}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">7. E-Posta Adresi:</span>
-                  <span className="font-mono text-sky-400">{viewingAppDetail.email}</span>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">Telefon Numarası:</span>
-                  <span className="font-mono text-emerald-400 font-semibold">{viewingAppDetail.phone}</span>
-                </div>
-
-                <div className="sm:col-span-2 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">8. Açık Adres:</span>
-                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
-                    {viewingAppDetail.address || 'Adres belirtilmedi.'}
-                  </p>
-                </div>
-
-                <div className="sm:col-span-2 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">Başvuru Notu / Mesaj:</span>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                    {viewingAppDetail.notes || 'Not eklenmedi.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between gap-3">
-              <span className="text-[11px] text-slate-400">
-                Tarih: {viewingAppDetail.appliedAt} • Durum: <strong className="text-sky-400">{viewingAppDetail.status}</strong>
-              </span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setViewingAppDetail(null)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
-                >
-                  Kapat
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN ORDER PRINT MODAL (ON-SCREEN PREVIEW ONLY - HIDDEN IN PRINT) */}
+      {/* PURE A4 PRINT DOCUMENT - Rendered directly at root level, only visible during print */}
       {adminPrintingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col p-4 overflow-y-auto no-print print:hidden">
-          {/* Controls Bar */}
-          <div className="max-w-4xl mx-auto w-full mb-4 flex items-center justify-between bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-2xl">
-            <div className="flex items-center gap-2">
-              <Printer className="w-5 h-5 text-sky-400" />
-              <div>
-                <h3 className="text-sm font-bold">Sipariş Yazdırma Önizleme (A4)</h3>
-                <p className="text-xs text-slate-400">Sipariş No: {adminPrintingOrder.orderNumber}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                <span>Hemen Yazdır</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAdminPrintingOrder(null)}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                Kapat
-              </button>
-            </div>
-          </div>
-
-          {/* On-screen Preview Container */}
-          <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden">
-            <OrderPrintDocument order={adminPrintingOrder} isPreview />
-          </div>
+        <div className="hidden print:block">
+          <OrderPrintDocument order={adminPrintingOrder} />
         </div>
       )}
-        </main>
-      </div>
-    </div>
-
-    {/* PURE A4 PRINT DOCUMENT - Rendered directly at root level, only visible during print */}
-    {adminPrintingOrder && (
-      <div className="hidden print:block">
-        <OrderPrintDocument order={adminPrintingOrder} />
-      </div>
-    )}
-  </>
+    </>
   );
 }

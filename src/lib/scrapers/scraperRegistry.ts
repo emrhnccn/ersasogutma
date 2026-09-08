@@ -1,6 +1,7 @@
 import { ISupplierScraper, ScraperProgress, ScraperLog, ScrapeOptions } from './types';
 import { ErsaTicaretScraper } from './ersaTicaretScraper';
 import { GirdapScraper } from './girdapScraper';
+import { TurkuazScraper } from './turkuazScraper';
 
 class ScraperRegistry {
   private scrapers: Map<string, ISupplierScraper> = new Map();
@@ -22,6 +23,7 @@ class ScraperRegistry {
   constructor() {
     this.register(new ErsaTicaretScraper());
     this.register(new GirdapScraper());
+    this.register(new TurkuazScraper());
   }
 
   register(scraper: ISupplierScraper) {

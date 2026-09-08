@@ -81,13 +81,23 @@ export class ErsaTicaretScraper implements ISupplierScraper {
       let sitemapXml = '';
       try {
         sitemapXml = await this.fetchText(sitemapUrl);
-      } catch {
-        // Fallback to www or non-www
-        const fallbackUrl = targetUrl.includes('www.')
-          ? targetUrl.replace('www.', '') + '/sitemap.xml'
-          : targetUrl.replace('://', '://www.') + '/sitemap.xml';
-        log(`Tekrar deneniyor: ${fallbackUrl}`, 'warn');
-        sitemapXml = await this.fetchText(fallbackUrl);
+      } catch (err: any) {
+        // Only retry with www if target is specifically ersaticaret.com without www
+        let retrySuccess = false;
+        try {
+          const parsed = new URL(targetUrl);
+          if (parsed.hostname === 'ersaticaret.com') {
+            const fallbackUrl = 'https://www.ersaticaret.com/sitemap.xml';
+            log(`Tekrar deneniyor: ${fallbackUrl}`, 'warn');
+            sitemapXml = await this.fetchText(fallbackUrl);
+            retrySuccess = true;
+          }
+        } catch {
+          // ignore
+        }
+        if (!retrySuccess) {
+          throw new Error(`Site haritasına erişilemedi (${sitemapUrl}): ${err.message}`);
+        }
       }
 
       // Extract all product URLs
