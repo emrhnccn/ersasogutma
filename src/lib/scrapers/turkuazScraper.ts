@@ -79,6 +79,38 @@ function encodeIso88599Uri(text: string): string {
     .join('');
 }
 
+/**
+ * Database retry helper to prevent Neon serverless connection drops from aborting the scrape.
+ */
+async function withDbRetry<T>(fn: () => Promise<T>, maxRetries = 4, baseDelayMs = 600): Promise<T> {
+  let lastErr: any;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      const msg = (err.message || '').toLowerCase();
+      const isConnIssue =
+        msg.includes('reach database') ||
+        msg.includes('cant reach') ||
+        msg.includes('timed out') ||
+        msg.includes('connection') ||
+        msg.includes('closed') ||
+        msg.includes('pool') ||
+        err.code === 'P1001' ||
+        err.code === 'P1002' ||
+        err.code === 'P2024';
+
+      if (isConnIssue && attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * attempt));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 interface HttpResponse {
   statusCode: number;
   headers: Record<string, string | string[] | undefined>;
@@ -407,7 +439,8 @@ export class TurkuazScraper implements ISupplierScraper {
   }
 
   /**
-   * Main scrape execution
+   * Main scrape execution with high-speed page-by-page database streaming,
+   * in-memory caching, and resilient retry mechanism.
    */
   async scrape(
     options: ScrapeOptions,
@@ -426,21 +459,74 @@ export class TurkuazScraper implements ISupplierScraper {
       log(`🚀 Turkuaz Teknik (${this.fixedHostname}) ürün çekme botu başlatıldı...`, 'info');
       onProgress({ status: 'running', currentStep: 'Ağ & DNS Teşhisi Yapılıyor', startedAt: startTime, percent: 5 });
 
-      // 1. Mandatory DNS & Connectivity Diagnostics
+      // 1. Network diagnostics
       await this.diagnoseNetwork(log);
 
-      // 2. Authentication Flow
-      onProgress({ currentStep: 'Turkuaz B2B Oturumu Açılıyor', percent: 15 });
+      // 2. Authentication
+      onProgress({ currentStep: 'Turkuaz B2B Oturumu Açılıyor', percent: 12 });
       const username = options.username || process.env.TURKUAZ_USERNAME;
       const password = options.password || process.env.TURKUAZ_PASSWORD;
-
       await this.login(username, password, log);
 
-      // 3. Scan Catalog & Products via Pagination (?p=15&pu=N)
-      onProgress({ currentStep: 'Ürün kataloğu taranıyor', percent: 20 });
-      log(`📂 Ürün kataloğu taranıyor ve sayfalar yükleniyor...`, 'info');
+      // 3. Pre-load / Cache Brand, Category & Supplier
+      log(`⚡ Veritabanı önbelleği hazırlanıyor...`, 'info');
+      const brandCache = new Map<string, string>();
+      const categoryCache = new Map<string, string>();
 
-      // Determine base catalog URL
+      // Ensure Supplier 'TURKUAZ'
+      let supplierId: string | null = null;
+      try {
+        const supplierRecord = await withDbRetry(() =>
+          prisma.supplier.upsert({
+            where: { code: 'TURKUAZ' },
+            update: {
+              name: 'Turkuaz Teknik',
+              websiteUrl: 'https://bayi.turkuazteknik.com.tr',
+              lastSyncedAt: new Date()
+            },
+            create: {
+              code: 'TURKUAZ',
+              name: 'Turkuaz Teknik',
+              websiteUrl: 'https://bayi.turkuazteknik.com.tr',
+              active: true,
+              lastSyncedAt: new Date()
+            }
+          })
+        );
+        supplierId = supplierRecord.id;
+      } catch (err: any) {
+        log(`Tedarikçi kaydı uyarısı: ${err.message}`, 'warn');
+      }
+
+      const getOrCreateBrand = async (brandName: string): Promise<string> => {
+        const brandSlug = slugify(brandName);
+        if (brandCache.has(brandSlug)) return brandCache.get(brandSlug)!;
+        const record = await withDbRetry(() =>
+          prisma.brand.upsert({
+            where: { slug: brandSlug },
+            update: { name: brandName },
+            create: { name: brandName, slug: brandSlug }
+          })
+        );
+        brandCache.set(brandSlug, record.id);
+        return record.id;
+      };
+
+      const getOrCreateCategory = async (catName: string): Promise<string> => {
+        const catSlug = slugify(catName);
+        if (categoryCache.has(catSlug)) return categoryCache.get(catSlug)!;
+        const record = await withDbRetry(() =>
+          prisma.category.upsert({
+            where: { slug: catSlug },
+            update: { name: catName },
+            create: { name: catName, slug: catSlug }
+          })
+        );
+        categoryCache.set(catSlug, record.id);
+        return record.id;
+      };
+
+      // 4. Page-by-page streaming scrape & concurrent database import
       let baseCatalogUrl = `${this.baseUrl}/index.asp?p=15&bul=&aramahedefi=tumu`;
       if (options.targetUrl && !options.targetUrl.toLowerCase().includes('login.asp')) {
         try {
@@ -448,33 +534,27 @@ export class TurkuazScraper implements ISupplierScraper {
           if (customUrl.pathname.toLowerCase().includes('index.asp')) {
             baseCatalogUrl = this.sanitizeUrl(options.targetUrl).href;
           }
-        } catch {
-          // fallback to default
-        }
+        } catch {}
       }
-
-      const collectedProducts: ScrapedProduct[] = [];
-      const seenSkus = new Set<string>();
 
       let currentPage = 1;
       let maxPages = 1;
       let emptyPageCount = 0;
+      let totalImported = 0;
+      let totalFailed = 0;
+      const seenSkus = new Set<string>();
+
+      log(`📂 Ürün kataloğu taranıyor ve veritabanına aktarılıyor...`, 'info');
 
       while (!this.isStopped) {
-        if (options.maxProducts && collectedProducts.length >= options.maxProducts) break;
+        if (options.maxProducts && totalImported >= options.maxProducts) break;
         if (currentPage > maxPages && maxPages > 1) break;
-        if (emptyPageCount >= 2) break; // 2 consecutive empty pages means end of catalog
+        if (emptyPageCount >= 2) break;
 
         const pageUrl = new URL(baseCatalogUrl);
         pageUrl.searchParams.set('pu', currentPage.toString());
 
-        log(`📄 Sayfa ${currentPage}${maxPages > 1 ? ` / ${maxPages}` : ''} taranıyor...`, 'info');
-        onProgress({
-          currentStep: `Sayfa ${currentPage} / ${maxPages} taranıyor (${collectedProducts.length} ürün toplandı)`,
-          processedCategories: currentPage,
-          totalCategories: maxPages,
-          percent: 20 + Math.min(45, Math.round((currentPage / Math.max(maxPages, 10)) * 45))
-        });
+        log(`📄 Sayfa ${currentPage}${maxPages > 1 ? ` / ${maxPages}` : ''} çekiliyor...`, 'info');
 
         let pageHtml = '';
         try {
@@ -487,7 +567,7 @@ export class TurkuazScraper implements ISupplierScraper {
           continue;
         }
 
-        // Detect max pages from pagination links on page 1 or subsequent
+        // Detect max pages from pagination block
         if (currentPage === 1 || maxPages === 1) {
           const puMatches = [...pageHtml.matchAll(/[?&]pu=(\d+)/gi)];
           for (const m of puMatches) {
@@ -499,179 +579,126 @@ export class TurkuazScraper implements ISupplierScraper {
           }
         }
 
-        // Parse products from table
-        const parsedProducts = this.parseProductCards(pageHtml, pageUrl.href);
-        let newCount = 0;
+        // Parse products from page table
+        const pageProducts = this.parseProductCards(pageHtml, pageUrl.href);
+        const uniquePageProducts: ScrapedProduct[] = [];
 
-        for (const prod of parsedProducts) {
+        for (const prod of pageProducts) {
           if (!seenSkus.has(prod.sku)) {
             seenSkus.add(prod.sku);
-            collectedProducts.push(prod);
-            newCount++;
-            if (options.maxProducts && collectedProducts.length >= options.maxProducts) break;
+            uniquePageProducts.push(prod);
+            if (options.maxProducts && (totalImported + uniquePageProducts.length) >= options.maxProducts) {
+              break;
+            }
           }
         }
 
-        if (newCount === 0) {
+        if (uniquePageProducts.length === 0) {
           emptyPageCount++;
         } else {
           emptyPageCount = 0;
-          log(`✅ Sayfa ${currentPage}'den ${newCount} adet ürün ayrıştırıldı. (Toplam: ${collectedProducts.length})`, 'info');
+
+          // Save products in parallel chunks of 5 for ultra-fast and resilient DB write
+          const BATCH_SIZE = 5;
+          let pageSavedCount = 0;
+
+          const saveProduct = async (prod: ScrapedProduct) => {
+            if (this.isStopped) return;
+            try {
+              const brandId = prod.brandName ? await getOrCreateBrand(prod.brandName) : null;
+              const categoryId = prod.categoryName ? await getOrCreateCategory(prod.categoryName) : null;
+              const productSlug = `${slugify(prod.name).slice(0, 50)}-${slugify(prod.sku)}`;
+
+              const saved = await withDbRetry(() =>
+                prisma.product.upsert({
+                  where: { sku: prod.sku },
+                  update: {
+                    name: prod.name,
+                    salePrice: prod.salePrice || 0,
+                    costPrice: prod.costPrice || 0,
+                    currency: prod.currency || 'TRY',
+                    minOrderQty: (prod as any).minOrderQty || 1,
+                    stockQty: prod.stockQty,
+                    brandId,
+                    categoryId,
+                    supplierId,
+                    description: prod.description,
+                    status: 'PUBLISHED',
+                    specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
+                  },
+                  create: {
+                    name: prod.name,
+                    slug: productSlug,
+                    sku: prod.sku,
+                    barcode: prod.barcode,
+                    salePrice: prod.salePrice || 0,
+                    costPrice: prod.costPrice || 0,
+                    currency: prod.currency || 'TRY',
+                    minOrderQty: (prod as any).minOrderQty || 1,
+                    stockQty: prod.stockQty,
+                    brandId,
+                    categoryId,
+                    supplierId,
+                    description: prod.description,
+                    status: 'PUBLISHED',
+                    unit: 'ADET',
+                    specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
+                  }
+                })
+              );
+
+              // Save Product Images
+              if (prod.images && prod.images.length > 0) {
+                await withDbRetry(async () => {
+                  const existingCount = await prisma.productImage.count({ where: { productId: saved.id } });
+                  if (existingCount === 0) {
+                    await prisma.productImage.createMany({
+                      data: prod.images.map((img, idx) => ({
+                        productId: saved.id,
+                        url: img.url,
+                        alt: prod.name,
+                        sortOrder: idx,
+                        sourceSupplier: 'Turkuaz Teknik'
+                      }))
+                    });
+                  }
+                });
+              }
+
+              totalImported++;
+              pageSavedCount++;
+            } catch (dbErr: any) {
+              totalFailed++;
+              log(`Ürün kayıt hatası (${prod.sku}): ${dbErr.message}`, 'warn');
+            }
+          };
+
+          for (let b = 0; b < uniquePageProducts.length; b += BATCH_SIZE) {
+            if (this.isStopped) break;
+            const chunk = uniquePageProducts.slice(b, b + BATCH_SIZE);
+            await Promise.all(chunk.map(saveProduct));
+          }
+
+          log(`✅ Sayfa ${currentPage}'den ${pageSavedCount} ürün veritabanına aktarıldı. (Toplam: ${totalImported})`, 'success');
         }
+
+        const estTotal = Math.max(maxPages * 30, totalImported);
+        const percent = Math.min(99, Math.round((currentPage / maxPages) * 100));
+
+        onProgress({
+          currentStep: `Sayfa ${currentPage} / ${maxPages} tamamlandı (${totalImported} ürün aktarıldı)`,
+          processedCategories: currentPage,
+          totalCategories: maxPages,
+          totalProducts: estTotal,
+          importedProducts: totalImported,
+          failedProducts: totalFailed,
+          percent
+        });
 
         currentPage++;
 
-        // Polite delay between pages (250ms)
-        if (!this.isStopped && (!options.maxProducts || collectedProducts.length < options.maxProducts)) {
-          await new Promise((r) => setTimeout(r, 250));
-        }
-      }
-
-      log(`📦 Toplam ${collectedProducts.length} adet ürün başarıyla ayrıştırıldı, veritabanına aktarılıyor...`, 'info');
-      onProgress({
-        totalProducts: collectedProducts.length,
-        processedCategories: maxPages,
-        totalCategories: maxPages,
-        percent: 65
-      });
-
-      if (collectedProducts.length === 0) {
-        log(`ℹ️ Oturum açıldı ancak ürün tablosunda gösterilecek ürün bulunamadı.`, 'warn');
-      }
-
-      // 4. Save Products to Database via Prisma
-      onProgress({
-        currentStep: 'Ürünler veritabanına aktarılıyor',
-        totalProducts: collectedProducts.length,
-        percent: 65
-      });
-
-      // Ensure Supplier 'turkuaz' exists
-      let supplierRecord = null;
-      try {
-        supplierRecord = await prisma.supplier.upsert({
-          where: { code: 'TURKUAZ' },
-          update: {
-            name: 'Turkuaz Teknik',
-            websiteUrl: 'https://bayi.turkuazteknik.com.tr',
-            lastSyncedAt: new Date()
-          },
-          create: {
-            code: 'TURKUAZ',
-            name: 'Turkuaz Teknik',
-            websiteUrl: 'https://bayi.turkuazteknik.com.tr',
-            active: true,
-            lastSyncedAt: new Date()
-          }
-        });
-      } catch (err: any) {
-        log(`Tedarikçi kaydı uyarısı: ${err.message}`, 'warn');
-      }
-
-      let importedCount = 0;
-      let failedCount = 0;
-
-      for (let i = 0; i < collectedProducts.length; i++) {
-        if (this.isStopped) {
-          log(`🛑 Kullanıcı tarafından ürün çekme işlemi durduruldu.`, 'warn');
-          onProgress({ status: 'stopped' });
-          return;
-        }
-
-        const prod = collectedProducts[i];
-        try {
-          // Ensure Brand
-          let brandRecord = null;
-          if (prod.brandName) {
-            const brandSlug = slugify(prod.brandName);
-            brandRecord = await prisma.brand.upsert({
-              where: { slug: brandSlug },
-              update: { name: prod.brandName },
-              create: { name: prod.brandName, slug: brandSlug }
-            });
-          }
-
-          // Ensure Category
-          let categoryRecord = null;
-          if (prod.categoryName) {
-            const catSlug = slugify(prod.categoryName);
-            categoryRecord = await prisma.category.upsert({
-              where: { slug: catSlug },
-              update: { name: prod.categoryName },
-              create: { name: prod.categoryName, slug: catSlug }
-            });
-          }
-
-          // Generate collision-safe unique slug
-          const productSlug = `${slugify(prod.name).slice(0, 50)}-${slugify(prod.sku)}`;
-
-          // Upsert Product
-          const savedProduct = await prisma.product.upsert({
-            where: { sku: prod.sku },
-            update: {
-              name: prod.name,
-              salePrice: prod.salePrice || 0,
-              costPrice: prod.costPrice || 0,
-              currency: prod.currency || 'TRY',
-              minOrderQty: (prod as any).minOrderQty || 1,
-              stockQty: prod.stockQty,
-              brandId: brandRecord?.id || null,
-              categoryId: categoryRecord?.id || null,
-              supplierId: supplierRecord?.id || null,
-              description: prod.description,
-              status: 'PUBLISHED',
-              specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
-            },
-            create: {
-              name: prod.name,
-              slug: productSlug,
-              sku: prod.sku,
-              barcode: prod.barcode,
-              salePrice: prod.salePrice || 0,
-              costPrice: prod.costPrice || 0,
-              currency: prod.currency || 'TRY',
-              minOrderQty: (prod as any).minOrderQty || 1,
-              stockQty: prod.stockQty,
-              brandId: brandRecord?.id || null,
-              categoryId: categoryRecord?.id || null,
-              supplierId: supplierRecord?.id || null,
-              description: prod.description,
-              status: 'PUBLISHED',
-              unit: 'ADET',
-              specsJson: prod.specsJson ? JSON.stringify(prod.specsJson) : undefined
-            }
-          });
-
-          // Save Product Images
-          if (prod.images && prod.images.length > 0) {
-            const existingImgCount = await prisma.productImage.count({ where: { productId: savedProduct.id } });
-            if (existingImgCount === 0) {
-              await prisma.productImage.createMany({
-                data: prod.images.map((img, idx) => ({
-                  productId: savedProduct.id,
-                  url: img.url,
-                  alt: prod.name,
-                  sortOrder: idx,
-                  sourceSupplier: 'Turkuaz Teknik'
-                }))
-              });
-            }
-          }
-
-          importedCount++;
-
-          if (importedCount % 10 === 0 || i === collectedProducts.length - 1) {
-            const currentPercent = 65 + Math.round(((i + 1) / collectedProducts.length) * 35);
-            log(`[${importedCount}/${collectedProducts.length}] Aktarıldı: ${prod.name.slice(0, 35)}... (Kod: ${prod.sku}, Fiyat: ${prod.salePrice} ${prod.currency || 'TRY'})`);
-            onProgress({
-              importedProducts: importedCount,
-              failedProducts: failedCount,
-              percent: Math.min(99, currentPercent)
-            });
-          }
-        } catch (err: any) {
-          failedCount++;
-          log(`Ürün kayıt hatası (${prod.sku}): ${err.message}`, 'warn');
+        if (!this.isStopped && (!options.maxProducts || totalImported < options.maxProducts)) {
+          await new Promise((r) => setTimeout(r, 200));
         }
       }
 
@@ -680,11 +707,11 @@ export class TurkuazScraper implements ISupplierScraper {
         currentStep: 'Tamamlandı',
         percent: 100,
         finishedAt: new Date().toISOString(),
-        importedProducts: importedCount,
-        failedProducts: failedCount
+        importedProducts: totalImported,
+        failedProducts: totalFailed
       });
 
-      log(`🎉 Turkuaz Teknik üzerinden ${importedCount} adet ürün başarıyla aktarıldı! (${failedCount} hata)`, 'success');
+      log(`🎉 Turkuaz Teknik üzerinden ${totalImported} adet ürün başarıyla aktarıldı! (${totalFailed} hata)`, 'success');
     } catch (error: any) {
       log(`❌ Kritik Hata: ${error.message}`, 'error');
       onProgress({
