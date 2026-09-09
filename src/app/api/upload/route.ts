@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Limit to 10MB
-    if (file.size > 10 * 1024 * 1024) {
+    // Limit to 15MB
+    if (file.size > 15 * 1024 * 1024) {
       return NextResponse.json(
-        { success: false, error: 'Dosya boyutu çok yüksek. Maksimum 10MB yükleyebilirsiniz.' },
+        { success: false, error: 'Dosya boyutu çok yüksek. Maksimum 15MB yükleyebilirsiniz.' },
         { status: 400 }
       );
     }
@@ -40,28 +40,43 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure uploads directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
-    await mkdir(uploadDir, { recursive: true });
-
     // Clean file name
-    const ext = path.extname(file.name) || '.jpg';
+    const ext = path.extname(file.name) || '.webp';
     const cleanBase = path.basename(file.name, ext)
       .toLowerCase()
       .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
       .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
       .replace(/[^a-z0-9]/g, '-');
     
-    const uniqueName = `${cleanBase}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
-    const filePath = path.join(uploadDir, uniqueName);
+    const uniqueName = `${cleanBase || 'urun'}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
+    const mimeType = file.type || 'image/webp';
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-    await writeFile(filePath, buffer);
+    // If local environment (not serverless), try saving to public/uploads/products
+    if (!isServerless) {
+      try {
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
+        await mkdir(uploadDir, { recursive: true });
+        const filePath = path.join(uploadDir, uniqueName);
+        await writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/products/${uniqueName}`;
+        const publicUrl = `/uploads/products/${uniqueName}`;
+        return NextResponse.json({
+          success: true,
+          url: publicUrl,
+          fileName: uniqueName
+        });
+      } catch (fsErr) {
+        console.warn('Yerel diske yazma başarısız oldu, Base64 fallback devreye giriyor:', fsErr);
+      }
+    }
+
+    // Fallback or Serverless (Vercel / Lambda): return Base64 data URL
+    const base64Url = `data:${mimeType};base64,${buffer.toString('base64')}`;
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
+      url: base64Url,
       fileName: uniqueName
     });
   } catch (error: unknown) {
