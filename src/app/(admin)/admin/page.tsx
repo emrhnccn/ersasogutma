@@ -81,6 +81,7 @@ interface DBProduct {
   status: string;
   brand?: { id: string; name: string } | null;
   category?: { id: string; name: string } | null;
+  categoryId?: string | null;
   images?: { id: string; url: string }[];
   createdAt: string;
 }
@@ -171,6 +172,149 @@ export default function AdminControlPanel() {
       showToast('İşlem sırasında hata oluştu.', 'error');
     } finally {
       setCartModifying(false);
+    }
+  };
+
+  // Direct convert cart to order
+  const handleDirectConvertCartToOrder = (cartObj: any) => {
+    const dealerId = cartObj.dealer?.id || cartObj.companyId || selectedDealerDetail?.id;
+    if (!dealerId) {
+      showToast('Bayi bilgisi bulunamadı.', 'error');
+      return;
+    }
+    const dealerName = cartObj.dealer?.companyName || selectedDealerDetail?.legalName || 'Bayi';
+    const totalAmount = cartObj.summary?.totalAmountTRY || cartObj.grandTotal || 0;
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Sepeti Onaylı Siparişe Dönüştür',
+      message: `"${dealerName}" bayisinin sepetindeki ürünler için ${formatCurrency(totalAmount)} tutarında resmi sipariş oluşturulacaktır. Stoklar düşülecek ve cari hesaba borç işlenecektir. Onaylıyor musunuz?`,
+      confirmText: 'Evet, Siparişi Oluştur',
+      isDanger: false,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/admin/dealers/${dealerId}/order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentMethod: 'CARI' })
+          });
+          const json = await res.json();
+          if (json.success) {
+            showToast(json.message || 'Sipariş başarıyla oluşturuldu!', 'success');
+            setSelectedAdminCart(null);
+            loadAdminCarts();
+            loadDealers();
+            if (dealerId && selectedDealerDetail?.id === dealerId) {
+              await loadDealerCart(dealerId);
+              await openDealerDrawer(dealerId);
+            }
+            if (json.data) {
+              setAdminPrintingOrder(json.data);
+            }
+          } else {
+            showToast(json.error || 'Sipariş oluşturulamadı.', 'error');
+          }
+        } catch {
+          showToast('Bağlantı hatası oluştu.', 'error');
+        }
+      }
+    });
+  };
+
+  // Open Create Order / Cart Modal for Dealer
+  const openCreateOrderModalForDealer = (dealerId?: string) => {
+    setCreateOrderTargetDealerId(dealerId || (dealersList.length > 0 ? dealersList[0].id : ''));
+    setCreateOrderItems([]);
+    setCreateOrderProdSearch('');
+    setCreateOrderProdQty(1);
+    setCreateOrderNotes('');
+    setCreateOrderPaymentMethod('CARI');
+    setIsCreateDealerOrderModalOpen(true);
+  };
+
+  // Save items to Dealer's active cart
+  const handleSaveNewDealerCart = async () => {
+    if (!createOrderTargetDealerId) {
+      showToast('Lütfen bir bayi seçiniz.', 'warning');
+      return;
+    }
+    if (createOrderItems.length === 0) {
+      showToast('Lütfen en az bir ürün ekleyiniz.', 'warning');
+      return;
+    }
+
+    setIsSavingDealerCart(true);
+    try {
+      const res = await fetch(`/api/admin/dealers/${createOrderTargetDealerId}/cart`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'set_cart',
+          items: createOrderItems.map((i) => ({ productId: i.product.id, quantity: i.quantity }))
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Bayinin sepeti başarıyla güncellendi ve kaydedildi!', 'success');
+        setIsCreateDealerOrderModalOpen(false);
+        loadAdminCarts();
+        if (selectedDealerDetail?.id === createOrderTargetDealerId) {
+          loadDealerCart(createOrderTargetDealerId);
+          openDealerDrawer(createOrderTargetDealerId);
+        }
+      } else {
+        showToast(json.error || 'Sepet kaydedilemedi.', 'error');
+      }
+    } catch {
+      showToast('Bağlantı hatası.', 'error');
+    } finally {
+      setIsSavingDealerCart(false);
+    }
+  };
+
+  // Create Order directly for Dealer
+  const handleCreateNewDealerOrder = async () => {
+    if (!createOrderTargetDealerId) {
+      showToast('Lütfen bir bayi seçiniz.', 'warning');
+      return;
+    }
+    if (createOrderItems.length === 0) {
+      showToast('Lütfen en az bir ürün ekleyiniz.', 'warning');
+      return;
+    }
+
+    setIsCreatingDealerOrder(true);
+    try {
+      const res = await fetch(`/api/admin/dealers/${createOrderTargetDealerId}/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: createOrderItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+          paymentMethod: createOrderPaymentMethod,
+          notes: createOrderNotes,
+          clearCart: true
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || 'Sipariş başarıyla oluşturuldu!', 'success');
+        setIsCreateDealerOrderModalOpen(false);
+        loadAdminCarts();
+        loadDealers();
+        if (selectedDealerDetail?.id === createOrderTargetDealerId) {
+          loadDealerCart(createOrderTargetDealerId);
+          openDealerDrawer(createOrderTargetDealerId);
+        }
+        if (json.data) {
+          setAdminPrintingOrder(json.data);
+        }
+      } else {
+        showToast(json.error || 'Sipariş oluşturulamadı.', 'error');
+      }
+    } catch {
+      showToast('Bağlantı hatası.', 'error');
+    } finally {
+      setIsCreatingDealerOrder(false);
     }
   };
 
@@ -360,6 +504,18 @@ export default function AdminControlPanel() {
   const [cartAddQty, setCartAddQty] = useState(1);
   const [cartProductSearch, setCartProductSearch] = useState('');
   const [isAddingCartItem, setIsAddingCartItem] = useState(false);
+
+  // Admin Create Dealer Cart & Order Modal State
+  const [isCreateDealerOrderModalOpen, setIsCreateDealerOrderModalOpen] = useState(false);
+  const [createOrderTargetDealerId, setCreateOrderTargetDealerId] = useState('');
+  const [createOrderPaymentMethod, setCreateOrderPaymentMethod] = useState<'CARI' | 'HAVALE' | 'KREDI_KARTI'>('CARI');
+  const [createOrderNotes, setCreateOrderNotes] = useState('');
+  const [createOrderItems, setCreateOrderItems] = useState<Array<{ product: any; quantity: number }>>([]);
+  const [createOrderProdSearch, setCreateOrderProdSearch] = useState('');
+  const [createOrderProdQty, setCreateOrderProdQty] = useState(1);
+  const [createOrderDropdownOpen, setCreateOrderDropdownOpen] = useState(false);
+  const [isSavingDealerCart, setIsSavingDealerCart] = useState(false);
+  const [isCreatingDealerOrder, setIsCreatingDealerOrder] = useState(false);
 
   // Dangerous Action Confirmation Modal
   const [confirmModal, setConfirmModal] = useState<{
@@ -942,8 +1098,25 @@ export default function AdminControlPanel() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Ürün bilgisi güncellendi.');
-        setDbProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+        showToast('Ürün bilgisi güncellendi.', 'success');
+        setDbProducts((prev) =>
+          prev.map((p) =>
+            p.id === id
+              ? {
+                  ...p,
+                  ...updates,
+                  ...(data.data
+                    ? {
+                        category: data.data.category,
+                        categoryId: data.data.categoryId
+                      }
+                    : {})
+                }
+              : p
+          )
+        );
+      } else {
+        showToast(data.error || 'Güncelleme hatası.', 'error');
       }
     } catch {
       showToast('Güncelleme hatası.', 'error');
@@ -1968,6 +2141,7 @@ export default function AdminControlPanel() {
                             <th className="p-3.5">SKU / Barkod</th>
                             <th className="p-3.5">Alış Fiyatı</th>
                             <th className="p-3.5">Satış Fiyatı (TL)</th>
+                            <th className="p-3.5">Kategori</th>
                             <th className="p-3.5">İskonto (%)</th>
                             <th className="p-3.5">Stok Adedi</th>
                             <th className="p-3.5 text-center">Durum</th>
@@ -2026,6 +2200,23 @@ export default function AdminControlPanel() {
                                       </span>
                                     )}
                                   </div>
+                                </td>
+                                <td className="p-3.5">
+                                  <select
+                                    value={p.categoryId || p.category?.id || ''}
+                                    onChange={(e) => {
+                                      const newCatId = e.target.value;
+                                      handleUpdateProductInline(p.id, { categoryId: newCatId || null } as any);
+                                    }}
+                                    className="max-w-[170px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white px-2 py-1 text-xs focus:outline-none focus:border-sky-500 font-medium truncate cursor-pointer"
+                                  >
+                                    <option value="">-- Kategori Seç --</option>
+                                    {dbCategories.map((c) => (
+                                      <option key={c.id} value={c.id}>
+                                        {c.parentId ? `↳ ${c.name}` : c.name}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </td>
                                 <td className="p-3.5">
                                   <div className="flex items-center gap-1">
@@ -3372,6 +3563,13 @@ export default function AdminControlPanel() {
                         />
                       </div>
                       <button
+                        onClick={() => openCreateOrderModalForDealer()}
+                        className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-950/40 cursor-pointer whitespace-nowrap"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Yeni Sepet / Sipariş Aç</span>
+                      </button>
+                      <button
                         onClick={loadAdminCarts}
                         disabled={loadingAdminCarts}
                         className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow cursor-pointer"
@@ -3714,13 +3912,30 @@ export default function AdminControlPanel() {
                         </div>
                       </div>
 
-                      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex justify-end">
-                        <button
-                          onClick={() => setSelectedAdminCart(null)}
-                          className="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
-                        >
-                          Kapat
-                        </button>
+                      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 font-mono">Toplam Tutar:</span>
+                          <span className="font-mono font-black text-emerald-400 text-sm">
+                            {formatCurrency(selectedAdminCart.summary.totalAmountTRY)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                          <button
+                            onClick={() => setSelectedAdminCart(null)}
+                            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                          >
+                            Kapat
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDirectConvertCartToOrder(selectedAdminCart)}
+                            disabled={cartModifying || selectedAdminCart.items.length === 0}
+                            className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Siparişe Dönüştür (Sipariş Oluştur)</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -3979,13 +4194,23 @@ export default function AdminControlPanel() {
                                 </span>
                               </td>
                               <td className="py-3.5 px-4 text-right">
-                                <button
-                                  onClick={() => openDealerDrawer(dealer.id)}
-                                  className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 ml-auto shadow"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                  <span>Yönet & Cari</span>
-                                </button>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => openCreateOrderModalForDealer(dealer.id)}
+                                    className="px-2.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow cursor-pointer whitespace-nowrap"
+                                    title="Bayiye Yeni Sepet / Sipariş Aç"
+                                  >
+                                    <ShoppingBag className="w-3.5 h-3.5" />
+                                    <span>Sepet / Sipariş</span>
+                                  </button>
+                                  <button
+                                    onClick={() => openDealerDrawer(dealer.id)}
+                                    className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow cursor-pointer whitespace-nowrap"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Yönet & Cari</span>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -5022,6 +5247,17 @@ export default function AdminControlPanel() {
                                     </span>
                                   </div>
                                 </div>
+
+                                <div className="flex items-center justify-end gap-3 pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDirectConvertCartToOrder(selectedDealerCart || selectedDealerDetail.cart)}
+                                    className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>Sepeti Onayla ve Siparişe Dönüştür</span>
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -6041,6 +6277,395 @@ export default function AdminControlPanel() {
                     >
                       {confirmModal.confirmText || 'Onayla'}
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CREATE DEALER CART & ORDER MODAL */}
+            {isCreateDealerOrderModalOpen && (
+              <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                  {/* Modal Header */}
+                  <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                        <ShoppingBag className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                          <span>Bayiye Özel Sepet & Sipariş Oluştur</span>
+                          <span className="text-[10px] bg-cyan-500/20 text-cyan-300 font-mono px-2 py-0.5 rounded-full border border-cyan-500/30">
+                            Yönetici Girişi
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Bayiyi seçin, ürünleri sepete ekleyin ve bayinin sepetine kaydedin veya doğrudan onaylı siparişe dönüştürün.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setIsCreateDealerOrderModalOpen(false)}
+                      className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Modal Body */}
+                  <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                    {/* Step 1: Select Dealer */}
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                      <label className="block text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Building2 className="w-4 h-4 text-cyan-400" />
+                        <span>1. Hedef Bayi Seçimi:</span>
+                      </label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <select
+                            value={createOrderTargetDealerId}
+                            onChange={(e) => setCreateOrderTargetDealerId(e.target.value)}
+                            className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer"
+                          >
+                            <option value="">-- Lütfen Bayi Seçiniz --</option>
+                            {dealersList.map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.companyName} ({d.dealerCode}) — İskonto: %{d.customDiscountPercent || 0}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {createOrderTargetDealerId && (
+                          <div className="flex items-center justify-between bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs">
+                            <span className="text-slate-400">Özel İskonto:</span>
+                            <span className="font-mono font-bold text-emerald-400 text-sm">
+                              %{dealersList.find((d) => d.id === createOrderTargetDealerId)?.customDiscountPercent || 0}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Step 2: Add Products */}
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                      <label className="block text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Package className="w-4 h-4 text-amber-400" />
+                        <span>2. Ürün Arama ve Sepete Ekleme:</span>
+                      </label>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div className="relative flex-1">
+                          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Stok Kodu (SKU) veya ürün adı ile arayın..."
+                            value={createOrderProdSearch}
+                            onChange={(e) => {
+                              setCreateOrderProdSearch(e.target.value);
+                              setCreateOrderDropdownOpen(true);
+                            }}
+                            onFocus={() => setCreateOrderDropdownOpen(true)}
+                            className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+                          />
+
+                          {createOrderDropdownOpen && createOrderProdSearch.trim().length > 1 && (
+                            <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto z-50 divide-y divide-slate-100 dark:divide-slate-800">
+                              {dbProducts
+                                .filter(
+                                  (p) =>
+                                    p.name.toLowerCase().includes(createOrderProdSearch.toLowerCase()) ||
+                                    p.sku.toLowerCase().includes(createOrderProdSearch.toLowerCase())
+                                )
+                                .slice(0, 10)
+                                .map((p) => (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => {
+                                      const existing = createOrderItems.find((i) => i.product.id === p.id);
+                                      if (existing) {
+                                        setCreateOrderItems((prev) =>
+                                          prev.map((i) =>
+                                            i.product.id === p.id
+                                              ? { ...i, quantity: i.quantity + createOrderProdQty }
+                                              : i
+                                          )
+                                        );
+                                      } else {
+                                        setCreateOrderItems((prev) => [
+                                          ...prev,
+                                          { product: p, quantity: createOrderProdQty }
+                                        ]);
+                                      }
+                                      setCreateOrderProdSearch('');
+                                      setCreateOrderProdQty(1);
+                                      setCreateOrderDropdownOpen(false);
+                                      showToast(`"${p.name}" sepete eklendi.`);
+                                    }}
+                                    className="w-full text-left p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between text-xs transition cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      <img
+                                        src={p.images?.[0]?.url || '/placeholder.svg'}
+                                        alt={p.name}
+                                        className="w-8 h-8 rounded object-cover bg-white p-0.5 border border-slate-700 shrink-0"
+                                        onError={(e) => {
+                                          (e.target as any).src = '/placeholder.svg';
+                                        }}
+                                      />
+                                      <div>
+                                        <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
+                                        <div className="text-[10px] text-sky-400 font-mono">
+                                          SKU: {p.sku} • Stok: {p.stockQty}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="font-mono font-bold text-emerald-400 text-xs text-right">
+                                      {formatCurrency(p.salePrice || 0)}
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="w-24">
+                          <input
+                            type="number"
+                            min={1}
+                            value={createOrderProdQty}
+                            onChange={(e) => setCreateOrderProdQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-center font-mono font-bold text-slate-900 dark:text-white focus:outline-none"
+                            placeholder="Adet"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3: Items in Cart */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                          Sepete Eklenen Kalemler ({createOrderItems.length} Ürün)
+                        </span>
+                        {createOrderItems.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setCreateOrderItems([])}
+                            className="text-xs text-rose-400 hover:text-rose-300 font-bold cursor-pointer"
+                          >
+                            Listeyi Temizle
+                          </button>
+                        )}
+                      </div>
+
+                      {createOrderItems.length === 0 ? (
+                        <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                          Henüz ürün eklenmedi. Yukarıdaki arama kutusundan ürün seçip listeye ekleyebilirsiniz.
+                        </div>
+                      ) : (
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80 bg-white dark:bg-[#0B1120]">
+                          {createOrderItems.map((item, idx) => {
+                            const p = item.product;
+                            const targetDealer = dealersList.find((d) => d.id === createOrderTargetDealerId);
+                            const discountRate = (targetDealer?.customDiscountPercent || 0) / 100;
+                            const basePrice = Number(p.salePrice || 0);
+                            const unitNet = basePrice * (1 - discountRate);
+                            const lineTotal = unitNet * item.quantity;
+
+                            return (
+                              <div
+                                key={p.id}
+                                className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition text-xs"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={p.images?.[0]?.url || '/placeholder.svg'}
+                                    alt={p.name}
+                                    className="w-10 h-10 rounded-lg object-cover bg-white p-0.5 border border-slate-700 shrink-0"
+                                    onError={(e) => {
+                                      (e.target as any).src = '/placeholder.svg';
+                                    }}
+                                  />
+                                  <div>
+                                    <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
+                                    <div className="text-[10px] text-sky-400 font-mono">SKU: {p.sku}</div>
+                                    <div className="text-[10px] text-slate-400">
+                                      Liste: {formatCurrency(basePrice)} • Bayi Net: <strong className="text-emerald-400">{formatCurrency(unitNet)}</strong>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                                  {/* Stepper */}
+                                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (item.quantity > 1) {
+                                          setCreateOrderItems((prev) =>
+                                            prev.map((i, iIdx) =>
+                                              iIdx === idx ? { ...i, quantity: i.quantity - 1 } : i
+                                            )
+                                          );
+                                        } else {
+                                          setCreateOrderItems((prev) => prev.filter((_, iIdx) => iIdx !== idx));
+                                        }
+                                      }}
+                                      className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center font-bold cursor-pointer"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="w-8 text-center font-mono font-bold text-slate-900 dark:text-white">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCreateOrderItems((prev) =>
+                                          prev.map((i, iIdx) =>
+                                            iIdx === idx ? { ...i, quantity: i.quantity + 1 } : i
+                                          )
+                                        );
+                                      }}
+                                      className="w-6 h-6 rounded bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center font-bold cursor-pointer"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+
+                                  <div className="text-right min-w-[90px]">
+                                    <span className="text-[10px] text-slate-400 block">Tutar (KDV H.)</span>
+                                    <span className="font-mono font-black text-emerald-400 text-xs">
+                                      {formatCurrency(lineTotal)}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setCreateOrderItems((prev) => prev.filter((_, iIdx) => iIdx !== idx))}
+                                    className="p-1.5 text-slate-400 hover:text-rose-400 rounded transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Step 4: Summary & Payment Options */}
+                    {createOrderItems.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Liste Toplamı:</span>
+                            <span className="font-mono font-bold text-slate-900 dark:text-white">
+                              {formatCurrency(
+                                createOrderItems.reduce((s, i) => s + Number(i.product.salePrice || 0) * i.quantity, 0)
+                              )}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Bayi İskontosu:</span>
+                            <span className="font-mono font-bold text-emerald-400">
+                              -%
+                              {dealersList.find((d) => d.id === createOrderTargetDealerId)?.customDiscountPercent || 0}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Tahmini KDV (%20):</span>
+                            <span className="font-mono font-bold text-slate-900 dark:text-white">
+                              {formatCurrency(
+                                createOrderItems.reduce((s, i) => {
+                                  const targetDealer = dealersList.find((d) => d.id === createOrderTargetDealerId);
+                                  const disc = (targetDealer?.customDiscountPercent || 0) / 100;
+                                  return s + Number(i.product.salePrice || 0) * (1 - disc) * i.quantity * 0.20;
+                                }, 0)
+                              )}
+                            </span>
+                          </div>
+                          <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-xl">
+                            <span className="text-emerald-400 block text-[11px] font-bold">Genel Toplam:</span>
+                            <span className="font-mono font-black text-emerald-400 text-sm">
+                              {formatCurrency(
+                                createOrderItems.reduce((s, i) => {
+                                  const targetDealer = dealersList.find((d) => d.id === createOrderTargetDealerId);
+                                  const disc = (targetDealer?.customDiscountPercent || 0) / 100;
+                                  const net = Number(i.product.salePrice || 0) * (1 - disc) * i.quantity;
+                                  return s + net * 1.20;
+                                }, 0)
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Payment Method & Notes */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <label className="block text-slate-400 mb-1 font-semibold">Ödeme Yöntemi:</label>
+                            <select
+                              value={createOrderPaymentMethod}
+                              onChange={(e) => setCreateOrderPaymentMethod(e.target.value as any)}
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
+                            >
+                              <option value="CARI">Cari Hesap (Açık Hesap / Borç Kaydı)</option>
+                              <option value="HAVALE">Banka Havalesi / EFT</option>
+                              <option value="KREDI_KARTI">Kredi Kartı</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-slate-400 mb-1 font-semibold">Sipariş Notu (Opsiyonel):</label>
+                            <input
+                              type="text"
+                              value={createOrderNotes}
+                              onChange={(e) => setCreateOrderNotes(e.target.value)}
+                              placeholder="Örn: Yönetici tarafından açıldı, acil sevkiyat"
+                              className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateDealerOrderModalOpen(false)}
+                      className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+                    >
+                      İptal
+                    </button>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        disabled={isSavingDealerCart || isCreatingDealerOrder || createOrderItems.length === 0}
+                        onClick={handleSaveNewDealerCart}
+                        className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-cyan-400 border border-cyan-500/30 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
+                      >
+                        {isSavingDealerCart ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                        <span>Sepeti Bayiye Kaydet</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={isSavingDealerCart || isCreatingDealerOrder || createOrderItems.length === 0}
+                        onClick={handleCreateNewDealerOrder}
+                        className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer"
+                      >
+                        {isCreatingDealerOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                        <span>Doğrudan Sipariş Oluştur</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

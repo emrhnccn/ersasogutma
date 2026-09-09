@@ -222,6 +222,36 @@ export async function PUT(
       });
     }
 
+    // ACTION: Set entire cart with specified items
+    if (action === 'set_cart') {
+      const incoming = Array.isArray(body.items) ? body.items : [];
+      await prisma.$transaction(async (tx) => {
+        await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+        for (const it of incoming) {
+          const pId = it.productId;
+          const qty = Math.max(1, parseInt(String(it.quantity), 10) || 1);
+          if (pId) {
+            await tx.cartItem.create({
+              data: {
+                cartId: cart.id,
+                productId: pId,
+                quantity: qty
+              }
+            });
+          }
+        }
+        await tx.cart.update({
+          where: { id: cart.id },
+          data: { updatedAt: new Date() }
+        });
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Bayinin sepeti başarıyla güncellendi.'
+      });
+    }
+
     // ACTION: Update quantity
     if (action === 'update_qty' && itemId) {
       const parsedQty = parseInt(String(quantity), 10);
