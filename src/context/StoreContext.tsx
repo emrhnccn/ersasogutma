@@ -430,8 +430,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToCart = (product: Product, quantity = 1) => {
-    const minQty = product.pim || 1;
-    let addedQty = Math.max(quantity, minQty);
+    let addedQty = Math.max(quantity, 1);
     if (product.stock > 0 && addedQty > product.stock) {
       addedQty = product.stock;
     }

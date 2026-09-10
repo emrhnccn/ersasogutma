@@ -196,6 +196,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...p,
+        minOrderQty: p.minOrderQty ? Number(p.minOrderQty) : 1,
         salePrice: effectivePrice,
         basePrice: base,
         discountPercent: effectiveDiscount,
@@ -254,6 +255,8 @@ export async function POST(request: NextRequest) {
       costPrice,
       discountPercent,
       stockQty,
+      minOrderQty,
+      pim,
       categoryId,
       brandId,
       description,
@@ -276,6 +279,9 @@ export async function POST(request: NextRequest) {
       imageList.push(imageUrl.trim());
     }
 
+    const rawMoq = minOrderQty !== undefined ? minOrderQty : pim;
+    const parsedMoq = rawMoq ? parseFloat(rawMoq) : 1;
+
     const product = await prisma.product.create({
       data: {
         name,
@@ -286,6 +292,7 @@ export async function POST(request: NextRequest) {
         costPrice: costPrice ? parseFloat(costPrice) : null,
         discountPercent: discountPercent ? parseFloat(discountPercent) : 0,
         stockQty: stockQty ? parseInt(stockQty, 10) : 0,
+        minOrderQty: !isNaN(parsedMoq) && parsedMoq > 0 ? parsedMoq : 1,
         categoryId: categoryId || null,
         brandId: brandId || null,
         description: description || null,

@@ -78,6 +78,8 @@ interface DBProduct {
   costPrice?: number;
   discountPercent?: number;
   stockQty: number;
+  minOrderQty?: number;
+  pim?: number;
   status: string;
   brand?: { id: string; name: string } | null;
   category?: { id: string; name: string } | null;
@@ -420,6 +422,7 @@ export default function AdminControlPanel() {
   const [newProductSale, setNewProductSale] = useState('');
   const [newProductDiscount, setNewProductDiscount] = useState('0');
   const [newProductStock, setNewProductStock] = useState('10');
+  const [newProductPim, setNewProductPim] = useState('1');
   const [newProductCategory, setNewProductCategory] = useState('');
   const [newProductImageUrl, setNewProductImageUrl] = useState('');
 
@@ -432,6 +435,7 @@ export default function AdminControlPanel() {
   const [editProdSale, setEditProdSale] = useState('');
   const [editProdDiscount, setEditProdDiscount] = useState('0');
   const [editProdStock, setEditProdStock] = useState('0');
+  const [editProdPim, setEditProdPim] = useState('1');
   const [editProdCategory, setEditProdCategory] = useState('');
   const [editProdImageUrl, setEditProdImageUrl] = useState('');
   const [savingProduct, setSavingProduct] = useState(false);
@@ -997,6 +1001,7 @@ export default function AdminControlPanel() {
           salePrice: newProductSale ? parseFloat(newProductSale) : null,
           discountPercent: newProductDiscount ? parseFloat(newProductDiscount) : 0,
           stockQty: parseInt(newProductStock, 10) || 0,
+          minOrderQty: parseInt(newProductPim, 10) || 1,
           categoryId: newProductCategory || null,
           imageUrl: newProductImageUrl || undefined
         })
@@ -1011,6 +1016,8 @@ export default function AdminControlPanel() {
         setNewProductCost('');
         setNewProductSale('');
         setNewProductDiscount('0');
+        setNewProductStock('10');
+        setNewProductPim('1');
         setNewProductImageUrl('');
         loadAdminProducts(1, true);
       } else {
@@ -1031,6 +1038,7 @@ export default function AdminControlPanel() {
     setEditProdSale(p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '');
     setEditProdDiscount(p.discountPercent !== undefined && p.discountPercent !== null ? p.discountPercent.toString() : '0');
     setEditProdStock(p.stockQty.toString());
+    setEditProdPim((p.minOrderQty || (p as any).pim || 1).toString());
     setEditProdCategory(p.category?.id || '');
     setEditProdImageUrl(p.images && p.images.length > 0 ? p.images[0].url : '');
   };
@@ -1052,6 +1060,7 @@ export default function AdminControlPanel() {
           salePrice: editProdSale ? parseFloat(editProdSale) : null,
           discountPercent: editProdDiscount ? parseFloat(editProdDiscount) : 0,
           stockQty: parseInt(editProdStock, 10) || 0,
+          minOrderQty: parseInt(editProdPim, 10) || 1,
           categoryId: editProdCategory || null,
           imageUrl: editProdImageUrl || undefined
         })
@@ -2143,6 +2152,7 @@ export default function AdminControlPanel() {
                             <th className="p-3.5">Satış Fiyatı (TL)</th>
                             <th className="p-3.5">Kategori</th>
                             <th className="p-3.5">İskonto (%)</th>
+                            <th className="p-3.5">PİM (Adet)</th>
                             <th className="p-3.5">Stok Adedi</th>
                             <th className="p-3.5 text-center">Durum</th>
                             <th className="p-3.5 text-right">İşlemler</th>
@@ -2235,6 +2245,26 @@ export default function AdminControlPanel() {
                                       className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-rose-400 text-xs focus:outline-none focus:border-rose-500"
                                     />
                                     <span className="text-slate-500 text-[10px]">%</span>
+                                  </div>
+                                </td>
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      step={1}
+                                      defaultValue={p.minOrderQty || (p as any).pim || 1}
+                                      onBlur={(e) => {
+                                        const val = parseInt(e.target.value, 10);
+                                        const currentPim = Number(p.minOrderQty || (p as any).pim || 1);
+                                        if (!isNaN(val) && val > 0 && val !== currentPim) {
+                                          handleUpdateProductInline(p.id, { minOrderQty: val } as any);
+                                        }
+                                      }}
+                                      className="w-16 bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 font-mono font-bold text-sky-400 text-xs focus:outline-none focus:border-sky-500"
+                                      title="Paket İçi Miktar / Min. Sipariş Adedi"
+                                    />
+                                    <span className="text-slate-500 text-[10px]">Adet</span>
                                   </div>
                                 </td>
                                 <td className="p-3.5">
@@ -4987,7 +5017,7 @@ export default function AdminControlPanel() {
                                     <option value="">-- Listeden Ürün Seçiniz --</option>
                                     {dbProducts.map((p) => (
                                       <option key={p.id} value={p.id} disabled={p.stockQty <= 0}>
-                                        {p.name} ({p.sku}) — Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
+                                        {p.name} ({p.sku}) — PİM: {p.minOrderQty || (p as any).pim || 1} — Stok: {p.stockQty} {p.stockQty <= 0 ? '(Tükendi)' : ''}
                                       </option>
                                     ))}
                                   </select>
@@ -5586,31 +5616,31 @@ export default function AdminControlPanel() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı:</label>
                         <input
                           type="number"
                           step="0.1"
                           placeholder="0.00"
                           value={newProductCost}
                           onChange={(e) => setNewProductCost(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı:</label>
                         <input
                           type="number"
                           step="0.1"
                           placeholder="0.00"
                           value={newProductSale}
                           onChange={(e) => setNewProductSale(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-emerald-400 font-bold focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto (%):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">İskonto (%):</label>
                         <input
                           type="number"
                           step="1"
@@ -5619,16 +5649,26 @@ export default function AdminControlPanel() {
                           placeholder="0"
                           value={newProductDiscount}
                           onChange={(e) => setNewProductDiscount(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-rose-400 font-bold focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok:</label>
                         <input
                           type="number"
                           value={newProductStock}
                           onChange={(e) => setNewProductStock(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1" title="Paket İçi Miktar / Min. Sipariş Adedi">PİM (Adet):</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={newProductPim}
+                          onChange={(e) => setNewProductPim(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-sky-400 font-bold focus:outline-none"
                         />
                       </div>
                     </div>
@@ -5723,31 +5763,31 @@ export default function AdminControlPanel() {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı (TL):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Alış Fiyatı:</label>
                         <input
                           type="number"
                           step="0.1"
                           placeholder="0.00"
                           value={editProdCost}
                           onChange={(e) => setEditProdCost(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı (TL):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Satış Fiyatı:</label>
                         <input
                           type="number"
                           step="0.1"
                           placeholder="0.00"
                           value={editProdSale}
                           onChange={(e) => setEditProdSale(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Ürün İskonto (%):</label>
                         <input
                           type="number"
                           step="1"
@@ -5756,16 +5796,26 @@ export default function AdminControlPanel() {
                           placeholder="0"
                           value={editProdDiscount}
                           onChange={(e) => setEditProdDiscount(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-rose-400 font-bold focus:outline-none focus:border-rose-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-700 dark:text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok Miktarı:</label>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1">Stok:</label>
                         <input
                           type="number"
                           value={editProdStock}
                           onChange={(e) => setEditProdStock(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-400 font-semibold mb-1" title="Paket İçi Miktar / Min. Sipariş Adedi">PİM (Adet):</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={editProdPim}
+                          onChange={(e) => setEditProdPim(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 font-mono text-sky-400 font-bold focus:outline-none focus:border-sky-500"
                         />
                       </div>
                     </div>
@@ -6419,7 +6469,7 @@ export default function AdminControlPanel() {
                                       <div>
                                         <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
                                         <div className="text-[10px] text-sky-400 font-mono">
-                                          SKU: {p.sku} • Stok: {p.stockQty}
+                                          SKU: {p.sku} • Stok: {p.stockQty} • PİM: {p.minOrderQty || (p as any).pim || 1} Adet
                                         </div>
                                       </div>
                                     </div>
@@ -6492,7 +6542,9 @@ export default function AdminControlPanel() {
                                   />
                                   <div>
                                     <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</div>
-                                    <div className="text-[10px] text-sky-400 font-mono">SKU: {p.sku}</div>
+                                    <div className="text-[10px] text-sky-400 font-mono">
+                                      SKU: {p.sku} • PİM: {p.minOrderQty || (p as any).pim || 1} Adet
+                                    </div>
                                     <div className="text-[10px] text-slate-400">
                                       Liste: {formatCurrency(basePrice)} • Bayi Net: <strong className="text-emerald-400">{formatCurrency(unitNet)}</strong>
                                     </div>

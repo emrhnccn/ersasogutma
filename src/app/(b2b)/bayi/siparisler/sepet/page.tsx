@@ -369,21 +369,21 @@ export default function CartPage() {
                           <div className="inline-flex items-center bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
                             <button
                               type="button"
-                              onClick={() => updateCartQuantity(item.product.id, Math.max(minStep, item.quantity - minStep))}
-                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                              onClick={() => updateCartQuantity(item.product.id, Math.max(1, item.quantity - 1))}
+                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold cursor-pointer"
                             >
                               -
                             </button>
                             <input
                               type="number"
-                              min={minStep}
+                              min={1}
                               max={item.product.stock > 0 ? item.product.stock : undefined}
-                              step={minStep}
+                              step={1}
                               value={item.quantity}
                               onChange={(e) => {
                                 const raw = parseInt(e.target.value, 10);
-                                let val = isNaN(raw) ? minStep : raw;
-                                if (val < minStep) val = minStep;
+                                let val = isNaN(raw) ? 1 : raw;
+                                if (val < 1) val = 1;
                                 if (item.product.stock > 0 && val > item.product.stock) {
                                   val = item.product.stock;
                                 }
@@ -394,13 +394,13 @@ export default function CartPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const next = item.quantity + minStep;
+                                const next = item.quantity + 1;
                                 updateCartQuantity(
                                   item.product.id,
                                   item.product.stock > 0 ? Math.min(item.product.stock, next) : next
                                 );
                               }}
-                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold"
+                              className="px-2 py-0.5 text-slate-400 hover:text-white font-bold cursor-pointer"
                             >
                               +
                             </button>

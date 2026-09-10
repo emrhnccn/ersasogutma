@@ -34,7 +34,10 @@ import {
   ShieldCheck,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Edit,
+  Check,
+  X
 } from 'lucide-react';
 
 function ProductsContent() {
@@ -44,7 +47,7 @@ function ProductsContent() {
   const favoriteOnlyParam = searchParams.get('favori') === '1';
   const categoryParam = searchParams.get('category') || 'all';
 
-  const { addToCart, toggleFavorite, isFavorite, convertPrice, profile } = useStore();
+  const { addToCart, toggleFavorite, isFavorite, convertPrice, profile, showToast } = useStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
@@ -161,8 +164,50 @@ function ProductsContent() {
     ? categoriesList.filter((c) => c.parentId === activeMainCategory.id)
     : [];
 
+  // Quick PİM Edit State
+  const [editingPimProductId, setEditingPimProductId] = useState<string | null>(null);
+  const [tempPimValue, setTempPimValue] = useState<string>('');
+  const [isUpdatingPim, setIsUpdatingPim] = useState(false);
+
+  const handleStartEditPim = (product: Product, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingPimProductId(product.id);
+    setTempPimValue((product.pim || 1).toString());
+  };
+
+  const handleSavePim = async (productId: string) => {
+    const parsed = parseInt(tempPimValue, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      showToast('Lütfen geçerli bir PİM sayısı giriniz (en az 1).', 'warning');
+      return;
+    }
+    setIsUpdatingPim(true);
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minOrderQty: parsed })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`PİM sayısı ${parsed} Adet olarak güncellendi!`, 'success');
+        setProductsList((prev) =>
+          prev.map((p) => (p.id === productId ? { ...p, pim: parsed } : p))
+        );
+        setQuantities((prev) => ({ ...prev, [productId]: parsed }));
+        setEditingPimProductId(null);
+      } else {
+        showToast(data.error || 'PİM sayısı güncellenemedi.', 'error');
+      }
+    } catch {
+      showToast('Bağlantı hatası oluştu.', 'error');
+    } finally {
+      setIsUpdatingPim(false);
+    }
+  };
+
   const handleQtyChange = (productId: string, val: number, pim: number, maxStock?: number) => {
-    let validVal = Math.max(pim || 1, val);
+    let validVal = Math.max(1, val);
     if (maxStock !== undefined && maxStock > 0 && validVal > maxStock) {
       validVal = maxStock;
     }
@@ -705,8 +750,53 @@ function ProductsContent() {
                             <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
                           </button>
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">
-                          {product.category} • PİM: {product.pim} Adet
+                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span>{product.category} • </span>
+                          {editingPimProductId === product.id ? (
+                            <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-lg border border-sky-500 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                              <span className="text-[10px] text-slate-400">PİM:</span>
+                              <input
+                                type="number"
+                                min={1}
+                                autoFocus
+                                value={tempPimValue}
+                                onChange={(e) => setTempPimValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSavePim(product.id);
+                                  if (e.key === 'Escape') setEditingPimProductId(null);
+                                }}
+                                className="w-12 bg-transparent text-center font-mono font-bold text-xs text-sky-500 dark:text-sky-400 focus:outline-none"
+                              />
+                              <span className="text-[10px] text-slate-400">Adet</span>
+                              <button
+                                type="button"
+                                disabled={isUpdatingPim}
+                                onClick={() => handleSavePim(product.id)}
+                                className="px-1.5 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold cursor-pointer"
+                                title="Kaydet"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingPimProductId(null)}
+                                className="px-1 py-0.5 text-slate-400 hover:text-slate-200 text-[10px] cursor-pointer"
+                                title="İptal"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => handleStartEditPim(product, e)}
+                              className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 px-1.5 py-0.5 rounded transition cursor-pointer group/pim"
+                              title="PİM (Paket İçi Miktar) sayısını değiştirmek için tıklayın"
+                            >
+                              <span>PİM: <strong className="text-slate-700 dark:text-slate-300 group-hover/pim:text-sky-500">{product.pim} Adet</strong></span>
+                              <Edit className="w-3 h-3 opacity-60 group-hover/pim:opacity-100 transition text-sky-500" />
+                            </button>
+                          )}
                         </div>
                       </td>
 
@@ -767,32 +857,32 @@ function ProductsContent() {
                             <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                               <button
                                 type="button"
-                                onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1, product.stock)}
-                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                                onClick={() => handleQtyChange(product.id, Math.max(1, qty - 1), 1, product.stock)}
+                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
                               >
                                 -
                               </button>
                               <input
                                 type="number"
-                                min={product.pim || 1}
+                                min={1}
                                 max={product.stock > 0 ? product.stock : undefined}
-                                step={product.pim || 1}
+                                step={1}
                                 value={qty}
                                 onChange={(e) => {
                                   const raw = parseInt(e.target.value, 10);
-                                  let val = isNaN(raw) ? (product.pim || 1) : raw;
-                                  if (val < (product.pim || 1)) val = product.pim || 1;
+                                  let val = isNaN(raw) ? 1 : raw;
+                                  if (val < 1) val = 1;
                                   if (product.stock > 0 && val > product.stock) {
                                     val = product.stock;
                                   }
-                                  handleQtyChange(product.id, val, product.pim || 1, product.stock);
+                                  handleQtyChange(product.id, val, 1, product.stock);
                                 }}
                                 className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                               />
                               <button
                                 type="button"
-                                onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1, product.stock)}
-                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                                onClick={() => handleQtyChange(product.id, qty + 1, 1, product.stock)}
+                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
                               >
                                 +
                               </button>
@@ -800,7 +890,7 @@ function ProductsContent() {
 
                             <button
                               onClick={() => addToCart(product, qty)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-xs flex items-center justify-center"
+                              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-xs flex items-center justify-center cursor-pointer"
                               title="Sepete Ekle"
                             >
                               <ShoppingCart className="w-3.5 h-3.5" />
@@ -860,7 +950,50 @@ function ProductsContent() {
 
                   <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 mb-1">
                     <span className="text-blue-600 font-bold">Kod: {product.code}</span>
-                    <span>PİM: {product.pim} Adet</span>
+                    {editingPimProductId === product.id ? (
+                      <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-1 py-0.5 rounded border border-sky-500 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-[10px] text-slate-400">PİM:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          autoFocus
+                          value={tempPimValue}
+                          onChange={(e) => setTempPimValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSavePim(product.id);
+                            if (e.key === 'Escape') setEditingPimProductId(null);
+                          }}
+                          className="w-10 bg-transparent text-center font-mono font-bold text-xs text-sky-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          disabled={isUpdatingPim}
+                          onClick={() => handleSavePim(product.id)}
+                          className="p-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] cursor-pointer"
+                          title="Kaydet"
+                        >
+                          <Check className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingPimProductId(null)}
+                          className="p-0.5 text-slate-400 hover:text-slate-200 text-[10px] cursor-pointer"
+                          title="İptal"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => handleStartEditPim(product, e)}
+                        className="inline-flex items-center gap-1 text-slate-500 hover:text-sky-600 px-1 py-0.5 rounded transition cursor-pointer group/pim"
+                        title="PİM sayısını değiştirmek için tıklayın"
+                      >
+                        <span>PİM: <strong className="text-slate-700 dark:text-slate-300 group-hover/pim:text-sky-600">{product.pim} Adet</strong></span>
+                        <Edit className="w-3 h-3 opacity-60 group-hover/pim:opacity-100 text-sky-500" />
+                      </button>
+                    )}
                   </div>
 
                   <h3
@@ -916,32 +1049,32 @@ function ProductsContent() {
                       <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(product.id, qty - (product.pim || 1), product.pim || 1, product.stock)}
-                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                          onClick={() => handleQtyChange(product.id, Math.max(1, qty - 1), 1, product.stock)}
+                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
                         >
                           -
                         </button>
                         <input
                           type="number"
-                          min={product.pim || 1}
+                          min={1}
                           max={product.stock > 0 ? product.stock : undefined}
-                          step={product.pim || 1}
+                          step={1}
                           value={qty}
                           onChange={(e) => {
                             const raw = parseInt(e.target.value, 10);
-                            let val = isNaN(raw) ? (product.pim || 1) : raw;
-                            if (val < (product.pim || 1)) val = product.pim || 1;
+                            let val = isNaN(raw) ? 1 : raw;
+                            if (val < 1) val = 1;
                             if (product.stock > 0 && val > product.stock) {
                               val = product.stock;
                             }
-                            handleQtyChange(product.id, val, product.pim || 1, product.stock);
+                            handleQtyChange(product.id, val, 1, product.stock);
                           }}
                           className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
                         />
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(product.id, qty + (product.pim || 1), product.pim || 1, product.stock)}
-                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold"
+                          onClick={() => handleQtyChange(product.id, qty + 1, 1, product.stock)}
+                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
                         >
                           +
                         </button>

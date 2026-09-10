@@ -53,7 +53,7 @@ export async function PUT(
     const {
       name, sku, barcode, description, specsJson,
       status, unit, vatRate, currency,
-      costPrice, salePrice, discountPercent, stockQty, minOrderQty,
+      costPrice, salePrice, discountPercent, stockQty, minOrderQty, pim,
       brandId, categoryId, images, imageUrl
     } = body;
 
@@ -76,7 +76,11 @@ export async function PUT(
     if (salePrice !== undefined) updateData.salePrice = salePrice !== null && salePrice !== '' ? Number(salePrice) : null;
     if (discountPercent !== undefined) updateData.discountPercent = discountPercent !== null && discountPercent !== '' ? Number(discountPercent) : 0;
     if (stockQty !== undefined) updateData.stockQty = Number(stockQty);
-    if (minOrderQty !== undefined) updateData.minOrderQty = Number(minOrderQty);
+    const rawMoq = minOrderQty !== undefined ? minOrderQty : pim;
+    if (rawMoq !== undefined) {
+      const parsedMoq = Number(rawMoq);
+      updateData.minOrderQty = !isNaN(parsedMoq) && parsedMoq > 0 ? parsedMoq : 1;
+    }
     if (brandId !== undefined) updateData.brandId = brandId || null;
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
 

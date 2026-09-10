@@ -262,11 +262,10 @@ export function ImageDropzone({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
-            isDragging
+          className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${isDragging
               ? 'border-sky-500 bg-sky-500/10'
               : 'border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-700 hover:bg-slate-900/60'
-          }`}
+            }`}
         >
           {isUploading ? (
             <div className="flex flex-col items-center gap-2 py-2">

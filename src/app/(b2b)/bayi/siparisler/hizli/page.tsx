@@ -117,7 +117,7 @@ export default function QuickOrderPage() {
 
   // Add selected product to quick order items
   const addProductToItems = (prod: Product, qty: number = 1) => {
-    const desiredQty = Math.max(prod.pim || 1, qty);
+    const desiredQty = Math.max(1, qty);
     const existingIdx = items.findIndex((i) => i.product?.id === prod.id);
 
     if (existingIdx >= 0) {

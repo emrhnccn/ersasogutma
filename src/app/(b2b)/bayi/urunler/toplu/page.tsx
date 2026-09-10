@@ -337,15 +337,15 @@ export default function BulkOrderPage() {
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(p.id, Math.max(0, qty - (p.pim || 1)))}
-                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center"
+                          onClick={() => handleQtyChange(p.id, Math.max(0, qty - 1))}
+                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center cursor-pointer"
                         >
                           -
                         </button>
                         <input
                           type="number"
                           min="0"
-                          step={p.pim || 1}
+                          step={1}
                           value={qty === 0 ? '' : qty}
                           placeholder="0"
                           onChange={(e) => handleQtyChange(p.id, parseInt(e.target.value) || 0)}
@@ -355,8 +355,8 @@ export default function BulkOrderPage() {
                         />
                         <button
                           type="button"
-                          onClick={() => handleQtyChange(p.id, qty + (p.pim || 1))}
-                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center"
+                          onClick={() => handleQtyChange(p.id, qty + 1)}
+                          className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 font-bold flex items-center justify-center cursor-pointer"
                         >
                           +
                         </button>
