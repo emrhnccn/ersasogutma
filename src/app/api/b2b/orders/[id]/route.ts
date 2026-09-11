@@ -230,6 +230,9 @@ export async function PUT(
       }
 
       return ord;
+    }, {
+      maxWait: 15000,
+      timeout: 60000
     });
 
     // Write audit log

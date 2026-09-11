@@ -463,6 +463,9 @@ export async function POST(request: NextRequest) {
       });
 
       return order;
+    }, {
+      maxWait: 15000,
+      timeout: 60000
     });
 
     // Write audit log with persistent deduplication

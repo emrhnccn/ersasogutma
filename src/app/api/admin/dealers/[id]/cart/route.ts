@@ -244,6 +244,9 @@ export async function PUT(
           where: { id: cart.id },
           data: { updatedAt: new Date() }
         });
+      }, {
+        maxWait: 15000,
+        timeout: 60000
       });
 
       return NextResponse.json({

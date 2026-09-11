@@ -307,6 +307,9 @@ export async function POST(
       }
 
       return updatedOrder;
+    }, {
+      maxWait: 15000,
+      timeout: 60000
     });
 
     // Audit log
