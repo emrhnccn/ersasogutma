@@ -28,7 +28,8 @@ test('KATEGORİ AĞACI, SİPARİŞ RESİMLİ YAZDIRMA VE PDF İNDİRME TESTLERİ
     const content = fs.readFileSync(servicePath, 'utf-8');
 
     assert.ok(content.includes('downloadElementAsPdf'), 'downloadElementAsPdf fonksiyonu dışa aktarılmalı');
-    assert.ok(content.includes('html2pdf'), 'html2pdf dinamik yükleme içermeli');
+    assert.ok(content.includes('html2canvas'), 'html2canvas dinamik yükleme içermeli');
+    assert.ok(content.includes('jsPDF'), 'jsPDF dinamik yükleme içermeli');
     assert.ok(content.includes('scale: 2'), 'Yüksek çözünürlüklü A4 için scale: 2 olmalı');
   });
 
@@ -66,7 +67,7 @@ test('KATEGORİ AĞACI, SİPARİŞ RESİMLİ YAZDIRMA VE PDF İNDİRME TESTLERİ
     // Kontrol: Tablo No ve Durum sütunları
     assert.ok(content.includes('>No</th>'), 'Tabloda No sütunu olmalı');
     assert.ok(content.includes('>Durum</th>'), 'Tabloda Durum sütunu olmalı');
-    assert.ok(content.includes('bg-slate-800 text-white text-[10px] font-bold'), 'No sütununda fotoğraftaki gibi dairesel rozet olmalı');
+    assert.ok(content.includes('rounded-full bg-slate-800') && content.includes('text-[10px] font-bold'), 'No sütununda fotoğraftaki gibi dairesel rozet olmalı');
     assert.ok(content.includes('bg-emerald-500'), 'Stokta olan ürün yeşil durum simgesine sahip olmalı');
   });
 });

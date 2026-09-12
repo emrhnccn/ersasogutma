@@ -396,33 +396,33 @@ function ProductsContent() {
   });
 
   const renderCategoryTree = (isDrawer: boolean = false) => (
-    <div className={`bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col ${isDrawer ? 'border-none shadow-none rounded-none h-full' : ''}`}>
+    <div className={`bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden flex flex-col ${isDrawer ? 'border-none shadow-none rounded-none h-full' : ''}`}>
       {/* Category Tree Header */}
-      <div className="p-3.5 border-b border-slate-100 bg-slate-50/70">
+      <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0D1424]">
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-600" />
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Kategoriler</h2>
+            <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Kategoriler</h2>
           </div>
-          <span className="text-[10px] font-mono font-bold bg-white text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-mono font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-full">
             {categoriesList.length}
           </span>
         </div>
 
         {/* Quick Search in Categories */}
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Kategorilerde ara..."
             value={categorySearchQuery}
             onChange={(e) => setCategorySearchQuery(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-7 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
+            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-7 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition"
           />
           {categorySearchQuery && (
             <button
               onClick={() => setCategorySearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
               title="Aramayı Temizle"
             >
               <X className="w-3 h-3" />
@@ -432,7 +432,7 @@ function ProductsContent() {
       </div>
 
       {/* Categories Scrollable List */}
-      <div className={`p-2 space-y-1 overflow-y-auto scrollbar-thin ${isDrawer ? 'flex-1' : 'max-h-[calc(100vh-240px)]'}`}>
+      <div className={`p-2 space-y-1 overflow-y-auto scrollbar-thin dark:scrollbar-thumb-slate-800 ${isDrawer ? 'flex-1' : 'max-h-[calc(100vh-240px)]'}`}>
         {/* All Categories Option */}
         <button
           type="button"
@@ -443,8 +443,8 @@ function ProductsContent() {
           }}
           className={`w-full text-left text-xs font-semibold px-3 py-2.5 rounded-xl flex items-center justify-between transition cursor-pointer mb-1 ${
             selectedCategory === 'all'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'text-slate-700 hover:bg-slate-100'
+              ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-xs'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -452,7 +452,7 @@ function ProductsContent() {
             <span>Tüm Ürünler / Kategoriler</span>
           </div>
           <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
-            selectedCategory === 'all' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
+            selectedCategory === 'all' ? 'bg-slate-800 dark:bg-blue-700 text-slate-200 dark:text-blue-100' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
           }`}>
             {totalCount}
           </span>
@@ -460,7 +460,7 @@ function ProductsContent() {
 
         {/* Dynamic Category Tree */}
         {filteredMainCategories.length === 0 ? (
-          <div className="p-4 text-center text-xs text-slate-400">
+          <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
             Kategori bulunamadı.
           </div>
         ) : (
@@ -495,7 +495,7 @@ function ProductsContent() {
                   className={`w-full text-left text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center justify-between transition cursor-pointer select-none ${
                     isExpanded || isMainSelected
                       ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/90'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/90 dark:hover:bg-slate-800/80'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0 pr-2">
@@ -505,7 +505,7 @@ function ProductsContent() {
                         className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
                           isExpanded || isMainSelected
                             ? 'bg-blue-700 text-blue-100'
-                            : 'bg-slate-100 text-slate-500'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                         }`}
                       >
                         {mainCat._count.products}
@@ -524,7 +524,7 @@ function ProductsContent() {
                         }));
                       }}
                       className={`p-1 rounded-md transition cursor-pointer ${
-                        isExpanded || isMainSelected ? 'text-white hover:bg-blue-700' : 'text-slate-400 hover:text-slate-700'
+                        isExpanded || isMainSelected ? 'text-white hover:bg-blue-700' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                       }`}
                     >
                       {isExpanded ? (
@@ -538,7 +538,7 @@ function ProductsContent() {
 
                 {/* Subcategories (Indented under parent as shown in photo) */}
                 {hasSubs && isExpanded && (
-                  <div className="pl-3 pr-1 py-1 space-y-0.5 bg-slate-50/70 rounded-xl my-1 border border-slate-100 animate-in fade-in duration-150">
+                  <div className="pl-3 pr-1 py-1 space-y-0.5 bg-slate-50/70 dark:bg-slate-950/60 rounded-xl my-1 border border-slate-100 dark:border-slate-800/80 animate-in fade-in duration-150">
                     {subcategories.map((sub) => {
                       const isSubSelected = selectedCategory === sub.name || selectedCategory === sub.slug;
                       return (
@@ -553,8 +553,8 @@ function ProductsContent() {
                           }}
                           className={`w-full text-left text-xs py-2 px-3 rounded-lg flex items-center justify-between transition cursor-pointer ${
                             isSubSelected
-                              ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600 pl-2.5 shadow-xs'
-                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-medium'
+                              ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 font-bold border-l-2 border-blue-600 dark:border-blue-500 pl-2.5 shadow-xs'
+                              : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-medium'
                           }`}
                         >
                           <span className="truncate">{sub.name}</span>
@@ -562,8 +562,8 @@ function ProductsContent() {
                             <span
                               className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
                                 isSubSelected
-                                  ? 'bg-blue-200/60 text-blue-800 font-bold'
-                                  : 'bg-slate-200/60 text-slate-500'
+                                  ? 'bg-blue-200/60 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 font-bold'
+                                  : 'bg-slate-200/60 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                               }`}
                             >
                               {sub._count.products}
@@ -588,24 +588,24 @@ function ProductsContent() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Ürün Kataloğu</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Ürün Kataloğu</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             İskontonuza tanımlı güncel bayi fiyatları ({profile.tier} Kademe - %{(profile.discountRate * 100).toFixed(0)} İskonto)
           </p>
         </div>
 
         {/* View mode toggle & total count */}
         <div className="flex items-center gap-2">
-          <span className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 font-mono shadow-xs">
+          <span className="text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-300 font-mono shadow-xs">
             {totalCount > 0 ? `${totalCount} Ürün` : '0 Ürün'}
           </span>
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+          <div className="flex items-center bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-xs">
             <button
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Tablo / Liste Görünümü"
             >
@@ -617,7 +617,7 @@ function ProductsContent() {
               className={`p-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                 viewMode === 'grid'
                   ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Grid / Kart Görünümü"
             >
@@ -629,18 +629,18 @@ function ProductsContent() {
       </div>
 
       {/* Mobile Category Toggle Bar (< lg) */}
-      <div className="lg:hidden flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+      <div className="lg:hidden flex items-center justify-between bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
         <div className="flex items-center gap-2 min-w-0 pr-2">
-          <Layers className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
           <div className="text-xs truncate">
-            <span className="text-slate-400">Kategori: </span>
-            <strong className="text-slate-800">{selectedCategory === 'all' ? 'Tüm Kategoriler' : selectedCategory}</strong>
+            <span className="text-slate-400 dark:text-slate-500">Kategori: </span>
+            <strong className="text-slate-800 dark:text-white">{selectedCategory === 'all' ? 'Tüm Kategoriler' : selectedCategory}</strong>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setMobileCategoryDrawerOpen(true)}
-          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs border border-blue-200 transition cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+          className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold rounded-xl text-xs border border-blue-200 dark:border-blue-800/60 transition cursor-pointer flex items-center gap-1.5 flex-shrink-0"
         >
           <Folder className="w-3.5 h-3.5" />
           <span>Kategoriler</span>
@@ -658,13 +658,13 @@ function ProductsContent() {
         <div className="lg:col-span-9 xl:col-span-9 space-y-5 min-w-0">
           {/* Active Category Breadcrumb Pill */}
           {selectedCategory !== 'all' && (
-            <div className="flex items-center gap-2 bg-blue-50/80 border border-blue-200 rounded-xl px-3.5 py-2 text-xs text-blue-900 animate-in fade-in duration-150">
-              <span className="text-slate-500">Seçili Kategori:</span>
-              <strong className="font-bold">{activeMainCategory?.name || selectedCategory}</strong>
+            <div className="flex items-center gap-2 bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 rounded-xl px-3.5 py-2 text-xs text-blue-900 dark:text-blue-200 animate-in fade-in duration-150">
+              <span className="text-slate-500 dark:text-slate-400">Seçili Kategori:</span>
+              <strong className="font-bold text-blue-900 dark:text-white">{activeMainCategory?.name || selectedCategory}</strong>
               {activeCategoryObj?.parentId && (
                 <>
-                  <span className="text-slate-400">›</span>
-                  <strong className="text-blue-600">{activeCategoryObj.name}</strong>
+                  <span className="text-slate-400 dark:text-slate-500">›</span>
+                  <strong className="text-blue-600 dark:text-blue-400">{activeCategoryObj.name}</strong>
                 </>
               )}
               <button
@@ -673,7 +673,7 @@ function ProductsContent() {
                   setSelectedCategory('all');
                   router.push('/bayi/urunler');
                 }}
-                className="ml-auto text-blue-700 hover:text-red-600 p-1 hover:bg-blue-100 rounded-lg transition cursor-pointer"
+                className="ml-auto text-blue-700 dark:text-blue-400 hover:text-red-600 dark:hover:text-red-400 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition cursor-pointer"
                 title="Kategori Filtresini Temizle"
               >
                 <X className="w-3.5 h-3.5" />
@@ -682,18 +682,18 @@ function ProductsContent() {
           )}
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           
           {/* Search Box */}
           <div className="sm:col-span-6 relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Ürün adı, parça kodu (SKU), marka veya barkod ile arayın..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 transition"
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 transition"
             />
           </div>
 
@@ -710,18 +710,18 @@ function ProductsContent() {
                   router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
                 }
               }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600 cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500 cursor-pointer"
             >
-              <option value="all">Tüm Kategoriler ({categoriesList.length})</option>
+              <option value="all" className="dark:bg-slate-900">Tüm Kategoriler ({categoriesList.length})</option>
               {mainCategories.map((mainCat) => {
                 const subs = categoriesList.filter((c) => c.parentId === mainCat.id);
                 return (
                   <React.Fragment key={mainCat.id}>
-                    <option value={mainCat.name} className="font-bold">
+                    <option value={mainCat.name} className="font-bold dark:bg-slate-900">
                       📁 {mainCat.name} {mainCat._count?.products ? `(${mainCat._count.products})` : ''}
                     </option>
                     {subs.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
+                      <option key={sub.id} value={sub.name} className="dark:bg-slate-900">
                         &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name} {sub._count?.products ? `(${sub._count.products})` : ''}
                       </option>
                     ))}
@@ -736,11 +736,11 @@ function ProductsContent() {
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600"
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2.5 text-xs text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:border-blue-600 dark:focus:border-blue-500"
             >
-              <option value="all">Tüm Markalar ({brandsList.length})</option>
+              <option value="all" className="dark:bg-slate-900">Tüm Markalar ({brandsList.length})</option>
               {brandsList.map((b) => (
-                <option key={b.id || b.name} value={b.name}>
+                <option key={b.id || b.name} value={b.name} className="dark:bg-slate-900">
                   {b.name} ({b.productCount})
                 </option>
               ))}
@@ -750,17 +750,17 @@ function ProductsContent() {
         </div>
 
         {/* Quick Toggles */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setOnlyInStock(!onlyInStock)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition font-medium ${
                 onlyInStock
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Sadece Stoktakiler</span>
             </button>
 
@@ -768,8 +768,8 @@ function ProductsContent() {
               onClick={() => setOnlyFavorites(!onlyFavorites)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition font-medium ${
                 onlyFavorites
-                  ? 'bg-amber-50 border-amber-300 text-amber-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
@@ -780,7 +780,7 @@ function ProductsContent() {
           {(selectedCategory !== 'all' || selectedBrand !== 'all' || searchQuery !== '' || onlyInStock || onlyFavorites) && (
             <button
               onClick={resetFilters}
-              className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition font-medium"
+              className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition font-medium cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Filtreleri Temizle</span>
@@ -811,10 +811,10 @@ function ProductsContent() {
       ) : viewMode === 'table' ? (
         
         /* TABLE VIEW */
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-[#0D1424] text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-3 px-3 w-10 text-center">No</th>
                   <th className="py-3 px-2.5 w-14 text-center">Durum</th>
@@ -828,7 +828,7 @@ function ProductsContent() {
                   <th className="py-3 px-4 text-center w-36">Miktar / Sepet</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                 {displayProducts.map((product, idx) => {
                   const isFav = isFavorite(product.id);
                   const qty = getQty(product);
@@ -840,11 +840,11 @@ function ProductsContent() {
                   return (
                     <tr
                       key={product.id}
-                      className="hover:bg-slate-50/80 transition group"
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition group"
                     >
                       {/* No Column (Circular badge as in photo) */}
                       <td className="py-3 px-3 text-center">
-                        <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-[10px] font-bold inline-flex items-center justify-center font-mono shadow-xs">
+                        <span className="w-6 h-6 rounded-full bg-slate-800 dark:bg-slate-700 text-white text-[10px] font-bold inline-flex items-center justify-center font-mono shadow-xs">
                           {rowNumber}
                         </span>
                       </td>
@@ -852,9 +852,9 @@ function ProductsContent() {
                       {/* Status indicator (Genel Durum dot as in photo) */}
                       <td className="py-3 px-2.5 text-center">
                         {product.inStock ? (
-                          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block shadow-xs ring-2 ring-emerald-200" title="Stokta Mevcut" />
+                          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block shadow-xs ring-2 ring-emerald-200 dark:ring-emerald-900/60" title="Stokta Mevcut" />
                         ) : (
-                          <span className="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block shadow-xs ring-2 ring-rose-200" title="Tükendi" />
+                          <span className="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block shadow-xs ring-2 ring-rose-200 dark:ring-rose-900/60" title="Tükendi" />
                         )}
                       </td>
 
@@ -862,7 +862,7 @@ function ProductsContent() {
                       <td className="py-3 px-3 text-center">
                         <div
                           onClick={() => setSelectedProductForModal(product)}
-                          className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-50 border border-slate-200 cursor-pointer hover:border-blue-500 transition relative"
+                          className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-blue-500 transition relative"
                         >
                           <img
                             src={product.image || '/placeholder.svg'}
@@ -874,7 +874,7 @@ function ProductsContent() {
                       </td>
 
                       {/* Code */}
-                      <td className="py-3 px-4 font-mono font-bold text-blue-600">
+                      <td className="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
                         {product.code}
                       </td>
 
@@ -883,19 +883,19 @@ function ProductsContent() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             onClick={() => setSelectedProductForModal(product)}
-                            className="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer transition line-clamp-1"
+                            className="font-semibold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition line-clamp-1"
                           >
                             {product.name}
                           </span>
                           <button
                             onClick={() => toggleFavorite(product.id)}
-                            className="text-slate-400 hover:text-amber-500 transition"
+                            className="text-slate-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 transition"
                             title="Favoriye Ekle"
                           >
                             <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
                           </button>
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
                           <span>{product.category} • </span>
                           {editingPimProductId === product.id ? (
                             <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-lg border border-sky-500 shadow-sm" onClick={(e) => e.stopPropagation()}>
@@ -946,7 +946,7 @@ function ProductsContent() {
                       </td>
 
                       {/* Brand */}
-                      <td className="py-3 px-4 font-semibold text-slate-600">
+                      <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">
                         {product.brand}
                       </td>
 
@@ -956,7 +956,7 @@ function ProductsContent() {
                       </td>
 
                       {/* List Price */}
-                      <td className="py-3 px-4 text-right font-mono text-slate-400">
+                      <td className="py-3 px-4 text-right font-mono text-slate-400 dark:text-slate-500">
                         {basePrice <= 0 ? (
                           <span className="text-amber-500 font-semibold text-[11px]">Sorunuz</span>
                         ) : basePrice > effectivePrice ? (
@@ -969,20 +969,20 @@ function ProductsContent() {
                       {/* Dealer Special Net Price */}
                       <td className="py-3 px-4 text-right">
                         {effectivePrice <= 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60 text-[11px] font-bold">
                             Fiyat Bekleniyor
                           </span>
                         ) : (
                           <>
-                            <div className="font-mono font-black text-slate-900 text-sm flex items-center justify-end gap-1.5">
+                            <div className="font-mono font-black text-slate-900 dark:text-white text-sm flex items-center justify-end gap-1.5">
                               <span>{formatCurrency(effectivePrice)}</span>
                               {discountPct > 0 && (
-                                <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.5 rounded">
                                   -%{discountPct}
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px] font-mono text-slate-400">
+                            <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
                               + KDV
                             </div>
                           </>
@@ -993,17 +993,17 @@ function ProductsContent() {
                       <td className="py-3 px-4">
                         {effectivePrice <= 0 ? (
                           <div className="flex justify-center">
-                            <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 whitespace-nowrap">
+                            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap">
                               İletişime Geçin
                             </span>
                           </div>
                         ) : (
                           <div className="flex items-center justify-end gap-1.5">
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                            <div className="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-0.5">
                               <button
                                 type="button"
                                 onClick={() => handleQtyChange(product.id, Math.max(1, qty - 1), 1, product.stock)}
-                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
+                                className="px-2 py-0.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer"
                               >
                                 -
                               </button>
@@ -1022,12 +1022,12 @@ function ProductsContent() {
                                   }
                                   handleQtyChange(product.id, val, 1, product.stock);
                                 }}
-                                className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
+                                className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
                               />
                               <button
                                 type="button"
                                 onClick={() => handleQtyChange(product.id, qty + 1, 1, product.stock)}
-                                className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
+                                className="px-2 py-0.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer"
                               >
                                 +
                               </button>
@@ -1064,10 +1064,10 @@ function ProductsContent() {
             return (
               <div
                 key={product.id}
-                className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-blue-400 hover:shadow-md transition group"
+                className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition group"
               >
                 <div>
-                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-50 mb-3 cursor-pointer border border-slate-100">
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900 mb-3 cursor-pointer border border-slate-100 dark:border-slate-800">
                     <img
                       src={product.image || '/placeholder.svg'}
                       alt={product.name}
@@ -1087,14 +1087,14 @@ function ProductsContent() {
                     )}
                     <button
                       onClick={() => toggleFavorite(product.id)}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-slate-400 hover:text-amber-500 shadow-xs transition"
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-slate-400 hover:text-amber-500 shadow-xs transition cursor-pointer"
                     >
                       <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`} />
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 mb-1">
-                    <span className="text-blue-600 font-bold">Kod: {product.code}</span>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-1">
+                    <span className="text-blue-600 dark:text-blue-400 font-bold">Kod: {product.code}</span>
                     {editingPimProductId === product.id ? (
                       <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-1 py-0.5 rounded border border-sky-500 shadow-sm" onClick={(e) => e.stopPropagation()}>
                         <span className="text-[10px] text-slate-400">PİM:</span>
@@ -1132,7 +1132,7 @@ function ProductsContent() {
                       <button
                         type="button"
                         onClick={(e) => handleStartEditPim(product, e)}
-                        className="inline-flex items-center gap-1 text-slate-500 hover:text-sky-600 px-1 py-0.5 rounded transition cursor-pointer group/pim"
+                        className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 px-1 py-0.5 rounded transition cursor-pointer group/pim"
                         title="PİM sayısını değiştirmek için tıklayın"
                       >
                         <span>PİM: <strong className="text-slate-700 dark:text-slate-300 group-hover/pim:text-sky-600">{product.pim} Adet</strong></span>
@@ -1143,59 +1143,59 @@ function ProductsContent() {
 
                   <h3
                     onClick={() => setSelectedProductForModal(product)}
-                    className="text-xs font-bold text-slate-800 line-clamp-2 mb-2 hover:text-blue-600 cursor-pointer transition"
+                    className="text-xs font-bold text-slate-800 dark:text-white line-clamp-2 mb-2 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition"
                   >
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3">
-                    <span>Marka: <strong className="text-slate-700">{product.brand}</strong></span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-3">
+                    <span>Marka: <strong className="text-slate-700 dark:text-slate-300">{product.brand}</strong></span>
                     <StockBadge stock={product.stock} unit={product.unit} size="sm" />
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 space-y-3">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
                   <div className="flex items-baseline justify-between">
                     <div>
                       {effectivePrice <= 0 ? (
-                        <div className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                        <div className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-900/60">
                           Fiyat Bekleniyor
                         </div>
                       ) : (
                         <>
-                          <div className="text-base font-black font-mono text-slate-900 flex items-center gap-1.5">
+                          <div className="text-base font-black font-mono text-slate-900 dark:text-white flex items-center gap-1.5">
                             <span>{formatCurrency(effectivePrice)}</span>
                             {discountPct > 0 && (
-                              <span className="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.5 rounded">
                                 -%{discountPct}
                               </span>
                             )}
                           </div>
                           {basePrice > effectivePrice && (
-                            <div className="text-[10px] text-slate-400 line-through">
+                            <div className="text-[10px] text-slate-400 dark:text-slate-500 line-through">
                               {formatCurrency(basePrice)}
                             </div>
                           )}
                         </>
                       )}
                     </div>
-                    {effectivePrice > 0 && <div className="text-[10px] text-slate-400 font-mono">+ KDV</div>}
+                    {effectivePrice > 0 && <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">+ KDV</div>}
                   </div>
 
                   {effectivePrice <= 0 ? (
                     <button
                       disabled
-                      className="w-full bg-slate-100 text-slate-400 py-2 px-3 rounded-lg text-xs font-semibold cursor-not-allowed border border-slate-200"
+                      className="w-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 py-2 px-3 rounded-lg text-xs font-semibold cursor-not-allowed border border-slate-200 dark:border-slate-700"
                     >
                       Fiyat İçin İletişime Geçin
                     </button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                      <div className="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-0.5">
                         <button
                           type="button"
                           onClick={() => handleQtyChange(product.id, Math.max(1, qty - 1), 1, product.stock)}
-                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
+                          className="px-2 py-0.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer"
                         >
                           -
                         </button>
@@ -1214,12 +1214,12 @@ function ProductsContent() {
                             }
                             handleQtyChange(product.id, val, 1, product.stock);
                           }}
-                          className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 text-xs focus:outline-none"
+                          className="w-8 bg-transparent text-center font-mono font-bold text-slate-900 dark:text-white text-xs focus:outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => handleQtyChange(product.id, qty + 1, 1, product.stock)}
-                          className="px-2 py-0.5 text-slate-500 hover:text-slate-900 font-bold cursor-pointer"
+                          className="px-2 py-0.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer"
                         >
                           +
                         </button>
@@ -1227,7 +1227,7 @@ function ProductsContent() {
 
                       <button
                         onClick={() => addToCart(product, qty)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
                         <span>Sepete Ekle</span>
@@ -1243,7 +1243,7 @@ function ProductsContent() {
 
       {/* Explicit Pagination Bar & Item Counter */}
       {displayProducts.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-600 dark:text-slate-300 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-600 dark:text-slate-300 shadow-xs">
           <div>
             Gösterilen: <strong className="text-slate-900 dark:text-white">1 – {displayProducts.length}</strong> / <strong className="text-blue-600 dark:text-sky-400">{totalCount.toLocaleString('tr-TR')}</strong> Ürün
           </div>
@@ -1253,13 +1253,13 @@ function ProductsContent() {
               <button
                 onClick={() => fetchProducts(page + 1, false)}
                 disabled={loadingMore}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {loadingMore ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 <span>Daha Fazla Yükle ({Math.min(100, Math.max(0, totalCount - displayProducts.length))} Ürün)</span>
               </button>
             ) : (
-              <span className="text-slate-400 font-semibold">Tüm {totalCount.toLocaleString('tr-TR')} ürün listelendi</span>
+              <span className="text-slate-400 dark:text-slate-500 font-semibold">Tüm {totalCount.toLocaleString('tr-TR')} ürün listelendi</span>
             )}
           </div>
         </div>
@@ -1281,16 +1281,16 @@ function ProductsContent() {
       {/* Mobile Category Drawer Modal */}
       {mobileCategoryDrawerOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end lg:hidden animate-in fade-in duration-150">
-          <div className="w-full max-w-xs bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div className="w-full max-w-xs bg-white dark:bg-[#111827] h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-[#0D1424]">
               <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-blue-600" />
-                <h3 className="font-bold text-sm text-slate-800">Kategoriler</h3>
+                <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-bold text-sm text-slate-800 dark:text-white">Kategoriler</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setMobileCategoryDrawerOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer"
                 title="Kapat"
               >
                 <X className="w-5 h-5" />

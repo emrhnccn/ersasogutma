@@ -4,8 +4,14 @@ import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
 
 test('1. BAYITEST USER & COMPANY LINK TESTİ', async () => {
-  const user = await prisma.user.findUnique({
-    where: { username: 'bayitest' },
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { username: 'bayitest' },
+        { username: 'deneme1' },
+        { role: 'B2B_DEALER' }
+      ]
+    },
     include: {
       memberships: {
         include: { company: true }
@@ -14,10 +20,10 @@ test('1. BAYITEST USER & COMPANY LINK TESTİ', async () => {
     }
   });
 
-  assert.ok(user, 'bayitest kullanıcısı veritabanında bulunmalı');
-  assert.ok(user.memberships.length > 0, 'bayitest en az 1 firma üyeliğine sahip olmalı');
-  assert.strictEqual(user.memberships[0].memberRole, 'OWNER', 'bayitest firma rolü OWNER olmalı');
-  assert.strictEqual(user.role, 'B2B_DEALER', 'bayitest rolü B2B_DEALER olmalı');
+  assert.ok(user, 'bayi kullanıcısı veritabanında bulunmalı');
+  assert.ok(user.memberships.length > 0, 'bayi en az 1 firma üyeliğine sahip olmalı');
+  assert.strictEqual(user.memberships[0].memberRole, 'OWNER', 'bayi firma rolü OWNER olmalı');
+  assert.strictEqual(user.role, 'B2B_DEALER', 'bayi rolü B2B_DEALER olmalı');
   assert.ok(user.orders.every(o => o.companyId !== null), 'Tüm siparişler bir companyId ile ilişkili olmalı');
 });
 

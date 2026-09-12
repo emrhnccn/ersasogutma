@@ -87,11 +87,11 @@ export default function OrderDetailPage() {
         filename: `Siparis_${order.orderNumber || orderId}.pdf`
       });
       if (!success) {
-        window.print();
+        alert('PDF oluşturulamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
       }
     } catch (err) {
       console.error('PDF download error:', err);
-      window.print();
+      alert('PDF indirme sırasında bir hata oluştu.');
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -325,15 +325,18 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Offscreen container for clean client-side PDF export with images and styles */}
+      {/* Container for clean client-side PDF export with images and styles */}
       <div
+        id="order-pdf-export-wrapper"
         className="no-print"
         style={{
-          position: 'absolute',
-          left: '-9999px',
+          position: 'fixed',
+          left: 0,
           top: 0,
-          width: '800px',
-          pointerEvents: 'none'
+          width: '794px',
+          zIndex: -9999,
+          pointerEvents: 'none',
+          backgroundColor: '#ffffff'
         }}
       >
         <div id="order-pdf-export">

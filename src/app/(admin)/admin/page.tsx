@@ -6850,11 +6850,15 @@ export default function AdminControlPanel() {
                         if (!adminPrintingOrder) return;
                         setIsAdminDownloadingPdf(true);
                         try {
-                          await downloadElementAsPdf('order-print-preview', {
+                          const success = await downloadElementAsPdf('order-print-preview', {
                             filename: `Siparis_${adminPrintingOrder.orderNumber}.pdf`
                           });
+                          if (!success) {
+                            alert('PDF oluşturulamadı. Lütfen tekrar deneyin.');
+                          }
                         } catch (err) {
                           console.error(err);
+                          alert('PDF indirme sırasında bir hata oluştu.');
                         } finally {
                           setIsAdminDownloadingPdf(false);
                         }
@@ -6890,7 +6894,10 @@ export default function AdminControlPanel() {
                 </div>
 
                 {/* On-screen Preview Container */}
-                <div className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+                <div
+                  id="order-print-preview"
+                  className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden"
+                >
                   <OrderPrintDocument order={adminPrintingOrder} isPreview />
                 </div>
               </div>
