@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils';
 import {
   ArrowLeft,
   Printer,
+  Download,
   ShoppingBag,
   CheckCircle2,
   Clock,
@@ -19,6 +20,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { OrderPrintDocument } from '@/components/orders/OrderPrintDocument';
+import { downloadElementAsPdf } from '@/lib/export/pdfExport';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -26,6 +28,7 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   useEffect(() => {
     async function fetchOrderDetail() {
@@ -76,6 +79,24 @@ export default function OrderDetailPage() {
     window.print();
   };
 
+  const handleDownloadPdf = async () => {
+    if (!order) return;
+    setIsDownloadingPdf(true);
+    try {
+      const success = await downloadElementAsPdf('order-pdf-export', {
+        filename: `Siparis_${order.orderNumber || orderId}.pdf`
+      });
+      if (!success) {
+        window.print();
+      }
+    } catch (err) {
+      console.error('PDF download error:', err);
+      window.print();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const steps = [
     { title: 'Sipariş Alındı', status: 'completed' },
     { title: 'Onaylandı', status: order.status !== 'PENDING_APPROVAL' && order.status !== 'CANCELLED' ? 'completed' : 'current' },
@@ -113,13 +134,34 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-200 shadow-xs transition self-start md:self-auto cursor-pointer"
-          >
-            <Printer className="w-4 h-4 text-blue-600" />
-            <span>Sipariş Formunu Yazdır / PDF</span>
-          </button>
+          <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+            {/* Download PDF Button */}
+            <button
+              type="button"
+              disabled={isDownloadingPdf}
+              onClick={handleDownloadPdf}
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-75 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+              title="Sipariş formunu bilgisayarınıza PDF olarak indirin"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isDownloadingPdf ? 'İndiriliyor...' : 'PDF İndir'}</span>
+            </button>
+
+            {/* Print Button */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-200 shadow-xs transition cursor-pointer"
+              title="Yazdır"
+            >
+              <Printer className="w-4 h-4 text-blue-600" />
+              <span>Yazdır</span>
+            </button>
+          </div>
         </div>
 
         {/* 5-Step Order Status Timeline */}
@@ -280,6 +322,22 @@ export default function OrderDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Offscreen container for clean client-side PDF export with images and styles */}
+      <div
+        className="no-print"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 0,
+          width: '800px',
+          pointerEvents: 'none'
+        }}
+      >
+        <div id="order-pdf-export">
+          <OrderPrintDocument order={order} isPreview={true} />
         </div>
       </div>
 

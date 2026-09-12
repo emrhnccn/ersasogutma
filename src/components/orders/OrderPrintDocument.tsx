@@ -31,6 +31,8 @@ export interface OrderPrintData {
     discountAmt?: number;
     lineGross?: number;
     vatRate?: number;
+    image?: string | null;
+    imageUrl?: string | null;
   }>;
 }
 
@@ -136,6 +138,14 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
             .ersa-print-table-row {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
+            }
+
+            img {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              max-width: 36px !important;
+              max-height: 36px !important;
+              object-fit: cover !important;
             }
           }
         `}</style>
@@ -258,13 +268,14 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
           <table className="w-full text-left border-collapse text-[10px]">
             <thead className="ersa-print-table-header bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
               <tr>
-                <th className="py-2.5 px-3 w-8 text-center border-r border-slate-200">#</th>
-                <th className="py-2.5 px-3 w-28 border-r border-slate-200">Ürün Kodu</th>
-                <th className="py-2.5 px-3 border-r border-slate-200">Ürün Adı</th>
-                <th className="py-2.5 px-3 w-16 text-center border-r border-slate-200">Miktar</th>
-                <th className="py-2.5 px-3 w-24 text-right border-r border-slate-200">Birim Fiyat (KDV Hariç)</th>
-                <th className="py-2.5 px-3 w-20 text-right border-r border-slate-200">İskonto</th>
-                <th className="py-2.5 px-3 w-24 text-right">Toplam Tutar</th>
+                <th className="py-2 px-2 w-7 text-center border-r border-slate-200">#</th>
+                <th className="py-2 px-2 w-12 text-center border-r border-slate-200">Görsel</th>
+                <th className="py-2 px-2.5 w-24 border-r border-slate-200">Ürün Kodu</th>
+                <th className="py-2 px-3 border-r border-slate-200">Ürün Adı</th>
+                <th className="py-2 px-2.5 w-14 text-center border-r border-slate-200">Miktar</th>
+                <th className="py-2 px-2.5 w-24 text-right border-r border-slate-200">Birim Fiyat</th>
+                <th className="py-2 px-2 w-16 text-right border-r border-slate-200">İskonto</th>
+                <th className="py-2 px-2.5 w-24 text-right">Toplam Tutar</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-slate-800">
@@ -274,28 +285,42 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
                 const unitPrice = Number(item.unitNetExVat || 0);
                 const discount = Number(item.discountAmt || 0);
                 const lineGross = Number(item.lineGross || (unitPrice * qty * 1.2));
+                const itemImg = item.image || item.imageUrl || '/placeholder.svg';
 
                 return (
                   <tr key={item.id || idx} className="ersa-print-table-row hover:bg-slate-50">
-                    <td className="py-2 px-3 text-center text-slate-500 font-mono border-r border-slate-200">
+                    <td className="py-1.5 px-2 text-center text-slate-500 font-mono border-r border-slate-200 text-[9px]">
                       {idx + 1}
                     </td>
-                    <td className="py-2 px-3 font-mono font-bold text-sky-700 border-r border-slate-200">
+                    <td className="py-1.5 px-2 text-center border-r border-slate-200">
+                      <div className="w-8 h-8 mx-auto rounded-md overflow-hidden bg-white border border-slate-200 flex items-center justify-center">
+                        <img
+                          src={itemImg}
+                          alt={item.name}
+                          crossOrigin="anonymous"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td className="py-1.5 px-2.5 font-mono font-bold text-sky-700 border-r border-slate-200 text-[10px]">
                       {item.sku}
                     </td>
-                    <td className="py-2 px-3 font-semibold text-slate-900 border-r border-slate-200">
+                    <td className="py-1.5 px-3 font-semibold text-slate-900 border-r border-slate-200 text-[10px]">
                       {item.name}
                     </td>
-                    <td className="py-2 px-3 text-center font-mono font-semibold border-r border-slate-200">
+                    <td className="py-1.5 px-2.5 text-center font-mono font-semibold border-r border-slate-200 text-[10px]">
                       {qty} {unit}
                     </td>
-                    <td className="py-2 px-3 text-right font-mono border-r border-slate-200">
+                    <td className="py-1.5 px-2.5 text-right font-mono border-r border-slate-200 text-[10px]">
                       {formatCurrency(unitPrice)}
                     </td>
-                    <td className="py-2 px-3 text-right font-mono text-emerald-700 border-r border-slate-200">
+                    <td className="py-1.5 px-2 text-right font-mono text-emerald-700 border-r border-slate-200 text-[10px]">
                       {discount > 0 ? formatCurrency(discount) : '—'}
                     </td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                    <td className="py-1.5 px-2.5 text-right font-mono font-bold text-slate-900 text-[10px]">
                       {formatCurrency(lineGross)}
                     </td>
                   </tr>

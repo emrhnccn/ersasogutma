@@ -52,6 +52,7 @@ import {
   ArrowUp,
   ArrowDown,
   Printer,
+  Download,
   FileSpreadsheet,
   Menu,
   Minus,
@@ -66,6 +67,7 @@ import { StockBadge } from '@/components/common/StockBadge';
 import { ImageDropzone } from '@/components/common/ImageDropzone';
 import { exportOrdersToExcel } from '@/lib/export/orderExport';
 import { OrderPrintDocument } from '@/components/orders/OrderPrintDocument';
+import { downloadElementAsPdf } from '@/lib/export/pdfExport';
 import { logoutAction } from '@/lib/actions';
 import { AdminAnalyticsDashboard } from '@/components/dashboard/AdminAnalyticsDashboard';
 
@@ -533,6 +535,7 @@ export default function AdminControlPanel() {
 
   // Admin Order Printing Modal State
   const [adminPrintingOrder, setAdminPrintingOrder] = useState<any | null>(null);
+  const [isAdminDownloadingPdf, setIsAdminDownloadingPdf] = useState(false);
 
   // Dealer Application Full Detail Modal State
   const [viewingAppDetail, setViewingAppDetail] = useState<any | null>(null);
@@ -6842,10 +6845,37 @@ export default function AdminControlPanel() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => window.print()}
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
+                      disabled={isAdminDownloadingPdf}
+                      onClick={async () => {
+                        if (!adminPrintingOrder) return;
+                        setIsAdminDownloadingPdf(true);
+                        try {
+                          await downloadElementAsPdf('order-print-preview', {
+                            filename: `Siparis_${adminPrintingOrder.orderNumber}.pdf`
+                          });
+                        } catch (err) {
+                          console.error(err);
+                        } finally {
+                          setIsAdminDownloadingPdf(false);
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-75 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer"
+                      title="Sipariş formunu bilgisayara PDF olarak indir"
                     >
-                      <Printer className="w-4 h-4" />
+                      {isAdminDownloadingPdf ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      ) : (
+                        <Download className="w-4 h-4 text-white" />
+                      )}
+                      <span>{isAdminDownloadingPdf ? 'İndiriliyor...' : 'PDF İndir'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow border border-slate-700 cursor-pointer"
+                    >
+                      <Printer className="w-4 h-4 text-sky-400" />
                       <span>Hemen Yazdır</span>
                     </button>
 

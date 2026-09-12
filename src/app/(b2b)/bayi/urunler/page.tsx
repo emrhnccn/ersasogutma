@@ -35,6 +35,11 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Folder,
+  FolderOpen,
+  Layers,
   Edit,
   Check,
   X
@@ -76,6 +81,9 @@ function ProductsContent() {
   // Dynamic Categories and Brands from PostgreSQL API
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [brandsList, setBrandsList] = useState<any[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [categorySearchQuery, setCategorySearchQuery] = useState<string>('');
+  const [mobileCategoryDrawerOpen, setMobileCategoryDrawerOpen] = useState<boolean>(false);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -163,6 +171,33 @@ function ProductsContent() {
   const activeSubcategories = activeMainCategory
     ? categoriesList.filter((c) => c.parentId === activeMainCategory.id)
     : [];
+
+  // Auto-expand parent category when selected category changes
+  useEffect(() => {
+    if (activeMainCategory) {
+      setExpandedCategories((prev) => ({
+        ...prev,
+        [activeMainCategory.id]: true
+      }));
+    }
+  }, [activeMainCategory?.id]);
+
+  // Auto-expand parents when typing in category search
+  useEffect(() => {
+    if (categorySearchQuery.trim()) {
+      const q = categorySearchQuery.toLowerCase();
+      const newExpanded: Record<string, boolean> = {};
+      mainCategories.forEach((mainCat) => {
+        const hasMatchingChild = categoriesList
+          .filter((c) => c.parentId === mainCat.id)
+          .some((sub) => sub.name.toLowerCase().includes(q));
+        if (hasMatchingChild) {
+          newExpanded[mainCat.id] = true;
+        }
+      });
+      setExpandedCategories((prev) => ({ ...prev, ...newExpanded }));
+    }
+  }, [categorySearchQuery]);
 
   // Quick PİM Edit State
   const [editingPimProductId, setEditingPimProductId] = useState<string | null>(null);
@@ -349,6 +384,204 @@ function ProductsContent() {
     }
   };
 
+  // Category Tree Filter Logic (filters parents if parent matches OR any subcategory matches)
+  const filteredMainCategories = mainCategories.filter((mainCat) => {
+    if (!categorySearchQuery.trim()) return true;
+    const q = categorySearchQuery.toLowerCase();
+    const mainMatches = mainCat.name.toLowerCase().includes(q);
+    const subMatches = categoriesList
+      .filter((c) => c.parentId === mainCat.id)
+      .some((sub) => sub.name.toLowerCase().includes(q));
+    return mainMatches || subMatches;
+  });
+
+  const renderCategoryTree = (isDrawer: boolean = false) => (
+    <div className={`bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden flex flex-col ${isDrawer ? 'border-none shadow-none rounded-none h-full' : ''}`}>
+      {/* Category Tree Header */}
+      <div className="p-3.5 border-b border-slate-100 bg-slate-50/70">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Kategoriler</h2>
+          </div>
+          <span className="text-[10px] font-mono font-bold bg-white text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full">
+            {categoriesList.length}
+          </span>
+        </div>
+
+        {/* Quick Search in Categories */}
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Kategorilerde ara..."
+            value={categorySearchQuery}
+            onChange={(e) => setCategorySearchQuery(e.target.value)}
+            className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-7 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
+          />
+          {categorySearchQuery && (
+            <button
+              onClick={() => setCategorySearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              title="Aramayı Temizle"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Categories Scrollable List */}
+      <div className={`p-2 space-y-1 overflow-y-auto scrollbar-thin ${isDrawer ? 'flex-1' : 'max-h-[calc(100vh-240px)]'}`}>
+        {/* All Categories Option */}
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedCategory('all');
+            router.push('/bayi/urunler');
+            if (isDrawer) setMobileCategoryDrawerOpen(false);
+          }}
+          className={`w-full text-left text-xs font-semibold px-3 py-2.5 rounded-xl flex items-center justify-between transition cursor-pointer mb-1 ${
+            selectedCategory === 'all'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'text-slate-700 hover:bg-slate-100'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-sky-400" />
+            <span>Tüm Ürünler / Kategoriler</span>
+          </div>
+          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+            selectedCategory === 'all' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {totalCount}
+          </span>
+        </button>
+
+        {/* Dynamic Category Tree */}
+        {filteredMainCategories.length === 0 ? (
+          <div className="p-4 text-center text-xs text-slate-400">
+            Kategori bulunamadı.
+          </div>
+        ) : (
+          filteredMainCategories.map((mainCat) => {
+            const subcategories = categoriesList.filter((c) => c.parentId === mainCat.id);
+            const hasSubs = subcategories.length > 0;
+            const isExpanded = Boolean(expandedCategories[mainCat.id]);
+            const isMainSelected = selectedCategory === mainCat.name || selectedCategory === mainCat.slug;
+
+            return (
+              <div key={mainCat.id} className="space-y-0.5">
+                {/* Main Category Accordion Header */}
+                <div
+                  onClick={() => {
+                    if (hasSubs) {
+                      setExpandedCategories((prev) => ({
+                        ...prev,
+                        [mainCat.id]: !prev[mainCat.id]
+                      }));
+                    }
+                    const next = (isMainSelected && !hasSubs) ? 'all' : mainCat.name;
+                    setSelectedCategory(next);
+                    if (next === 'all') {
+                      router.push('/bayi/urunler');
+                    } else {
+                      router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
+                    }
+                    if (!hasSubs && isDrawer) {
+                      setMobileCategoryDrawerOpen(false);
+                    }
+                  }}
+                  className={`w-full text-left text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center justify-between transition cursor-pointer select-none ${
+                    isExpanded || isMainSelected
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100/90'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0 pr-2">
+                    <span className="truncate">{mainCat.name}</span>
+                    {mainCat._count?.products !== undefined && (
+                      <span
+                        className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
+                          isExpanded || isMainSelected
+                            ? 'bg-blue-700 text-blue-100'
+                            : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {mainCat._count.products}
+                      </span>
+                    )}
+                  </div>
+
+                  {hasSubs ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedCategories((prev) => ({
+                          ...prev,
+                          [mainCat.id]: !prev[mainCat.id]
+                        }));
+                      }}
+                      className={`p-1 rounded-md transition cursor-pointer ${
+                        isExpanded || isMainSelected ? 'text-white hover:bg-blue-700' : 'text-slate-400 hover:text-slate-700'
+                      }`}
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-white" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </button>
+                  ) : null}
+                </div>
+
+                {/* Subcategories (Indented under parent as shown in photo) */}
+                {hasSubs && isExpanded && (
+                  <div className="pl-3 pr-1 py-1 space-y-0.5 bg-slate-50/70 rounded-xl my-1 border border-slate-100 animate-in fade-in duration-150">
+                    {subcategories.map((sub) => {
+                      const isSubSelected = selectedCategory === sub.name || selectedCategory === sub.slug;
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            const next = isSubSelected ? mainCat.name : sub.name;
+                            setSelectedCategory(next);
+                            router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
+                            if (isDrawer) setMobileCategoryDrawerOpen(false);
+                          }}
+                          className={`w-full text-left text-xs py-2 px-3 rounded-lg flex items-center justify-between transition cursor-pointer ${
+                            isSubSelected
+                              ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600 pl-2.5 shadow-xs'
+                              : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-medium'
+                          }`}
+                        >
+                          <span className="truncate">{sub.name}</span>
+                          {sub._count?.products !== undefined && (
+                            <span
+                              className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
+                                isSubSelected
+                                  ? 'bg-blue-200/60 text-blue-800 font-bold'
+                                  : 'bg-slate-200/60 text-slate-500'
+                              }`}
+                            >
+                              {sub._count.products}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       
@@ -395,165 +628,58 @@ function ProductsContent() {
         </div>
       </div>
 
-      {/* Category Icons Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-2.5 shadow-xs relative group">
-        <div className="flex items-center gap-2">
-          {/* Scroll left button */}
-          <button
-            type="button"
-            onClick={() => scrollCategories('left')}
-            className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex-shrink-0"
-            title="Sola Kaydır"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          {/* Scrollable Container for Main Categories */}
-          <div
-            ref={categoryScrollRef}
-            className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 flex-1 scroll-smooth"
-          >
-            {/* All Categories Button */}
-            <button
-              type="button"
-              data-selected={selectedCategory === 'all' ? 'true' : 'false'}
-              onClick={() => {
-                setSelectedCategory('all');
-                router.push('/bayi/urunler');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
-                selectedCategory === 'all'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Tüm Kategoriler</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${selectedCategory === 'all' ? 'bg-blue-700 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}>
-                {totalCount}
-              </span>
-            </button>
-
-            {mainCategories.map((cat) => {
-              const isSelected = activeMainCategory?.id === cat.id;
-              const subCount = categoriesList.filter((c) => c.parentId === cat.id).length;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  data-selected={isSelected ? 'true' : 'false'}
-                  onClick={() => {
-                    const next = (isSelected && selectedCategory === cat.name) ? 'all' : cat.name;
-                    setSelectedCategory(next);
-                    if (next === 'all') {
-                      router.push('/bayi/urunler');
-                    } else {
-                      router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
-                    }
-                  }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex-shrink-0 group/item cursor-pointer ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  {getCategoryIcon(cat.slug)}
-                  <span className="whitespace-nowrap">{cat.name}</span>
-                  {subCount > 0 && (
-                    <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
-                      isSelected ? 'bg-blue-700 text-blue-100' : 'bg-slate-200/80 text-slate-600'
-                    }`}>
-                      {subCount} alt
-                    </span>
-                  )}
-                  {cat.discountPercent > 0 && (
-                    <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200">
-                      -%{cat.discountPercent}
-                    </span>
-                  )}
-                  {cat._count?.products !== undefined && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-blue-700 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-                      {cat._count.products}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+      {/* Mobile Category Toggle Bar (< lg) */}
+      <div className="lg:hidden flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+        <div className="flex items-center gap-2 min-w-0 pr-2">
+          <Layers className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <div className="text-xs truncate">
+            <span className="text-slate-400">Kategori: </span>
+            <strong className="text-slate-800">{selectedCategory === 'all' ? 'Tüm Kategoriler' : selectedCategory}</strong>
           </div>
-
-          {/* Scroll right button */}
-          <button
-            type="button"
-            onClick={() => scrollCategories('right')}
-            className="p-2 text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex-shrink-0"
-            title="Sağa Kaydır"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
-
-        {/* 2nd Tier: Subcategories Pills Bar */}
-        {activeSubcategories.length > 0 && (
-          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none animate-in fade-in slide-in-from-top-1">
-            <div className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5 pl-1 flex-shrink-0">
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-              <span>{activeMainCategory?.name} Alt Kategorileri:</span>
-            </div>
-
-            {/* All items of Main Category */}
-            <button
-              type="button"
-              onClick={() => {
-                if (activeMainCategory) {
-                  setSelectedCategory(activeMainCategory.name);
-                  router.push(`/bayi/urunler?category=${encodeURIComponent(activeMainCategory.name)}`);
-                }
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
-                selectedCategory === activeMainCategory?.name
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              Tümü ({activeMainCategory?.name})
-            </button>
-
-            {activeSubcategories.map((sub) => {
-              const isSubSelected = selectedCategory === sub.slug || selectedCategory === sub.name;
-              return (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => {
-                    const next = isSubSelected ? (activeMainCategory?.name || 'all') : sub.name;
-                    setSelectedCategory(next);
-                    router.push(`/bayi/urunler?category=${encodeURIComponent(next)}`);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex-shrink-0 cursor-pointer ${
-                    isSubSelected
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  <span>{sub.name}</span>
-                  {sub.discountPercent > 0 && (
-                    <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.2 rounded font-bold">
-                      -%{sub.discountPercent}
-                    </span>
-                  )}
-                  {sub._count?.products !== undefined && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                      isSubSelected ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {sub._count.products}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={() => setMobileCategoryDrawerOpen(true)}
+          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs border border-blue-200 transition cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+        >
+          <Folder className="w-3.5 h-3.5" />
+          <span>Kategoriler</span>
+        </button>
       </div>
+
+      {/* 2-Column Responsive Layout: Left Category Tree + Right Product Catalog */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Category Accordion Tree (Sticky Sidebar on Desktop as shown in screenshot) */}
+        <aside className="hidden lg:block lg:col-span-3 xl:col-span-3 sticky top-20">
+          {renderCategoryTree(false)}
+        </aside>
+
+        {/* Right Column: Search, Filters & Products Table / Grid */}
+        <div className="lg:col-span-9 xl:col-span-9 space-y-5 min-w-0">
+          {/* Active Category Breadcrumb Pill */}
+          {selectedCategory !== 'all' && (
+            <div className="flex items-center gap-2 bg-blue-50/80 border border-blue-200 rounded-xl px-3.5 py-2 text-xs text-blue-900 animate-in fade-in duration-150">
+              <span className="text-slate-500">Seçili Kategori:</span>
+              <strong className="font-bold">{activeMainCategory?.name || selectedCategory}</strong>
+              {activeCategoryObj?.parentId && (
+                <>
+                  <span className="text-slate-400">›</span>
+                  <strong className="text-blue-600">{activeCategoryObj.name}</strong>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory('all');
+                  router.push('/bayi/urunler');
+                }}
+                className="ml-auto text-blue-700 hover:text-red-600 p-1 hover:bg-blue-100 rounded-lg transition cursor-pointer"
+                title="Kategori Filtresini Temizle"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
       {/* Search & Filter Bar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
@@ -690,7 +816,9 @@ function ProductsContent() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-4 w-12 text-center">Görsel</th>
+                  <th className="py-3 px-3 w-10 text-center">No</th>
+                  <th className="py-3 px-2.5 w-14 text-center">Durum</th>
+                  <th className="py-3 px-3 w-12 text-center">Görsel</th>
                   <th className="py-3 px-4">Parça Kodu</th>
                   <th className="py-3 px-4">Ürün Adı / Özellikler</th>
                   <th className="py-3 px-4">Marka</th>
@@ -701,20 +829,37 @@ function ProductsContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {displayProducts.map((product) => {
+                {displayProducts.map((product, idx) => {
                   const isFav = isFavorite(product.id);
                   const qty = getQty(product);
                   const basePrice = product.basePriceTRY || product.priceTRY;
                   const effectivePrice = product.priceTRY;
                   const discountPct = product.discountPercent || (basePrice > effectivePrice && basePrice > 0 ? Math.round(((basePrice - effectivePrice) / basePrice) * 100) : 0);
+                  const rowNumber = (page - 1) * 100 + idx + 1;
 
                   return (
                     <tr
                       key={product.id}
                       className="hover:bg-slate-50/80 transition group"
                     >
+                      {/* No Column (Circular badge as in photo) */}
+                      <td className="py-3 px-3 text-center">
+                        <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-[10px] font-bold inline-flex items-center justify-center font-mono shadow-xs">
+                          {rowNumber}
+                        </span>
+                      </td>
+
+                      {/* Status indicator (Genel Durum dot as in photo) */}
+                      <td className="py-3 px-2.5 text-center">
+                        {product.inStock ? (
+                          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block shadow-xs ring-2 ring-emerald-200" title="Stokta Mevcut" />
+                        ) : (
+                          <span className="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block shadow-xs ring-2 ring-rose-200" title="Tükendi" />
+                        )}
+                      </td>
+
                       {/* Image with zoom click */}
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-3 px-3 text-center">
                         <div
                           onClick={() => setSelectedProductForModal(product)}
                           className="w-12 h-12 mx-auto rounded-lg overflow-hidden bg-slate-50 border border-slate-200 cursor-pointer hover:border-blue-500 transition relative"
@@ -1129,6 +1274,34 @@ function ProductsContent() {
           </div>
         )}
       </div>
+
+        </div>
+      </div>
+
+      {/* Mobile Category Drawer Modal */}
+      {mobileCategoryDrawerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end lg:hidden animate-in fade-in duration-150">
+          <div className="w-full max-w-xs bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-blue-600" />
+                <h3 className="font-bold text-sm text-slate-800">Kategoriler</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileCategoryDrawerOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition cursor-pointer"
+                title="Kapat"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {renderCategoryTree(true)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Product Detail Modal */}
       <ProductDetailModal
