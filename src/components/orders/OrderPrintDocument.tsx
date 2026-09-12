@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { translateOrderStatus } from '@/lib/export/orderExport';
 import { BRAND_EMBLEM_BASE64 } from '@/lib/export/brandLogo';
+import { PRODUCT_PLACEHOLDER_PNG_BASE64 } from '@/lib/export/productPlaceholderPng';
 
 export interface OrderPrintData {
   orderNumber: string;
@@ -42,14 +43,6 @@ interface OrderPrintDocumentProps {
   className?: string;
   isPreview?: boolean;
 }
-
-const FALLBACK_SVG_DATA_URL =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-    <rect width="64" height="64" rx="8" fill="#F1F5F9"/>
-    <path d="M20 44L28 34L34 40L40 32L46 44H20Z" fill="#CBD5E1"/>
-    <circle cx="26" cy="26" r="3" fill="#CBD5E1"/>
-  </svg>`);
 
 export function OrderPrintDocument({ order, className = '', isPreview = false }: OrderPrintDocumentProps) {
   const formattedDate = new Date(order.createdAt).toLocaleDateString('tr-TR', {
@@ -189,8 +182,10 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
           className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-5"
         >
           <div className="flex items-center gap-3">
+            {/* Ersa brand emblem (/brand-emblem-light.png embedded as base64 for instant zero-delay render) */}
             <img
               src={BRAND_EMBLEM_BASE64}
+              data-emblem="/brand-emblem-light.png"
               alt="Ersa Soğutma Logo"
               style={{ width: '48px', height: '48px', objectFit: 'contain' }}
               className="w-12 h-12 object-contain"
@@ -487,7 +482,7 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
                 const unitPrice = Number(item.unitNetExVat || 0);
                 const discount = Number(item.discountAmt || 0);
                 const lineGross = Number(item.lineGross || unitPrice * qty * 1.2);
-                const rawImg = item.image || item.imageUrl || FALLBACK_SVG_DATA_URL;
+                const rawImg = item.image || item.imageUrl || PRODUCT_PLACEHOLDER_PNG_BASE64;
                 const itemImg =
                   rawImg.startsWith('http://') || rawImg.startsWith('https://')
                     ? `/api/proxy-image?url=${encodeURIComponent(rawImg)}`
@@ -521,7 +516,7 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
                           decoding="sync"
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = FALLBACK_SVG_DATA_URL;
+                            (e.target as HTMLImageElement).src = PRODUCT_PLACEHOLDER_PNG_BASE64;
                           }}
                         />
                       </div>

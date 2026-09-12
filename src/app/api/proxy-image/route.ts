@@ -2,14 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// SVG placeholder if remote image is unreachable
-const FALLBACK_SVG = Buffer.from(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-    <rect width="64" height="64" rx="8" fill="#F1F5F9"/>
-    <path d="M20 44L28 34L34 40L40 32L46 44H20Z" fill="#CBD5E1"/>
-    <circle cx="26" cy="26" r="3" fill="#CBD5E1"/>
-  </svg>`,
-  'utf8'
+// Fast PNG placeholder if remote image is unreachable (prevents html2canvas SVG delays)
+const FALLBACK_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAINSURBVHhe7ZjZboMwEEXz/79WRV2UrVnLEpYEQsjStE+uBomIehLKZpOK+3AEkm2hOdgztnuWF89Mby+6iL2J3R69xOfvTkKxQwAEQAAEsIauAAEQAAEQAAEQAAEQwBq6AgRAAARAgBYBm+gkvPCYPOW2NlEuIDpexGjpiaehcWUwd8V2f2Z920C5gMHC/RV8yut0LaLTF+uvG6UCvN2RBZ7F3sZsjG6UCjC8HQs6y3IdsjG6USrACQ4s6CymH7ExulEqgNb4y7vNAif6I1OEhwsboxulAgjKA88TiwVv++q+WQblAggqhR/OLlnz9HyEP5+iRcAjAwEQ0KKAR8gFrQmg6tAfW8lTbtNJKwKC+DMJnkpi22cC7QKoJFLQ2X3B1NiyfrrQKoD+9L3TYZGDkYqcoVUA/Wk58OvucGzlBkgXKbSDpEsVua0O2gSsnJAFLUOzQx5H0LJJzxQkinKI3KcqWgTQvl8O9h4kSh4vL5u3mdNY4lQuICl3I5MFeo9kmmdK49wOWB9iYmzYt6qgVEC23JUhLY1/zRw6WMnfLIsyAbfKXRnGK7/QzKmbFJUIyCt3TVM3KSoRkFfuVFAnKTYuoEi5y6XAtL9F1aTYqABa93TrU5WFHYjhwmXMrC3re4sqS6FRAf8RCIAACIAACIAACIAA1tAVIAACIAACIKDzAix/f6GXLmL5sfgBYjpcUQFC8ZEAAAAASUVORK5CYII=',
+  'base64'
 );
 
 export async function GET(request: NextRequest) {
@@ -43,10 +39,10 @@ export async function GET(request: NextRequest) {
 
     if (!remoteRes.ok) {
       console.warn(`[proxy-image] Remote fetch returned ${remoteRes.status} for ${targetUrl}`);
-      return new NextResponse(FALLBACK_SVG, {
+      return new NextResponse(FALLBACK_PNG, {
         status: 200,
         headers: {
-          'Content-Type': 'image/svg+xml',
+          'Content-Type': 'image/png',
           'Cache-Control': 'public, max-age=3600',
           'Access-Control-Allow-Origin': '*',
         },
@@ -68,10 +64,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (err: any) {
     console.warn(`[proxy-image] Error proxying ${targetUrl}:`, err?.message || err);
-    return new NextResponse(FALLBACK_SVG, {
+    return new NextResponse(FALLBACK_PNG, {
       status: 200,
       headers: {
-        'Content-Type': 'image/svg+xml',
+        'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=3600',
         'Access-Control-Allow-Origin': '*',
       },
