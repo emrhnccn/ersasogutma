@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// 1x1 transparent PNG fallback if remote image is completely unreachable
-const FALLBACK_1X1_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-  'base64'
+// SVG placeholder if remote image is unreachable
+const FALLBACK_SVG = Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+    <rect width="64" height="64" rx="8" fill="#F1F5F9"/>
+    <path d="M20 44L28 34L34 40L40 32L46 44H20Z" fill="#CBD5E1"/>
+    <circle cx="26" cy="26" r="3" fill="#CBD5E1"/>
+  </svg>`,
+  'utf8'
 );
 
 export async function GET(request: NextRequest) {
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 800); // Fast 800ms timeout
 
     const remoteRes = await fetch(targetUrl, {
       headers: {
@@ -39,10 +43,10 @@ export async function GET(request: NextRequest) {
 
     if (!remoteRes.ok) {
       console.warn(`[proxy-image] Remote fetch returned ${remoteRes.status} for ${targetUrl}`);
-      return new NextResponse(FALLBACK_1X1_PNG, {
+      return new NextResponse(FALLBACK_SVG, {
         status: 200,
         headers: {
-          'Content-Type': 'image/png',
+          'Content-Type': 'image/svg+xml',
           'Cache-Control': 'public, max-age=3600',
           'Access-Control-Allow-Origin': '*',
         },
@@ -64,10 +68,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (err: any) {
     console.warn(`[proxy-image] Error proxying ${targetUrl}:`, err?.message || err);
-    return new NextResponse(FALLBACK_1X1_PNG, {
+    return new NextResponse(FALLBACK_SVG, {
       status: 200,
       headers: {
-        'Content-Type': 'image/png',
+        'Content-Type': 'image/svg+xml',
         'Cache-Control': 'public, max-age=3600',
         'Access-Control-Allow-Origin': '*',
       },

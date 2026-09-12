@@ -87,11 +87,11 @@ export default function OrderDetailPage() {
         filename: `Siparis_${order.orderNumber || orderId}.pdf`
       });
       if (!success) {
-        window.print();
+        alert('PDF dosyası doğrudan indirilemedi. Lütfen "Yazdır" butonunu kullanarak PDF olarak kaydedebilirsiniz.');
       }
     } catch (err) {
       console.error('PDF download error:', err);
-      window.print();
+      alert('PDF oluşturulurken bir hata meydana geldi.');
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -330,10 +330,13 @@ export default function OrderDetailPage() {
         id="order-pdf-export-wrapper"
         className="no-print"
         style={{
-          position: 'absolute',
-          left: '-9999px',
+          position: 'fixed',
+          left: 0,
           top: 0,
-          width: '794px',
+          width: '800px',
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: -100,
           backgroundColor: '#ffffff'
         }}
       >

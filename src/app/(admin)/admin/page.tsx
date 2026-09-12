@@ -537,25 +537,26 @@ export default function AdminControlPanel() {
   const [adminPrintingOrder, setAdminPrintingOrder] = useState<any | null>(null);
   const [isAdminDownloadingPdf, setIsAdminDownloadingPdf] = useState(false);
   const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
+  const [directDownloadOrder, setDirectDownloadOrder] = useState<any | null>(null);
 
   const handleDirectDownloadPdf = async (orderToDownload: any) => {
     setDownloadingOrderId(orderToDownload.id);
-    setAdminPrintingOrder(orderToDownload);
+    setDirectDownloadOrder(orderToDownload);
     try {
-      // Allow modal / preview element to mount
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      const success = await downloadElementAsPdf('order-print-preview', {
+      // Allow offscreen export element to mount
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const success = await downloadElementAsPdf('admin-direct-pdf-target', {
         filename: `Siparis_${orderToDownload.orderNumber || orderToDownload.id}.pdf`
       });
       if (!success) {
-        window.print();
+        alert('PDF dosyası doğrudan indirilemedi. Lütfen "Yazdır" butonunu kullanarak "PDF Olarak Kaydet" seçeneğini kullanın.');
       }
     } catch (err) {
       console.error('Direct PDF download error:', err);
-      window.print();
+      alert('PDF oluşturulurken bir hata meydana geldi.');
     } finally {
       setDownloadingOrderId(null);
-      setAdminPrintingOrder(null);
+      setDirectDownloadOrder(null);
     }
   };
 
@@ -6898,11 +6899,11 @@ export default function AdminControlPanel() {
                             filename: `Siparis_${adminPrintingOrder.orderNumber}.pdf`
                           });
                           if (!success) {
-                            window.print();
+                            alert('PDF dosyası doğrudan indirilemedi. Lütfen "Hemen Yazdır" butonunu kullanarak "PDF Olarak Kaydet" seçeneğini kullanın.');
                           }
                         } catch (err) {
                           console.error(err);
-                          window.print();
+                          alert('PDF oluşturulurken bir hata meydana geldi.');
                         } finally {
                           setIsAdminDownloadingPdf(false);
                         }
@@ -6939,7 +6940,7 @@ export default function AdminControlPanel() {
 
                 {/* On-screen Preview Container */}
                 <div
-                  id="order-print-preview"
+                  id="order-print-preview-container"
                   className="max-w-4xl mx-auto w-full bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden"
                 >
                   <OrderPrintDocument order={adminPrintingOrder} isPreview />
@@ -6949,6 +6950,28 @@ export default function AdminControlPanel() {
           </main>
         </div>
       </div>
+
+      {/* OFFSCREEN TARGET FOR DIRECT ORDER ROW PDF DOWNLOAD */}
+      {directDownloadOrder && (
+        <div
+          id="admin-direct-pdf-wrapper"
+          className="no-print"
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '800px',
+            opacity: 0,
+            pointerEvents: 'none',
+            zIndex: -100,
+            backgroundColor: '#ffffff'
+          }}
+        >
+          <div id="admin-direct-pdf-target">
+            <OrderPrintDocument order={directDownloadOrder} isPreview={false} />
+          </div>
+        </div>
+      )}
 
       {/* PURE A4 PRINT DOCUMENT - Rendered directly at root level, only visible during print */}
       {adminPrintingOrder && (
