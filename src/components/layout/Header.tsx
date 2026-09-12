@@ -13,7 +13,6 @@ import {
   Bell,
   User,
   ShieldAlert,
-  Snowflake,
   LogOut,
   ChevronDown,
   Menu,
@@ -103,15 +102,19 @@ export function Header({ onToggleSidebar }: HeaderProps) {
           </button>
 
           <Link href="/bayi" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-xs group-hover:bg-blue-700 transition">
-              <Snowflake className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex-shrink-0 group-hover:scale-105 transition">
+              <img
+                src="/images/logo/app-icon.png"
+                alt="Ersa Soğutma"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black tracking-tight text-slate-900 dark:text-white uppercase">
-                  ERSA <span className="text-blue-600">SOĞUTMA</span>
+                  ERSA <span className="text-orange-600 dark:text-orange-500">SOĞUTMA</span>
                 </span>
-                <span className="text-[9px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.2 rounded-md">
+                <span className="text-[9px] font-bold bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60 px-1.5 py-0.2 rounded-md">
                   BAYİ PORTALI
                 </span>
               </div>

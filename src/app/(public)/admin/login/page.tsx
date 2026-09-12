@@ -4,6 +4,7 @@ import React, { useActionState } from 'react';
 import Link from 'next/link';
 import { Shield, ArrowRight } from 'lucide-react';
 import { authenticateAdmin } from '@/lib/actions';
+import { BrandLogo } from '@/components/common/BrandLogo';
 
 export default function AdminLoginPage() {
   const [errorMessage, formAction, isPending] = useActionState(
@@ -14,12 +15,10 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090D16] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-md w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden transition-colors duration-200">
-        <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800">
-          <div className="mx-auto w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">YÖNETİM PANELİ</h2>
-          <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm font-medium">Sadece yetkili personel erişebilir</p>
+        <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800 flex flex-col items-center">
+          <BrandLogo size="md" badge="YÖNETİCİ" href="/" />
+          <h2 className="text-xl font-black text-slate-900 dark:text-white mt-3">YÖNETİM PANELİ GİRİŞİ</h2>
+          <p className="mt-1 text-slate-600 dark:text-slate-400 text-xs font-medium">Sadece yetkili personel erişebilir</p>
         </div>
         
         <div className="p-8">

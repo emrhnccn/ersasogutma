@@ -4,6 +4,7 @@ import React, { useActionState } from 'react';
 import Link from 'next/link';
 import { Lock, User, ArrowRight } from 'lucide-react';
 import { authenticateBayi } from '@/lib/actions';
+import { BrandLogo } from '@/components/common/BrandLogo';
 
 export default function BayiLoginPage() {
   const [errorMessage, formAction, isPending] = useActionState(
@@ -14,9 +15,11 @@ export default function BayiLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#090D16] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-md w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden transition-colors duration-200">
-        <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800">
-          <h2 className="text-3xl font-black text-sky-600 dark:text-sky-400">ERSA SOĞUTMA</h2>
-          <p className="mt-2 text-slate-600 dark:text-slate-400 text-sm font-medium">B2B Bayi Portalı Girişi</p>
+        <div className="bg-slate-50 dark:bg-[#0B1120] p-8 text-center border-b border-slate-200 dark:border-slate-800 flex flex-col items-center">
+          <BrandLogo size="lg" badge="BAYİ GİRİŞİ" href="/" />
+          <p className="mt-3 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+            B2B Satış Platformu
+          </p>
         </div>
         
         <div className="p-8">

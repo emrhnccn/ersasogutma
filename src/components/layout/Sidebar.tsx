@@ -29,7 +29,6 @@ import {
   FolderTree,
   Search,
   X,
-  Snowflake,
   Sun,
   Moon
 } from 'lucide-react';
@@ -407,15 +406,19 @@ export function Sidebar({ isOpen, onClose, onCloseAction }: SidebarProps) {
       >
         {/* Brand Header */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 bg-white dark:bg-[#111827] transition-colors">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs shadow-blue-600/20">
-            <Snowflake className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-xs flex-shrink-0">
+            <img
+              src="/images/logo/app-icon.png"
+              alt="Ersa Soğutma"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="overflow-hidden flex-1">
             <div className="text-sm font-black text-slate-900 dark:text-white tracking-tight uppercase">
-              ERSA SOĞUTMA
+              ERSA <span className="text-orange-600 dark:text-orange-500">SOĞUTMA</span>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.2 rounded border border-blue-200 dark:border-blue-500/20">
+              <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.2 rounded border border-orange-200 dark:border-orange-500/20">
                 Bayi Portalı
               </span>
             </div>

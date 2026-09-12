@@ -13,8 +13,20 @@ export function PublicHeader() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-2xl font-black text-sky-700 tracking-tighter">
-              ERSA SOĞUTMA
+            <Link href="/" className="flex items-center gap-3 group">
+              <img
+                src="/images/logo/brand-emblem-light.png"
+                alt="Ersa Soğutma"
+                className="h-10 w-auto object-contain group-hover:scale-105 transition"
+              />
+              <div>
+                <span className="text-xl font-black text-slate-900 tracking-tight block leading-tight">
+                  ERSA <span className="text-orange-600">SOĞUTMA</span>
+                </span>
+                <span className="text-[10px] text-slate-500 tracking-wider font-semibold block uppercase">
+                  B2B Satış Platformu
+                </span>
+              </div>
             </Link>
           </div>
 

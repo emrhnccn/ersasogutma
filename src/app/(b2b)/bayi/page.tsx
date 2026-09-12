@@ -14,7 +14,6 @@ import {
   Clock,
   Truck,
   Building2,
-  Snowflake,
   AlertCircle,
   FileText,
   TrendingUp,

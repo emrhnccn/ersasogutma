@@ -23,6 +23,19 @@ export const metadata: Metadata = {
   description: "Ersa Soğutma Isıtma San. ve Tic. Ltd. Şti. Resmi B2B Bayi ve Toptan Satış Portalı. Kompresörler, Soğutucu Gazlar, Fan Motorları ve Servis Ekipmanları.",
   keywords: "ersa soğutma, b2b bayi portalı, soğutma sistemleri, embraco kompresör, danfoss, r134a gaz, r404a, fan motoru, soğuk hava deposu",
   authors: [{ name: "Ersa Soğutma" }],
+  icons: {
+    icon: [
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' }
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+    ],
+    shortcut: ['/icon.png']
+  },
+  manifest: '/site.webmanifest'
 };
 
 export default function RootLayout({
@@ -33,6 +46,8 @@ export default function RootLayout({
   return (
     <html lang="tr" className="scroll-smooth" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function() {

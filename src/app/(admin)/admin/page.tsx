@@ -1487,13 +1487,15 @@ export default function AdminControlPanel() {
           {/* Brand Header */}
           <div className="h-16 border-b border-slate-200 dark:border-slate-800/80 px-5 flex items-center justify-between shrink-0">
             <Link href="/admin" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
-                <ShieldAlert className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+                <img src="/images/logo/app-icon.png" alt="Ersa Soğutma" className="w-full h-full object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm">ERSA SOĞUTMA</span>
-                  <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] font-bold rounded">
+                  <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm">
+                    ERSA <span className="text-orange-600 dark:text-orange-500">SOĞUTMA</span>
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 text-[9px] font-bold rounded">
                     ADMİN
                   </span>
                 </div>

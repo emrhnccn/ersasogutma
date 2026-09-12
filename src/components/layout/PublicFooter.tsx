@@ -9,8 +9,17 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="text-2xl font-black text-white tracking-tighter">
-              ERSA <span className="text-sky-400">SOĞUTMA</span>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-xs flex-shrink-0">
+                <img
+                  src="/images/logo/app-icon.png"
+                  alt="Ersa Soğutma"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-2xl font-black text-white tracking-tight uppercase">
+                ERSA <span className="text-orange-500">SOĞUTMA</span>
+              </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
               Darıca ve Kocaeli merkezli; Türkiye geneli soğutma sistemleri, kompresör ve toptan yedek parça tedarik merkezi.

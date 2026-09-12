@@ -158,19 +158,29 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
       >
         {/* 1. Header: Brand & Document Info */}
         <div className="flex justify-between items-start border-b-2 border-slate-900 pb-5 mb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-black tracking-tight text-slate-900">
-                ERSA <span className="text-sky-600">SOĞUTMA</span>
-              </span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/logo/brand-emblem-light.png"
+              alt="Ersa Soğutma Logo"
+              className="w-12 h-12 object-contain"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black tracking-tight text-slate-900">
+                  ERSA <span className="text-orange-600">SOĞUTMA</span>
+                </span>
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-orange-100 text-orange-700 border border-orange-200">
+                  B2B
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">
+                ERSA SOĞUTMA ISITMA SAN. VE TİC. LTD. ŞTİ.
+              </p>
+              <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
+                Nenehatun Mah. Battal Gazi Cad. No:139/A • Darıca / KOCAELİ<br />
+                Tel: 0262 653 41 00 • GSM: 0552 584 30 73 • E-posta: info@ersasogutma.com.tr
+              </p>
             </div>
-            <p className="text-[11px] font-bold text-slate-700 mt-1 uppercase tracking-wider">
-              ERSA SOĞUTMA ISITMA SAN. VE TİC. LTD. ŞTİ.
-            </p>
-            <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
-              Nenehatun Mah. Battal Gazi Cad. No:139/A • Darıca / KOCAELİ<br />
-              Tel: 0262 653 41 00 • GSM: 0552 584 30 73 • E-posta: info@ersasogutma.com.tr
-            </p>
           </div>
 
           <div className="text-right">
