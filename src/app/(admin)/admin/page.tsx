@@ -536,6 +536,28 @@ export default function AdminControlPanel() {
   // Admin Order Printing Modal State
   const [adminPrintingOrder, setAdminPrintingOrder] = useState<any | null>(null);
   const [isAdminDownloadingPdf, setIsAdminDownloadingPdf] = useState(false);
+  const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
+
+  const handleDirectDownloadPdf = async (orderToDownload: any) => {
+    setDownloadingOrderId(orderToDownload.id);
+    setAdminPrintingOrder(orderToDownload);
+    try {
+      // Allow modal / preview element to mount
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      const success = await downloadElementAsPdf('order-print-preview', {
+        filename: `Siparis_${orderToDownload.orderNumber || orderToDownload.id}.pdf`
+      });
+      if (!success) {
+        window.print();
+      }
+    } catch (err) {
+      console.error('Direct PDF download error:', err);
+      window.print();
+    } finally {
+      setDownloadingOrderId(null);
+      setAdminPrintingOrder(null);
+    }
+  };
 
   // Dealer Application Full Detail Modal State
   const [viewingAppDetail, setViewingAppDetail] = useState<any | null>(null);
@@ -3079,6 +3101,26 @@ export default function AdminControlPanel() {
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                   <span>Siparişi Düzenle</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={downloadingOrderId === order.id}
+                                  onClick={() => handleDirectDownloadPdf(order)}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
+                                  title="Sipariş Formunu Doğrudan PDF Olarak İndir"
+                                >
+                                  {downloadingOrderId === order.id ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      <span>İndiriliyor...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Download className="w-3.5 h-3.5" />
+                                      <span>İndir</span>
+                                    </>
+                                  )}
                                 </button>
 
                                 <button
@@ -6856,11 +6898,11 @@ export default function AdminControlPanel() {
                             filename: `Siparis_${adminPrintingOrder.orderNumber}.pdf`
                           });
                           if (!success) {
-                            alert('PDF oluşturulamadı. Lütfen tekrar deneyin.');
+                            window.print();
                           }
                         } catch (err) {
                           console.error(err);
-                          alert('PDF indirme sırasında bir hata oluştu.');
+                          window.print();
                         } finally {
                           setIsAdminDownloadingPdf(false);
                         }

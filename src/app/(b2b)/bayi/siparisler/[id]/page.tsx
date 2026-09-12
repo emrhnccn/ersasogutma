@@ -87,11 +87,11 @@ export default function OrderDetailPage() {
         filename: `Siparis_${order.orderNumber || orderId}.pdf`
       });
       if (!success) {
-        alert('PDF oluşturulamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
+        window.print();
       }
     } catch (err) {
       console.error('PDF download error:', err);
-      alert('PDF indirme sırasında bir hata oluştu.');
+      window.print();
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -330,17 +330,15 @@ export default function OrderDetailPage() {
         id="order-pdf-export-wrapper"
         className="no-print"
         style={{
-          position: 'fixed',
-          left: 0,
+          position: 'absolute',
+          left: '-9999px',
           top: 0,
           width: '794px',
-          zIndex: -9999,
-          pointerEvents: 'none',
           backgroundColor: '#ffffff'
         }}
       >
         <div id="order-pdf-export">
-          <OrderPrintDocument order={order} isPreview={true} />
+          <OrderPrintDocument order={order} isPreview={false} />
         </div>
       </div>
 

@@ -231,3 +231,107 @@ html.dark .shadow-2xl {
     font-weight: bold !important;
   }
 }
+
+/* =========================================================================
+   PRINT / PDF DOCUMENT IMMUNITY FROM DARK MODE
+   Invoices, receipts, and order forms must ALWAYS be crisp black on white paper,
+   regardless of whether the application is running in Dark Mode.
+   ========================================================================= */
+.ersa-print-wrapper,
+#order-print-document,
+#order-print-preview,
+#order-pdf-export,
+#order-pdf-export-wrapper {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper,
+html.dark #order-print-document,
+html.dark #order-print-preview,
+html.dark #order-pdf-export,
+html.dark #order-pdf-export-wrapper {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .bg-white,
+html.dark #order-print-document .bg-white,
+html.dark #order-print-preview .bg-white,
+html.dark #order-pdf-export .bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .bg-slate-50,
+html.dark #order-print-document .bg-slate-50,
+html.dark #order-print-preview .bg-slate-50,
+html.dark #order-pdf-export .bg-slate-50 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .bg-slate-100,
+html.dark #order-print-document .bg-slate-100,
+html.dark #order-print-preview .bg-slate-100,
+html.dark #order-pdf-export .bg-slate-100 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .text-slate-900,
+html.dark #order-print-document .text-slate-900,
+html.dark #order-print-preview .text-slate-900,
+html.dark #order-pdf-export .text-slate-900 {
+  color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .text-slate-800,
+html.dark #order-print-document .text-slate-800,
+html.dark #order-print-preview .text-slate-800,
+html.dark #order-pdf-export .text-slate-800 {
+  color: #1e293b !important;
+}
+
+html.dark .ersa-print-wrapper .text-slate-700,
+html.dark #order-print-document .text-slate-700,
+html.dark #order-print-preview .text-slate-700,
+html.dark #order-pdf-export .text-slate-700 {
+  color: #334155 !important;
+}
+
+html.dark .ersa-print-wrapper .text-slate-600,
+html.dark #order-print-document .text-slate-600,
+html.dark #order-print-preview .text-slate-600,
+html.dark #order-pdf-export .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.dark .ersa-print-wrapper .text-slate-500,
+html.dark #order-print-document .text-slate-500,
+html.dark #order-print-preview .text-slate-500,
+html.dark #order-pdf-export .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.dark .ersa-print-wrapper .border-slate-200,
+html.dark #order-print-document .border-slate-200,
+html.dark #order-print-preview .border-slate-200,
+html.dark #order-pdf-export .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+html.dark .ersa-print-wrapper .border-slate-900,
+html.dark #order-print-document .border-slate-900,
+html.dark #order-print-preview .border-slate-900,
+html.dark #order-pdf-export .border-slate-900 {
+  border-color: #0f172a !important;
+}
+
+html.dark .ersa-print-wrapper .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark #order-print-document .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark #order-print-preview .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark #order-pdf-export .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+

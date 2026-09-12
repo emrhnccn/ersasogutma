@@ -18,7 +18,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
       {/* 2. Main Content Column */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
-        <CurrencyTicker />
+        <div className="no-print print:hidden">
+          <CurrencyTicker />
+        </div>
         <Header
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           isSidebarOpen={sidebarOpen}

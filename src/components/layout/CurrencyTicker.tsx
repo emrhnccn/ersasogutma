@@ -13,7 +13,7 @@ export function CurrencyTicker() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#0D1424] text-slate-600 dark:text-slate-300 text-xs border-b border-slate-200 dark:border-slate-800 py-1.5 px-4 sticky top-0 z-40 shadow-2xs transition-colors">
+    <div className="bg-white dark:bg-[#0D1424] text-slate-600 dark:text-slate-300 text-xs border-b border-slate-200 dark:border-slate-800 py-1.5 px-4 sticky top-0 z-40 shadow-2xs transition-colors no-print print:hidden">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         
         {/* Left: Live Currency Ticker */}

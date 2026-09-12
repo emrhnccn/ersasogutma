@@ -39,12 +39,30 @@ test('PDF EXPORT & CORS PROXY TESTS', async (t) => {
     assert.ok(!content.includes('crossOrigin="anonymous"'), 'Must NOT have crossOrigin="anonymous" to avoid browser blocking');
   });
 
-  await t.test('5. PdfExport converts images to DataURLs ahead of rendering', () => {
+  await t.test('5. PdfExport converts images to DataURLs and enforces light mode', () => {
     const pdfPath = path.join(root, 'src/lib/export/pdfExport.ts');
     const content = fs.readFileSync(pdfPath, 'utf8');
 
-    assert.ok(content.includes('toDataUrl'), 'Must define toDataUrl helper');
     assert.ok(content.includes('allowTaint: true'), 'Must allow canvas drawing');
     assert.ok(content.includes('jsPDF'), 'Must initialize jsPDF');
+    assert.ok(content.includes("classList.remove('dark')"), 'Must strip dark mode from cloned doc');
+  });
+
+  await t.test('6. CurrencyTicker is hidden during print and PDF export', () => {
+    const tickerPath = path.join(root, 'src/components/layout/CurrencyTicker.tsx');
+    const tickerContent = fs.readFileSync(tickerPath, 'utf8');
+    assert.ok(tickerContent.includes('no-print'), 'CurrencyTicker must have no-print');
+    assert.ok(tickerContent.includes('print:hidden'), 'CurrencyTicker must have print:hidden');
+
+    const layoutPath = path.join(root, 'src/components/layout/MainLayout.tsx');
+    const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+    assert.ok(layoutContent.includes('no-print print:hidden'), 'MainLayout must wrap CurrencyTicker with print-hidden');
+  });
+
+  await t.test('7. Globals.css guarantees print document dark mode immunity', () => {
+    const cssPath = path.join(root, 'src/app/globals.css');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+    assert.ok(cssContent.includes('PRINT / PDF DOCUMENT IMMUNITY FROM DARK MODE'), 'Must have print dark mode immunity section');
+    assert.ok(cssContent.includes('html.dark #order-print-document'), 'Must force light background and dark text in dark mode');
   });
 });

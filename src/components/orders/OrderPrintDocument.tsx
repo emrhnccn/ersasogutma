@@ -100,6 +100,7 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
             .no-print,
             .print\\:hidden,
             .print-hidden,
+            [class*="CurrencyTicker"],
             header,
             nav,
             aside,

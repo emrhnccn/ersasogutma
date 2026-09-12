@@ -43,13 +43,15 @@ test('KATEGORİ AĞACI, SİPARİŞ RESİMLİ YAZDIRMA VE PDF İNDİRME TESTLERİ
     assert.ok(content.includes('<Printer'), 'Yazdır butonu korunmalı');
   });
 
-  await t.test('4. Admin Sipariş Önizleme Modalında PDF İndir Butonu', () => {
+  await t.test('4. Admin Sipariş Önizleme Modalında ve Sipariş Satırında İndir Butonu', () => {
     const adminPath = path.join(root, 'src/app/(admin)/admin/page.tsx');
     const content = fs.readFileSync(adminPath, 'utf-8');
 
     assert.ok(content.includes('isAdminDownloadingPdf'), 'Admin sipariş önizlemesinde PDF indirme durumu olmalı');
     assert.ok(content.includes('PDF İndir'), 'Admin sipariş önizleme modalında PDF İndir butonu olmalı');
     assert.ok(content.includes('Hemen Yazdır'), 'Hemen Yazdır butonu korunmalı');
+    assert.ok(content.includes('handleDirectDownloadPdf'), 'Sipariş listesinde doğrudan PDF indir fonksiyonu olmalı');
+    assert.ok(content.includes('downloadingOrderId'), 'Sipariş listesinde satır bazlı indirme durumu olmalı');
   });
 
   await t.test('5. Ürün Kataloğu - Görseldeki Tarzda Akordeon Kategori Ağacı', () => {
