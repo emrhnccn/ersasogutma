@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npx tsx tests/b2b-suite.test.ts && npx tsx tests/production-e2e.test.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && node scripts/patch-html2canvas.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

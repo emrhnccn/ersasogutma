@@ -13,8 +13,8 @@ test('KATEGORİ AĞACI, SİPARİŞ RESİMLİ YAZDIRMA VE PDF İNDİRME TESTLERİ
     // Kontrol: Görsel sütunu tanımlı mı?
     assert.ok(content.includes('<th className="py-2 px-2 w-12 text-center border-r border-slate-200">Görsel</th>'), 'Tablo başlığında Görsel sütunu olmalı');
     
-    // Kontrol: Ürün thumbnail img etiketi var mı?
-    assert.ok(content.includes('crossOrigin="anonymous"'), 'Görselde crossOrigin="anonymous" olmalı');
+    // Kontrol: Ürün thumbnail img etiketi ve proxy-image güvenliği var mı?
+    assert.ok(content.includes('/api/proxy-image'), 'Görsel CORS engellerini aşmak için proxy-image kullanılmalı');
     assert.ok(content.includes('itemImg'), 'Satırlarda ürün görseli işlenmeli');
     assert.ok(content.includes('/placeholder.svg'), 'Görsel yoksa placeholder fallback olmalı');
 

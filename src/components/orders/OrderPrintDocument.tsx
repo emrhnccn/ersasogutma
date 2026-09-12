@@ -295,7 +295,10 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
                 const unitPrice = Number(item.unitNetExVat || 0);
                 const discount = Number(item.discountAmt || 0);
                 const lineGross = Number(item.lineGross || (unitPrice * qty * 1.2));
-                const itemImg = item.image || item.imageUrl || '/placeholder.svg';
+                const rawImg = item.image || item.imageUrl || '/placeholder.svg';
+                const itemImg = (rawImg.startsWith('http://') || rawImg.startsWith('https://'))
+                  ? `/api/proxy-image?url=${encodeURIComponent(rawImg)}`
+                  : rawImg;
 
                 return (
                   <tr key={item.id || idx} className="ersa-print-table-row hover:bg-slate-50">
@@ -307,7 +310,6 @@ export function OrderPrintDocument({ order, className = '', isPreview = false }:
                         <img
                           src={itemImg}
                           alt={item.name}
-                          crossOrigin="anonymous"
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = '/placeholder.svg';
